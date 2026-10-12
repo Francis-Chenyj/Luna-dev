@@ -1,0 +1,33 @@
+name: Feature request / 功能建议
+description: Describe a use case and the improvement you want / 描述使用场景和希望得到的改进
+title: "[Feature] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Search existing suggestions first. Explain the problem the feature would solve; a feature name alone is usually not enough.
+        请先搜索已有建议，再说明这个功能解决什么问题，尽量不要只写功能名称。
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem and use case / 问题与使用场景
+      placeholder: When using Luna, what are you trying to do and what gets in the way? / 你使用 Luna 时想完成什么？目前遇到了什么不便？
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Desired behavior / 期望的效果
+      placeholder: Describe the steps and result you would like. / 描述你期望的操作方式和结果。
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives (optional) / 替代方法（可选）
+      placeholder: Any workaround you have tried, or another way to solve the problem. / 你尝试过的临时办法，或其他可能的解决方式。
+  - type: textarea
+    id: context
+    attributes:
+      label: Examples or images (optional) / 示例或图片（可选）
+      description: Add context that helps explain the request. Remove private information from images. / 可补充有助于理解的示例；图片请遮挡个人信息。

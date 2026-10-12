@@ -1,0 +1,78 @@
+name: Bug report / 错误反馈
+description: Help reproduce a Luna problem / 帮助复现 Luna 的问题
+title: "[Bug] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please describe one problem per report. Search existing issues before submitting.
+        每份反馈描述一个问题，提交前请先搜索是否已有相同反馈。
+
+        Prefer **Settings → Support → Copy diagnostics**. Screenshots and short log excerpts are optional; remove account information, tokens and personal paths. Do not attach the entire data/cache folder.
+        优先使用 **设置 → 排错 → 复制诊断信息**。截图和少量日志可选，请遮挡账号、令牌和个人路径，不要上传整个数据或缓存目录。
+  - type: input
+    id: version
+    attributes:
+      label: Luna version / 程序版本
+      description: Settings → About; if Luna cannot open, check the ZIP filename. / 设置 → 关于；无法启动时查看 ZIP 文件名。
+      placeholder: "e.g. / 例如 1.5.0"
+    validations:
+      required: true
+  - type: input
+    id: windows
+    attributes:
+      label: Windows version / Windows 版本
+      description: Include the edition and OS build from Windows Settings → System → About. / 请填写 Windows 设置 → 系统 → 关于中的版本和系统内部版本。
+      placeholder: "e.g. / 例如 Windows 11 24H2, OS build / 内部版本 26100.x"
+    validations:
+      required: true
+  - type: dropdown
+    id: mode
+    attributes:
+      label: Running mode / 运行模式
+      options:
+        - Normal / 普通模式
+        - Offline / 离线模式
+        - Cannot start or unsure / 无法启动或不确定
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce / 复现步骤
+      description: For query problems include the champion, lane, rank filter, threshold and strictness. For display problems include the language and theme. / 查询问题请补充英雄、分路、分段、阈值和严谨度；显示问题请补充语言和主题。
+      placeholder: |
+        1. Open Luna / 打开 Luna
+        2. ...
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected result / 预期结果
+      placeholder: What should have happened? / 你预期应该发生什么？
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual result / 实际结果
+      placeholder: What happened instead? Include the visible error, if any. / 实际发生了什么？如有报错，请说明界面显示的内容。
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Copied diagnostics (optional) / 精简诊断信息（可选）
+      description: Paste the text from Luna's Copy diagnostics button. Leave empty if Luna cannot start. / 粘贴 Luna“复制诊断信息”的内容；无法启动时可以留空。
+      render: text
+    validations:
+      required: false
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Screenshots or log excerpts (optional) / 截图或日志片段（可选）
+      description: Attach an image or paste only the relevant error excerpt after removing private information. / 可拖入图片或粘贴相关错误片段，请先移除个人信息。
+    validations:
+      required: false

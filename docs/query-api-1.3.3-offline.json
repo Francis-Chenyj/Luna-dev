@@ -1,0 +1,9 @@
+{
+  "passed": true,
+  "mode": "offline",
+  "queries": 856,
+  "medianMs": 5.06,
+  "p95Ms": 9.09,
+  "maxMs": 19.49,
+  "checks": "exact full-library source equality, zero implicit updates, valid empty results, filter isolation, local-only HTTP boundaries"
+}

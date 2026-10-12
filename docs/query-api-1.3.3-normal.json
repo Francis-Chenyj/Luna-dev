@@ -1,0 +1,9 @@
+{
+  "passed": true,
+  "mode": "normal",
+  "queries": 856,
+  "medianMs": 5,
+  "p95Ms": 8.9,
+  "maxMs": 14.14,
+  "checks": "exact full-library source equality, zero implicit updates, valid empty results, filter isolation, local-only HTTP boundaries"
+}

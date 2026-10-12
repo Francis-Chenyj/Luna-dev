@@ -1,0 +1,46 @@
+name: Windows checks
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: windows-checks-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Build, test and verify packages
+    runs-on: windows-2022
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: powershell
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - name: Run the local verification entry point
+        run: .\scripts\check.ps1 -OutputDirectory .\dist\ci
+      - name: Show verification summary
+        if: always()
+        run: |
+          if (Test-Path -LiteralPath .\dist\ci\summary.md) {
+            Get-Content -LiteralPath .\dist\ci\summary.md -Raw -Encoding UTF8 |
+              Out-File -LiteralPath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+          } else {
+            'Verification did not produce a summary. Check the preceding step logs.' |
+              Out-File -LiteralPath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+          }
+    # Verification only: no artifact upload, release creation or repository writes.

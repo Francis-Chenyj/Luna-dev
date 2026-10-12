@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "version": "1.5.0",
+  "author": "FrancisChen",
+  "reviewDate": "2026-10-12",
+  "intendedRepository": "Francis-Chenyj/Luna-dev",
+  "intendedVisibility": "public",
+  "originalCodeLicense": "MIT",
+  "distributionStatus": "public-prerelease",
+  "publicReleaseReady": false,
+  "thirdPartyReview": "docs/THIRD_PARTY_REVIEW.md",
+  "pending": [
+    "Confirm MalzaharAI offline-data redistribution and third-party update access terms.",
+    "Confirm Riot product registration/review and the terms/provenance of bundled Riot/Tencent assets.",
+    "Resolve the documented scope of third-party screenshots and curated source material before redistribution."
+  ],
+  "releaseTag": "v1.5.0-dev.1",
+  "statusExplanation": "Public development pre-release selected by the maintainer. publicReleaseReady remains false because third-party distribution evidence and Riot registration are unresolved; it is not a repository visibility flag."
+}

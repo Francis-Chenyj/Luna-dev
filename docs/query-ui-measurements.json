@@ -1,0 +1,5998 @@
+{
+  "normal": [
+    {
+      "name": "安妮",
+      "lane": "middle",
+      "ms": 90,
+      "father": 19,
+      "son": 18
+    },
+    {
+      "name": "安妮",
+      "lane": "top",
+      "ms": 42,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "安妮",
+      "lane": "support",
+      "ms": 34,
+      "father": 2,
+      "son": 1
+    },
+    {
+      "name": "奥拉夫",
+      "lane": "top",
+      "ms": 34,
+      "father": 30,
+      "son": 35
+    },
+    {
+      "name": "奥拉夫",
+      "lane": "jungle",
+      "ms": 52,
+      "father": 2,
+      "son": 0
+    },
+    {
+      "name": "加里奥",
+      "lane": "middle",
+      "ms": 30,
+      "father": 42,
+      "son": 31
+    },
+    {
+      "name": "加里奥",
+      "lane": "top",
+      "ms": 42,
+      "father": 0,
+      "son": 6
+    },
+    {
+      "name": "加里奥",
+      "lane": "support",
+      "ms": 45,
+      "father": 14,
+      "son": 14
+    },
+    {
+      "name": "崔斯特",
+      "lane": "middle",
+      "ms": 38,
+      "father": 34,
+      "son": 43
+    },
+    {
+      "name": "崔斯特",
+      "lane": "top",
+      "ms": 35,
+      "father": 5,
+      "son": 3
+    },
+    {
+      "name": "崔斯特",
+      "lane": "support",
+      "ms": 35,
+      "father": 6,
+      "son": 0
+    },
+    {
+      "name": "赵信",
+      "lane": "jungle",
+      "ms": 29,
+      "father": 26,
+      "son": 24
+    },
+    {
+      "name": "赵信",
+      "lane": "top",
+      "ms": 46,
+      "father": 3,
+      "son": 1
+    },
+    {
+      "name": "赵信",
+      "lane": "middle",
+      "ms": 32,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "厄加特",
+      "lane": "top",
+      "ms": 28,
+      "father": 13,
+      "son": 26
+    },
+    {
+      "name": "厄加特",
+      "lane": "middle",
+      "ms": 35,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "厄加特",
+      "lane": "support",
+      "ms": 30,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "乐芙兰",
+      "lane": "middle",
+      "ms": 30,
+      "father": 26,
+      "son": 40
+    },
+    {
+      "name": "乐芙兰",
+      "lane": "support",
+      "ms": 34,
+      "father": 16,
+      "son": 15
+    },
+    {
+      "name": "弗拉基米尔",
+      "lane": "middle",
+      "ms": 33,
+      "father": 21,
+      "son": 25
+    },
+    {
+      "name": "弗拉基米尔",
+      "lane": "top",
+      "ms": 30,
+      "father": 18,
+      "son": 21
+    },
+    {
+      "name": "弗拉基米尔",
+      "lane": "bottom",
+      "ms": 37,
+      "father": 1,
+      "son": 2
+    },
+    {
+      "name": "费德提克",
+      "lane": "jungle",
+      "ms": 29,
+      "father": 15,
+      "son": 20
+    },
+    {
+      "name": "费德提克",
+      "lane": "top",
+      "ms": 35,
+      "father": 2,
+      "son": 3
+    },
+    {
+      "name": "费德提克",
+      "lane": "middle",
+      "ms": 35,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "费德提克",
+      "lane": "support",
+      "ms": 32,
+      "father": 6,
+      "son": 10
+    },
+    {
+      "name": "凯尔",
+      "lane": "top",
+      "ms": 36,
+      "father": 15,
+      "son": 16
+    },
+    {
+      "name": "凯尔",
+      "lane": "middle",
+      "ms": 33,
+      "father": 2,
+      "son": 4
+    },
+    {
+      "name": "易",
+      "lane": "jungle",
+      "ms": 34,
+      "father": 27,
+      "son": 34
+    },
+    {
+      "name": "易",
+      "lane": "top",
+      "ms": 35,
+      "father": 9,
+      "son": 5
+    },
+    {
+      "name": "易",
+      "lane": "middle",
+      "ms": 29,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "易",
+      "lane": "bottom",
+      "ms": 32,
+      "father": 1,
+      "son": 3
+    },
+    {
+      "name": "阿利斯塔",
+      "lane": "support",
+      "ms": 29,
+      "father": 26,
+      "son": 37
+    },
+    {
+      "name": "瑞兹",
+      "lane": "middle",
+      "ms": 37,
+      "father": 37,
+      "son": 19
+    },
+    {
+      "name": "瑞兹",
+      "lane": "top",
+      "ms": 29,
+      "father": 20,
+      "son": 17
+    },
+    {
+      "name": "赛恩",
+      "lane": "top",
+      "ms": 32,
+      "father": 33,
+      "son": 30
+    },
+    {
+      "name": "赛恩",
+      "lane": "jungle",
+      "ms": 36,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "赛恩",
+      "lane": "middle",
+      "ms": 32,
+      "father": 12,
+      "son": 8
+    },
+    {
+      "name": "赛恩",
+      "lane": "support",
+      "ms": 31,
+      "father": 2,
+      "son": 2
+    },
+    {
+      "name": "希维尔",
+      "lane": "bottom",
+      "ms": 28,
+      "father": 18,
+      "son": 18
+    },
+    {
+      "name": "索拉卡",
+      "lane": "support",
+      "ms": 36,
+      "father": 22,
+      "son": 19
+    },
+    {
+      "name": "提莫",
+      "lane": "top",
+      "ms": 34,
+      "father": 34,
+      "son": 40
+    },
+    {
+      "name": "提莫",
+      "lane": "jungle",
+      "ms": 34,
+      "father": 1,
+      "son": 1
+    },
+    {
+      "name": "提莫",
+      "lane": "middle",
+      "ms": 29,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "提莫",
+      "lane": "bottom",
+      "ms": 33,
+      "father": 2,
+      "son": 3
+    },
+    {
+      "name": "提莫",
+      "lane": "support",
+      "ms": 30,
+      "father": 7,
+      "son": 1
+    },
+    {
+      "name": "崔丝塔娜",
+      "lane": "bottom",
+      "ms": 29,
+      "father": 20,
+      "son": 22
+    },
+    {
+      "name": "崔丝塔娜",
+      "lane": "middle",
+      "ms": 36,
+      "father": 12,
+      "son": 14
+    },
+    {
+      "name": "沃里克",
+      "lane": "jungle",
+      "ms": 37,
+      "father": 30,
+      "son": 17
+    },
+    {
+      "name": "沃里克",
+      "lane": "top",
+      "ms": 33,
+      "father": 22,
+      "son": 29
+    },
+    {
+      "name": "努努和威朗普",
+      "lane": "jungle",
+      "ms": 38,
+      "father": 21,
+      "son": 25
+    },
+    {
+      "name": "努努和威朗普",
+      "lane": "middle",
+      "ms": 35,
+      "father": 12,
+      "son": 14
+    },
+    {
+      "name": "努努和威朗普",
+      "lane": "support",
+      "ms": 35,
+      "father": 2,
+      "son": 0
+    },
+    {
+      "name": "厄运小姐",
+      "lane": "bottom",
+      "ms": 29,
+      "father": 16,
+      "son": 16
+    },
+    {
+      "name": "厄运小姐",
+      "lane": "support",
+      "ms": 35,
+      "father": 3,
+      "son": 0
+    },
+    {
+      "name": "艾希",
+      "lane": "bottom",
+      "ms": 28,
+      "father": 21,
+      "son": 14
+    },
+    {
+      "name": "艾希",
+      "lane": "support",
+      "ms": 35,
+      "father": 7,
+      "son": 4
+    },
+    {
+      "name": "泰达米尔",
+      "lane": "top",
+      "ms": 48,
+      "father": 33,
+      "son": 25
+    },
+    {
+      "name": "泰达米尔",
+      "lane": "jungle",
+      "ms": 40,
+      "father": 1,
+      "son": 0
+    },
+    {
+      "name": "泰达米尔",
+      "lane": "middle",
+      "ms": 36,
+      "father": 4,
+      "son": 10
+    },
+    {
+      "name": "贾克斯",
+      "lane": "top",
+      "ms": 41,
+      "father": 38,
+      "son": 47
+    },
+    {
+      "name": "贾克斯",
+      "lane": "jungle",
+      "ms": 36,
+      "father": 13,
+      "son": 11
+    },
+    {
+      "name": "贾克斯",
+      "lane": "support",
+      "ms": 35,
+      "father": 2,
+      "son": 3
+    },
+    {
+      "name": "莫甘娜",
+      "lane": "support",
+      "ms": 28,
+      "father": 27,
+      "son": 17
+    },
+    {
+      "name": "莫甘娜",
+      "lane": "top",
+      "ms": 36,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "莫甘娜",
+      "lane": "jungle",
+      "ms": 35,
+      "father": 2,
+      "son": 2
+    },
+    {
+      "name": "莫甘娜",
+      "lane": "middle",
+      "ms": 32,
+      "father": 2,
+      "son": 7
+    },
+    {
+      "name": "基兰",
+      "lane": "support",
+      "ms": 29,
+      "father": 19,
+      "son": 26
+    },
+    {
+      "name": "基兰",
+      "lane": "top",
+      "ms": 34,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "基兰",
+      "lane": "middle",
+      "ms": 30,
+      "father": 1,
+      "son": 2
+    },
+    {
+      "name": "辛吉德",
+      "lane": "top",
+      "ms": 29,
+      "father": 25,
+      "son": 33
+    },
+    {
+      "name": "辛吉德",
+      "lane": "jungle",
+      "ms": 35,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "辛吉德",
+      "lane": "middle",
+      "ms": 31,
+      "father": 5,
+      "son": 6
+    },
+    {
+      "name": "辛吉德",
+      "lane": "support",
+      "ms": 30,
+      "father": 2,
+      "son": 1
+    },
+    {
+      "name": "伊芙琳",
+      "lane": "jungle",
+      "ms": 29,
+      "father": 24,
+      "son": 22
+    },
+    {
+      "name": "伊芙琳",
+      "lane": "top",
+      "ms": 34,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "图奇",
+      "lane": "bottom",
+      "ms": 28,
+      "father": 13,
+      "son": 12
+    },
+    {
+      "name": "图奇",
+      "lane": "jungle",
+      "ms": 36,
+      "father": 1,
+      "son": 1
+    },
+    {
+      "name": "图奇",
+      "lane": "middle",
+      "ms": 29,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "图奇",
+      "lane": "support",
+      "ms": 32,
+      "father": 7,
+      "son": 3
+    },
+    {
+      "name": "卡尔萨斯",
+      "lane": "jungle",
+      "ms": 36,
+      "father": 16,
+      "son": 20
+    },
+    {
+      "name": "卡尔萨斯",
+      "lane": "top",
+      "ms": 36,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "卡尔萨斯",
+      "lane": "middle",
+      "ms": 34,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "卡尔萨斯",
+      "lane": "bottom",
+      "ms": 31,
+      "father": 0,
+      "son": 2
+    },
+    {
+      "name": "卡尔萨斯",
+      "lane": "support",
+      "ms": 38,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "科加斯",
+      "lane": "jungle",
+      "ms": 28,
+      "father": 35,
+      "son": 28
+    },
+    {
+      "name": "科加斯",
+      "lane": "top",
+      "ms": 41,
+      "father": 23,
+      "son": 21
+    },
+    {
+      "name": "科加斯",
+      "lane": "middle",
+      "ms": 39,
+      "father": 9,
+      "son": 8
+    },
+    {
+      "name": "科加斯",
+      "lane": "support",
+      "ms": 35,
+      "father": 3,
+      "son": 0
+    },
+    {
+      "name": "阿木木",
+      "lane": "jungle",
+      "ms": 28,
+      "father": 16,
+      "son": 6
+    },
+    {
+      "name": "阿木木",
+      "lane": "support",
+      "ms": 38,
+      "father": 6,
+      "son": 13
+    },
+    {
+      "name": "拉莫斯",
+      "lane": "jungle",
+      "ms": 30,
+      "father": 19,
+      "son": 15
+    },
+    {
+      "name": "拉莫斯",
+      "lane": "top",
+      "ms": 36,
+      "father": 1,
+      "son": 0
+    },
+    {
+      "name": "拉莫斯",
+      "lane": "support",
+      "ms": 31,
+      "father": 1,
+      "son": 1
+    },
+    {
+      "name": "艾尼维亚",
+      "lane": "middle",
+      "ms": 29,
+      "father": 24,
+      "son": 26
+    },
+    {
+      "name": "艾尼维亚",
+      "lane": "top",
+      "ms": 36,
+      "father": 15,
+      "son": 22
+    },
+    {
+      "name": "艾尼维亚",
+      "lane": "support",
+      "ms": 36,
+      "father": 13,
+      "son": 4
+    },
+    {
+      "name": "萨科",
+      "lane": "jungle",
+      "ms": 29,
+      "father": 27,
+      "son": 21
+    },
+    {
+      "name": "萨科",
+      "lane": "support",
+      "ms": 35,
+      "father": 19,
+      "son": 11
+    },
+    {
+      "name": "蒙多医生",
+      "lane": "top",
+      "ms": 39,
+      "father": 32,
+      "son": 32
+    },
+    {
+      "name": "蒙多医生",
+      "lane": "jungle",
+      "ms": 35,
+      "father": 2,
+      "son": 1
+    },
+    {
+      "name": "蒙多医生",
+      "lane": "middle",
+      "ms": 31,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "蒙多医生",
+      "lane": "support",
+      "ms": 37,
+      "father": 1,
+      "son": 0
+    },
+    {
+      "name": "娑娜",
+      "lane": "support",
+      "ms": 29,
+      "father": 10,
+      "son": 11
+    },
+    {
+      "name": "卡萨丁",
+      "lane": "middle",
+      "ms": 30,
+      "father": 24,
+      "son": 20
+    },
+    {
+      "name": "卡萨丁",
+      "lane": "top",
+      "ms": 35,
+      "father": 0,
+      "son": 1
+    },
+    {
+      "name": "艾瑞莉娅",
+      "lane": "top",
+      "ms": 28,
+      "father": 36,
+      "son": 39
+    },
+    {
+      "name": "艾瑞莉娅",
+      "lane": "middle",
+      "ms": 36,
+      "father": 25,
+      "son": 29
+    },
+    {
+      "name": "迦娜",
+      "lane": "support",
+      "ms": 32,
+      "father": 17,
+      "son": 20
+    },
+    {
+      "name": "普朗克",
+      "lane": "top",
+      "ms": 40,
+      "father": 43,
+      "son": 48
+    },
+    {
+      "name": "普朗克",
+      "lane": "middle",
+      "ms": 41,
+      "father": 2,
+      "son": 6
+    },
+    {
+      "name": "库奇",
+      "lane": "bottom",
+      "ms": 30,
+      "father": 12,
+      "son": 17
+    },
+    {
+      "name": "库奇",
+      "lane": "top",
+      "ms": 38,
+      "father": 21,
+      "son": 15
+    },
+    {
+      "name": "库奇",
+      "lane": "middle",
+      "ms": 36,
+      "father": 11,
+      "son": 8
+    },
+    {
+      "name": "卡尔玛",
+      "lane": "support",
+      "ms": 28,
+      "father": 30,
+      "son": 34
+    },
+    {
+      "name": "塔里克",
+      "lane": "support",
+      "ms": 42,
+      "father": 8,
+      "son": 11
+    },
+    {
+      "name": "维迦",
+      "lane": "middle",
+      "ms": 27,
+      "father": 18,
+      "son": 20
+    },
+    {
+      "name": "维迦",
+      "lane": "top",
+      "ms": 33,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "维迦",
+      "lane": "bottom",
+      "ms": 32,
+      "father": 4,
+      "son": 7
+    },
+    {
+      "name": "维迦",
+      "lane": "support",
+      "ms": 39,
+      "father": 6,
+      "son": 8
+    },
+    {
+      "name": "特朗德尔",
+      "lane": "top",
+      "ms": 27,
+      "father": 16,
+      "son": 15
+    },
+    {
+      "name": "特朗德尔",
+      "lane": "jungle",
+      "ms": 37,
+      "father": 9,
+      "son": 16
+    },
+    {
+      "name": "特朗德尔",
+      "lane": "support",
+      "ms": 34,
+      "father": 0,
+      "son": 1
+    },
+    {
+      "name": "斯维因",
+      "lane": "support",
+      "ms": 28,
+      "father": 27,
+      "son": 19
+    },
+    {
+      "name": "斯维因",
+      "lane": "top",
+      "ms": 37,
+      "father": 6,
+      "son": 7
+    },
+    {
+      "name": "斯维因",
+      "lane": "middle",
+      "ms": 30,
+      "father": 8,
+      "son": 11
+    },
+    {
+      "name": "斯维因",
+      "lane": "bottom",
+      "ms": 31,
+      "father": 10,
+      "son": 10
+    },
+    {
+      "name": "凯特琳",
+      "lane": "bottom",
+      "ms": 40,
+      "father": 26,
+      "son": 13
+    },
+    {
+      "name": "布里茨",
+      "lane": "support",
+      "ms": 33,
+      "father": 29,
+      "son": 43
+    },
+    {
+      "name": "墨菲特",
+      "lane": "top",
+      "ms": 31,
+      "father": 42,
+      "son": 36
+    },
+    {
+      "name": "墨菲特",
+      "lane": "jungle",
+      "ms": 34,
+      "father": 2,
+      "son": 6
+    },
+    {
+      "name": "墨菲特",
+      "lane": "middle",
+      "ms": 37,
+      "father": 7,
+      "son": 11
+    },
+    {
+      "name": "墨菲特",
+      "lane": "support",
+      "ms": 30,
+      "father": 2,
+      "son": 0
+    },
+    {
+      "name": "卡特琳娜",
+      "lane": "middle",
+      "ms": 28,
+      "father": 25,
+      "son": 40
+    },
+    {
+      "name": "卡特琳娜",
+      "lane": "bottom",
+      "ms": 37,
+      "father": 4,
+      "son": 3
+    },
+    {
+      "name": "魔腾",
+      "lane": "jungle",
+      "ms": 33,
+      "father": 35,
+      "son": 21
+    },
+    {
+      "name": "魔腾",
+      "lane": "top",
+      "ms": 34,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "茂凯",
+      "lane": "support",
+      "ms": 28,
+      "father": 18,
+      "son": 19
+    },
+    {
+      "name": "茂凯",
+      "lane": "top",
+      "ms": 35,
+      "father": 11,
+      "son": 10
+    },
+    {
+      "name": "茂凯",
+      "lane": "jungle",
+      "ms": 37,
+      "father": 10,
+      "son": 12
+    },
+    {
+      "name": "雷克顿",
+      "lane": "top",
+      "ms": 30,
+      "father": 37,
+      "son": 40
+    },
+    {
+      "name": "雷克顿",
+      "lane": "middle",
+      "ms": 40,
+      "father": 6,
+      "son": 4
+    },
+    {
+      "name": "嘉文四世",
+      "lane": "jungle",
+      "ms": 33,
+      "father": 39,
+      "son": 29
+    },
+    {
+      "name": "嘉文四世",
+      "lane": "support",
+      "ms": 39,
+      "father": 8,
+      "son": 7
+    },
+    {
+      "name": "伊莉丝",
+      "lane": "jungle",
+      "ms": 46,
+      "father": 31,
+      "son": 31
+    },
+    {
+      "name": "伊莉丝",
+      "lane": "top",
+      "ms": 45,
+      "father": 0,
+      "son": 1
+    },
+    {
+      "name": "伊莉丝",
+      "lane": "support",
+      "ms": 38,
+      "father": 13,
+      "son": 17
+    },
+    {
+      "name": "奥莉安娜",
+      "lane": "middle",
+      "ms": 32,
+      "father": 36,
+      "son": 23
+    },
+    {
+      "name": "孙悟空",
+      "lane": "jungle",
+      "ms": 36,
+      "father": 34,
+      "son": 29
+    },
+    {
+      "name": "孙悟空",
+      "lane": "top",
+      "ms": 38,
+      "father": 15,
+      "son": 15
+    },
+    {
+      "name": "孙悟空",
+      "lane": "support",
+      "ms": 34,
+      "father": 2,
+      "son": 0
+    },
+    {
+      "name": "布兰德",
+      "lane": "support",
+      "ms": 29,
+      "father": 18,
+      "son": 11
+    },
+    {
+      "name": "布兰德",
+      "lane": "top",
+      "ms": 35,
+      "father": 0,
+      "son": 1
+    },
+    {
+      "name": "布兰德",
+      "lane": "jungle",
+      "ms": 30,
+      "father": 1,
+      "son": 1
+    },
+    {
+      "name": "布兰德",
+      "lane": "middle",
+      "ms": 32,
+      "father": 7,
+      "son": 3
+    },
+    {
+      "name": "布兰德",
+      "lane": "bottom",
+      "ms": 37,
+      "father": 1,
+      "son": 2
+    },
+    {
+      "name": "李青",
+      "lane": "jungle",
+      "ms": 36,
+      "father": 31,
+      "son": 45
+    },
+    {
+      "name": "薇恩",
+      "lane": "top",
+      "ms": 29,
+      "father": 33,
+      "son": 19
+    },
+    {
+      "name": "薇恩",
+      "lane": "middle",
+      "ms": 36,
+      "father": 0,
+      "son": 1
+    },
+    {
+      "name": "薇恩",
+      "lane": "bottom",
+      "ms": 32,
+      "father": 15,
+      "son": 4
+    },
+    {
+      "name": "兰博",
+      "lane": "top",
+      "ms": 33,
+      "father": 27,
+      "son": 32
+    },
+    {
+      "name": "兰博",
+      "lane": "jungle",
+      "ms": 36,
+      "father": 1,
+      "son": 0
+    },
+    {
+      "name": "兰博",
+      "lane": "middle",
+      "ms": 30,
+      "father": 1,
+      "son": 1
+    },
+    {
+      "name": "兰博",
+      "lane": "support",
+      "ms": 30,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "卡西奥佩娅",
+      "lane": "middle",
+      "ms": 30,
+      "father": 20,
+      "son": 23
+    },
+    {
+      "name": "卡西奥佩娅",
+      "lane": "top",
+      "ms": 36,
+      "father": 9,
+      "son": 8
+    },
+    {
+      "name": "卡西奥佩娅",
+      "lane": "bottom",
+      "ms": 35,
+      "father": 4,
+      "son": 9
+    },
+    {
+      "name": "斯卡纳",
+      "lane": "jungle",
+      "ms": 29,
+      "father": 13,
+      "son": 19
+    },
+    {
+      "name": "斯卡纳",
+      "lane": "top",
+      "ms": 34,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "斯卡纳",
+      "lane": "support",
+      "ms": 31,
+      "father": 10,
+      "son": 10
+    },
+    {
+      "name": "黑默丁格",
+      "lane": "top",
+      "ms": 29,
+      "father": 21,
+      "son": 21
+    },
+    {
+      "name": "黑默丁格",
+      "lane": "middle",
+      "ms": 33,
+      "father": 1,
+      "son": 1
+    },
+    {
+      "name": "黑默丁格",
+      "lane": "bottom",
+      "ms": 31,
+      "father": 0,
+      "son": 2
+    },
+    {
+      "name": "黑默丁格",
+      "lane": "support",
+      "ms": 31,
+      "father": 5,
+      "son": 4
+    },
+    {
+      "name": "内瑟斯",
+      "lane": "top",
+      "ms": 51,
+      "father": 41,
+      "son": 44
+    },
+    {
+      "name": "内瑟斯",
+      "lane": "middle",
+      "ms": 39,
+      "father": 24,
+      "son": 20
+    },
+    {
+      "name": "奈德丽",
+      "lane": "jungle",
+      "ms": 34,
+      "father": 21,
+      "son": 40
+    },
+    {
+      "name": "奈德丽",
+      "lane": "top",
+      "ms": 40,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "奈德丽",
+      "lane": "support",
+      "ms": 30,
+      "father": 3,
+      "son": 0
+    },
+    {
+      "name": "乌迪尔",
+      "lane": "jungle",
+      "ms": 28,
+      "father": 11,
+      "son": 13
+    },
+    {
+      "name": "乌迪尔",
+      "lane": "top",
+      "ms": 38,
+      "father": 9,
+      "son": 8
+    },
+    {
+      "name": "乌迪尔",
+      "lane": "middle",
+      "ms": 28,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "波比",
+      "lane": "support",
+      "ms": 28,
+      "father": 15,
+      "son": 23
+    },
+    {
+      "name": "波比",
+      "lane": "top",
+      "ms": 38,
+      "father": 18,
+      "son": 21
+    },
+    {
+      "name": "波比",
+      "lane": "jungle",
+      "ms": 28,
+      "father": 7,
+      "son": 7
+    },
+    {
+      "name": "古拉加斯",
+      "lane": "top",
+      "ms": 29,
+      "father": 27,
+      "son": 30
+    },
+    {
+      "name": "古拉加斯",
+      "lane": "jungle",
+      "ms": 41,
+      "father": 9,
+      "son": 11
+    },
+    {
+      "name": "古拉加斯",
+      "lane": "middle",
+      "ms": 36,
+      "father": 1,
+      "son": 5
+    },
+    {
+      "name": "古拉加斯",
+      "lane": "support",
+      "ms": 37,
+      "father": 5,
+      "son": 3
+    },
+    {
+      "name": "潘森",
+      "lane": "support",
+      "ms": 35,
+      "father": 28,
+      "son": 25
+    },
+    {
+      "name": "潘森",
+      "lane": "top",
+      "ms": 38,
+      "father": 27,
+      "son": 32
+    },
+    {
+      "name": "潘森",
+      "lane": "jungle",
+      "ms": 42,
+      "father": 18,
+      "son": 12
+    },
+    {
+      "name": "潘森",
+      "lane": "middle",
+      "ms": 40,
+      "father": 14,
+      "son": 21
+    },
+    {
+      "name": "伊泽瑞尔",
+      "lane": "bottom",
+      "ms": 30,
+      "father": 26,
+      "son": 19
+    },
+    {
+      "name": "伊泽瑞尔",
+      "lane": "support",
+      "ms": 37,
+      "father": 14,
+      "son": 3
+    },
+    {
+      "name": "莫德凯撒",
+      "lane": "top",
+      "ms": 38,
+      "father": 35,
+      "son": 31
+    },
+    {
+      "name": "莫德凯撒",
+      "lane": "jungle",
+      "ms": 29,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "莫德凯撒",
+      "lane": "middle",
+      "ms": 29,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "约里克",
+      "lane": "top",
+      "ms": 30,
+      "father": 36,
+      "son": 26
+    },
+    {
+      "name": "约里克",
+      "lane": "middle",
+      "ms": 33,
+      "father": 1,
+      "son": 0
+    },
+    {
+      "name": "阿卡丽",
+      "lane": "middle",
+      "ms": 29,
+      "father": 39,
+      "son": 28
+    },
+    {
+      "name": "阿卡丽",
+      "lane": "top",
+      "ms": 37,
+      "father": 37,
+      "son": 32
+    },
+    {
+      "name": "凯南",
+      "lane": "top",
+      "ms": 32,
+      "father": 22,
+      "son": 34
+    },
+    {
+      "name": "凯南",
+      "lane": "middle",
+      "ms": 35,
+      "father": 0,
+      "son": 1
+    },
+    {
+      "name": "凯南",
+      "lane": "support",
+      "ms": 29,
+      "father": 2,
+      "son": 1
+    },
+    {
+      "name": "盖伦",
+      "lane": "top",
+      "ms": 30,
+      "father": 36,
+      "son": 27
+    },
+    {
+      "name": "盖伦",
+      "lane": "middle",
+      "ms": 35,
+      "father": 2,
+      "son": 9
+    },
+    {
+      "name": "蕾欧娜",
+      "lane": "support",
+      "ms": 33,
+      "father": 24,
+      "son": 38
+    },
+    {
+      "name": "玛尔扎哈",
+      "lane": "middle",
+      "ms": 37,
+      "father": 32,
+      "son": 20
+    },
+    {
+      "name": "玛尔扎哈",
+      "lane": "top",
+      "ms": 36,
+      "father": 5,
+      "son": 3
+    },
+    {
+      "name": "玛尔扎哈",
+      "lane": "bottom",
+      "ms": 29,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "泰隆",
+      "lane": "jungle",
+      "ms": 30,
+      "father": 29,
+      "son": 38
+    },
+    {
+      "name": "泰隆",
+      "lane": "middle",
+      "ms": 36,
+      "father": 21,
+      "son": 31
+    },
+    {
+      "name": "锐雯",
+      "lane": "top",
+      "ms": 31,
+      "father": 21,
+      "son": 23
+    },
+    {
+      "name": "锐雯",
+      "lane": "jungle",
+      "ms": 36,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "锐雯",
+      "lane": "middle",
+      "ms": 36,
+      "father": 1,
+      "son": 0
+    },
+    {
+      "name": "克格莫",
+      "lane": "bottom",
+      "ms": 28,
+      "father": 8,
+      "son": 14
+    },
+    {
+      "name": "克格莫",
+      "lane": "top",
+      "ms": 35,
+      "father": 4,
+      "son": 2
+    },
+    {
+      "name": "克格莫",
+      "lane": "middle",
+      "ms": 33,
+      "father": 16,
+      "son": 12
+    },
+    {
+      "name": "慎",
+      "lane": "top",
+      "ms": 33,
+      "father": 27,
+      "son": 32
+    },
+    {
+      "name": "慎",
+      "lane": "jungle",
+      "ms": 29,
+      "father": 1,
+      "son": 0
+    },
+    {
+      "name": "慎",
+      "lane": "support",
+      "ms": 37,
+      "father": 12,
+      "son": 10
+    },
+    {
+      "name": "拉克丝",
+      "lane": "support",
+      "ms": 33,
+      "father": 39,
+      "son": 19
+    },
+    {
+      "name": "拉克丝",
+      "lane": "middle",
+      "ms": 37,
+      "father": 21,
+      "son": 20
+    },
+    {
+      "name": "泽拉斯",
+      "lane": "middle",
+      "ms": 39,
+      "father": 30,
+      "son": 26
+    },
+    {
+      "name": "泽拉斯",
+      "lane": "bottom",
+      "ms": 31,
+      "father": 13,
+      "son": 9
+    },
+    {
+      "name": "泽拉斯",
+      "lane": "support",
+      "ms": 38,
+      "father": 30,
+      "son": 20
+    },
+    {
+      "name": "希瓦娜",
+      "lane": "jungle",
+      "ms": 31,
+      "father": 16,
+      "son": 17
+    },
+    {
+      "name": "希瓦娜",
+      "lane": "top",
+      "ms": 35,
+      "father": 1,
+      "son": 1
+    },
+    {
+      "name": "阿狸",
+      "lane": "middle",
+      "ms": 35,
+      "father": 41,
+      "son": 31
+    },
+    {
+      "name": "阿狸",
+      "lane": "top",
+      "ms": 38,
+      "father": 2,
+      "son": 5
+    },
+    {
+      "name": "格雷福斯",
+      "lane": "jungle",
+      "ms": 30,
+      "father": 37,
+      "son": 24
+    },
+    {
+      "name": "菲兹",
+      "lane": "middle",
+      "ms": 44,
+      "father": 29,
+      "son": 23
+    },
+    {
+      "name": "菲兹",
+      "lane": "top",
+      "ms": 32,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "菲兹",
+      "lane": "jungle",
+      "ms": 33,
+      "father": 12,
+      "son": 15
+    },
+    {
+      "name": "沃利贝尔",
+      "lane": "top",
+      "ms": 34,
+      "father": 35,
+      "son": 31
+    },
+    {
+      "name": "沃利贝尔",
+      "lane": "jungle",
+      "ms": 34,
+      "father": 7,
+      "son": 1
+    },
+    {
+      "name": "雷恩加尔",
+      "lane": "jungle",
+      "ms": 29,
+      "father": 19,
+      "son": 20
+    },
+    {
+      "name": "雷恩加尔",
+      "lane": "top",
+      "ms": 35,
+      "father": 4,
+      "son": 4
+    },
+    {
+      "name": "雷恩加尔",
+      "lane": "support",
+      "ms": 33,
+      "father": 1,
+      "son": 2
+    },
+    {
+      "name": "韦鲁斯",
+      "lane": "bottom",
+      "ms": 29,
+      "father": 16,
+      "son": 13
+    },
+    {
+      "name": "韦鲁斯",
+      "lane": "top",
+      "ms": 40,
+      "father": 36,
+      "son": 25
+    },
+    {
+      "name": "韦鲁斯",
+      "lane": "middle",
+      "ms": 34,
+      "father": 4,
+      "son": 2
+    },
+    {
+      "name": "诺提勒斯",
+      "lane": "support",
+      "ms": 30,
+      "father": 28,
+      "son": 49
+    },
+    {
+      "name": "维克托",
+      "lane": "middle",
+      "ms": 39,
+      "father": 43,
+      "son": 42
+    },
+    {
+      "name": "维克托",
+      "lane": "top",
+      "ms": 40,
+      "father": 7,
+      "son": 7
+    },
+    {
+      "name": "维克托",
+      "lane": "bottom",
+      "ms": 29,
+      "father": 7,
+      "son": 17
+    },
+    {
+      "name": "瑟庄妮",
+      "lane": "jungle",
+      "ms": 29,
+      "father": 19,
+      "son": 22
+    },
+    {
+      "name": "瑟庄妮",
+      "lane": "top",
+      "ms": 34,
+      "father": 2,
+      "son": 0
+    },
+    {
+      "name": "瑟庄妮",
+      "lane": "support",
+      "ms": 29,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "菲奥娜",
+      "lane": "top",
+      "ms": 29,
+      "father": 34,
+      "son": 36
+    },
+    {
+      "name": "吉格斯",
+      "lane": "bottom",
+      "ms": 31,
+      "father": 8,
+      "son": 18
+    },
+    {
+      "name": "吉格斯",
+      "lane": "middle",
+      "ms": 36,
+      "father": 3,
+      "son": 6
+    },
+    {
+      "name": "吉格斯",
+      "lane": "support",
+      "ms": 29,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "璐璐",
+      "lane": "support",
+      "ms": 30,
+      "father": 32,
+      "son": 54
+    },
+    {
+      "name": "德莱文",
+      "lane": "bottom",
+      "ms": 31,
+      "father": 12,
+      "son": 17
+    },
+    {
+      "name": "德莱文",
+      "lane": "top",
+      "ms": 33,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "赫卡里姆",
+      "lane": "jungle",
+      "ms": 29,
+      "father": 27,
+      "son": 35
+    },
+    {
+      "name": "卡兹克",
+      "lane": "jungle",
+      "ms": 31,
+      "father": 28,
+      "son": 32
+    },
+    {
+      "name": "德莱厄斯",
+      "lane": "top",
+      "ms": 30,
+      "father": 37,
+      "son": 32
+    },
+    {
+      "name": "德莱厄斯",
+      "lane": "jungle",
+      "ms": 36,
+      "father": 2,
+      "son": 0
+    },
+    {
+      "name": "德莱厄斯",
+      "lane": "support",
+      "ms": 29,
+      "father": 3,
+      "son": 0
+    },
+    {
+      "name": "杰斯",
+      "lane": "top",
+      "ms": 31,
+      "father": 45,
+      "son": 42
+    },
+    {
+      "name": "杰斯",
+      "lane": "jungle",
+      "ms": 43,
+      "father": 28,
+      "son": 30
+    },
+    {
+      "name": "杰斯",
+      "lane": "middle",
+      "ms": 36,
+      "father": 14,
+      "son": 16
+    },
+    {
+      "name": "丽桑卓",
+      "lane": "middle",
+      "ms": 33,
+      "father": 29,
+      "son": 29
+    },
+    {
+      "name": "丽桑卓",
+      "lane": "top",
+      "ms": 29,
+      "father": 11,
+      "son": 10
+    },
+    {
+      "name": "丽桑卓",
+      "lane": "support",
+      "ms": 35,
+      "father": 1,
+      "son": 3
+    },
+    {
+      "name": "黛安娜",
+      "lane": "middle",
+      "ms": 29,
+      "father": 21,
+      "son": 28
+    },
+    {
+      "name": "黛安娜",
+      "lane": "top",
+      "ms": 34,
+      "father": 1,
+      "son": 1
+    },
+    {
+      "name": "黛安娜",
+      "lane": "jungle",
+      "ms": 33,
+      "father": 23,
+      "son": 14
+    },
+    {
+      "name": "奎因",
+      "lane": "top",
+      "ms": 30,
+      "father": 12,
+      "son": 13
+    },
+    {
+      "name": "奎因",
+      "lane": "jungle",
+      "ms": 38,
+      "father": 11,
+      "son": 10
+    },
+    {
+      "name": "奎因",
+      "lane": "middle",
+      "ms": 31,
+      "father": 1,
+      "son": 0
+    },
+    {
+      "name": "奎因",
+      "lane": "support",
+      "ms": 29,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "辛德拉",
+      "lane": "middle",
+      "ms": 30,
+      "father": 31,
+      "son": 39
+    },
+    {
+      "name": "辛德拉",
+      "lane": "bottom",
+      "ms": 37,
+      "father": 10,
+      "son": 8
+    },
+    {
+      "name": "辛德拉",
+      "lane": "support",
+      "ms": 28,
+      "father": 3,
+      "son": 2
+    },
+    {
+      "name": "奥瑞利安索尔",
+      "lane": "middle",
+      "ms": 28,
+      "father": 19,
+      "son": 18
+    },
+    {
+      "name": "奥瑞利安索尔",
+      "lane": "top",
+      "ms": 35,
+      "father": 0,
+      "son": 1
+    },
+    {
+      "name": "奥瑞利安索尔",
+      "lane": "bottom",
+      "ms": 31,
+      "father": 3,
+      "son": 6
+    },
+    {
+      "name": "奥瑞利安索尔",
+      "lane": "support",
+      "ms": 31,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "凯隐",
+      "lane": "jungle",
+      "ms": 28,
+      "father": 30,
+      "son": 21
+    },
+    {
+      "name": "凯隐",
+      "lane": "top",
+      "ms": 35,
+      "father": 2,
+      "son": 1
+    },
+    {
+      "name": "佐伊",
+      "lane": "middle",
+      "ms": 30,
+      "father": 23,
+      "son": 30
+    },
+    {
+      "name": "佐伊",
+      "lane": "top",
+      "ms": 45,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "佐伊",
+      "lane": "support",
+      "ms": 31,
+      "father": 14,
+      "son": 3
+    },
+    {
+      "name": "婕拉",
+      "lane": "support",
+      "ms": 33,
+      "father": 19,
+      "son": 20
+    },
+    {
+      "name": "婕拉",
+      "lane": "jungle",
+      "ms": 38,
+      "father": 20,
+      "son": 22
+    },
+    {
+      "name": "婕拉",
+      "lane": "middle",
+      "ms": 35,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "卡莎",
+      "lane": "bottom",
+      "ms": 29,
+      "father": 28,
+      "son": 23
+    },
+    {
+      "name": "萨勒芬妮",
+      "lane": "support",
+      "ms": 30,
+      "father": 33,
+      "son": 24
+    },
+    {
+      "name": "萨勒芬妮",
+      "lane": "bottom",
+      "ms": 36,
+      "father": 2,
+      "son": 5
+    },
+    {
+      "name": "纳尔",
+      "lane": "top",
+      "ms": 34,
+      "father": 33,
+      "son": 40
+    },
+    {
+      "name": "扎克",
+      "lane": "jungle",
+      "ms": 29,
+      "father": 24,
+      "son": 33
+    },
+    {
+      "name": "扎克",
+      "lane": "top",
+      "ms": 38,
+      "father": 12,
+      "son": 18
+    },
+    {
+      "name": "扎克",
+      "lane": "middle",
+      "ms": 35,
+      "father": 0,
+      "son": 1
+    },
+    {
+      "name": "扎克",
+      "lane": "support",
+      "ms": 31,
+      "father": 6,
+      "son": 5
+    },
+    {
+      "name": "亚索",
+      "lane": "middle",
+      "ms": 29,
+      "father": 37,
+      "son": 34
+    },
+    {
+      "name": "亚索",
+      "lane": "top",
+      "ms": 45,
+      "father": 34,
+      "son": 31
+    },
+    {
+      "name": "亚索",
+      "lane": "bottom",
+      "ms": 34,
+      "father": 15,
+      "son": 12
+    },
+    {
+      "name": "维克兹",
+      "lane": "support",
+      "ms": 31,
+      "father": 20,
+      "son": 20
+    },
+    {
+      "name": "维克兹",
+      "lane": "top",
+      "ms": 37,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "维克兹",
+      "lane": "middle",
+      "ms": 30,
+      "father": 5,
+      "son": 6
+    },
+    {
+      "name": "维克兹",
+      "lane": "bottom",
+      "ms": 32,
+      "father": 2,
+      "son": 7
+    },
+    {
+      "name": "塔莉垭",
+      "lane": "middle",
+      "ms": 29,
+      "father": 22,
+      "son": 18
+    },
+    {
+      "name": "塔莉垭",
+      "lane": "jungle",
+      "ms": 37,
+      "father": 16,
+      "son": 17
+    },
+    {
+      "name": "塔莉垭",
+      "lane": "bottom",
+      "ms": 27,
+      "father": 2,
+      "son": 0
+    },
+    {
+      "name": "塔莉垭",
+      "lane": "support",
+      "ms": 31,
+      "father": 2,
+      "son": 0
+    },
+    {
+      "name": "卡蜜尔",
+      "lane": "top",
+      "ms": 29,
+      "father": 36,
+      "son": 37
+    },
+    {
+      "name": "卡蜜尔",
+      "lane": "support",
+      "ms": 44,
+      "father": 27,
+      "son": 19
+    },
+    {
+      "name": "阿克尚",
+      "lane": "middle",
+      "ms": 30,
+      "father": 22,
+      "son": 20
+    },
+    {
+      "name": "阿克尚",
+      "lane": "top",
+      "ms": 36,
+      "father": 2,
+      "son": 3
+    },
+    {
+      "name": "阿克尚",
+      "lane": "bottom",
+      "ms": 30,
+      "father": 2,
+      "son": 1
+    },
+    {
+      "name": "阿克尚",
+      "lane": "support",
+      "ms": 32,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "卑尔维斯",
+      "lane": "jungle",
+      "ms": 28,
+      "father": 15,
+      "son": 25
+    },
+    {
+      "name": "卑尔维斯",
+      "lane": "top",
+      "ms": 34,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "布隆",
+      "lane": "support",
+      "ms": 29,
+      "father": 24,
+      "son": 30
+    },
+    {
+      "name": "烬",
+      "lane": "bottom",
+      "ms": 29,
+      "father": 24,
+      "son": 21
+    },
+    {
+      "name": "千珏",
+      "lane": "jungle",
+      "ms": 39,
+      "father": 24,
+      "son": 22
+    },
+    {
+      "name": "千珏",
+      "lane": "bottom",
+      "ms": 28,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "泽丽",
+      "lane": "bottom",
+      "ms": 28,
+      "father": 15,
+      "son": 23
+    },
+    {
+      "name": "金克丝",
+      "lane": "bottom",
+      "ms": 30,
+      "father": 24,
+      "son": 20
+    },
+    {
+      "name": "塔姆",
+      "lane": "support",
+      "ms": 32,
+      "father": 21,
+      "son": 18
+    },
+    {
+      "name": "塔姆",
+      "lane": "top",
+      "ms": 36,
+      "father": 10,
+      "son": 12
+    },
+    {
+      "name": "贝蕾亚",
+      "lane": "jungle",
+      "ms": 33,
+      "father": 33,
+      "son": 20
+    },
+    {
+      "name": "贝蕾亚",
+      "lane": "top",
+      "ms": 28,
+      "father": 0,
+      "son": 1
+    },
+    {
+      "name": "贝蕾亚",
+      "lane": "middle",
+      "ms": 31,
+      "father": 4,
+      "son": 4
+    },
+    {
+      "name": "佛耶戈",
+      "lane": "jungle",
+      "ms": 29,
+      "father": 34,
+      "son": 31
+    },
+    {
+      "name": "佛耶戈",
+      "lane": "top",
+      "ms": 34,
+      "father": 2,
+      "son": 0
+    },
+    {
+      "name": "佛耶戈",
+      "lane": "middle",
+      "ms": 31,
+      "father": 4,
+      "son": 4
+    },
+    {
+      "name": "赛娜",
+      "lane": "support",
+      "ms": 30,
+      "father": 25,
+      "son": 27
+    },
+    {
+      "name": "赛娜",
+      "lane": "bottom",
+      "ms": 35,
+      "father": 4,
+      "son": 2
+    },
+    {
+      "name": "卢锡安",
+      "lane": "bottom",
+      "ms": 31,
+      "father": 22,
+      "son": 18
+    },
+    {
+      "name": "卢锡安",
+      "lane": "top",
+      "ms": 30,
+      "father": 2,
+      "son": 2
+    },
+    {
+      "name": "卢锡安",
+      "lane": "middle",
+      "ms": 32,
+      "father": 12,
+      "son": 9
+    },
+    {
+      "name": "劫",
+      "lane": "middle",
+      "ms": 35,
+      "father": 31,
+      "son": 36
+    },
+    {
+      "name": "劫",
+      "lane": "top",
+      "ms": 35,
+      "father": 8,
+      "son": 5
+    },
+    {
+      "name": "劫",
+      "lane": "jungle",
+      "ms": 31,
+      "father": 29,
+      "son": 21
+    },
+    {
+      "name": "克烈",
+      "lane": "top",
+      "ms": 31,
+      "father": 15,
+      "son": 29
+    },
+    {
+      "name": "克烈",
+      "lane": "middle",
+      "ms": 36,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "克烈",
+      "lane": "support",
+      "ms": 30,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "艾克",
+      "lane": "jungle",
+      "ms": 29,
+      "father": 25,
+      "son": 33
+    },
+    {
+      "name": "艾克",
+      "lane": "top",
+      "ms": 35,
+      "father": 2,
+      "son": 0
+    },
+    {
+      "name": "艾克",
+      "lane": "middle",
+      "ms": 33,
+      "father": 20,
+      "son": 23
+    },
+    {
+      "name": "奇亚娜",
+      "lane": "jungle",
+      "ms": 31,
+      "father": 27,
+      "son": 39
+    },
+    {
+      "name": "奇亚娜",
+      "lane": "middle",
+      "ms": 38,
+      "father": 19,
+      "son": 29
+    },
+    {
+      "name": "蔚",
+      "lane": "jungle",
+      "ms": 31,
+      "father": 40,
+      "son": 26
+    },
+    {
+      "name": "蔚",
+      "lane": "support",
+      "ms": 37,
+      "father": 1,
+      "son": 0
+    },
+    {
+      "name": "亚托克斯",
+      "lane": "top",
+      "ms": 33,
+      "father": 47,
+      "son": 37
+    },
+    {
+      "name": "亚托克斯",
+      "lane": "jungle",
+      "ms": 35,
+      "father": 8,
+      "son": 10
+    },
+    {
+      "name": "亚托克斯",
+      "lane": "middle",
+      "ms": 47,
+      "father": 1,
+      "son": 3
+    },
+    {
+      "name": "娜美",
+      "lane": "support",
+      "ms": 29,
+      "father": 22,
+      "son": 17
+    },
+    {
+      "name": "阿兹尔",
+      "lane": "middle",
+      "ms": 39,
+      "father": 26,
+      "son": 15
+    },
+    {
+      "name": "阿兹尔",
+      "lane": "top",
+      "ms": 36,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "悠米",
+      "lane": "support",
+      "ms": 32,
+      "father": 29,
+      "son": 34
+    },
+    {
+      "name": "莎弥拉",
+      "lane": "bottom",
+      "ms": 29,
+      "father": 18,
+      "son": 11
+    },
+    {
+      "name": "锤石",
+      "lane": "support",
+      "ms": 41,
+      "father": 35,
+      "son": 49
+    },
+    {
+      "name": "俄洛伊",
+      "lane": "top",
+      "ms": 31,
+      "father": 29,
+      "son": 24
+    },
+    {
+      "name": "俄洛伊",
+      "lane": "middle",
+      "ms": 35,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "雷克塞",
+      "lane": "jungle",
+      "ms": 39,
+      "father": 16,
+      "son": 27
+    },
+    {
+      "name": "雷克塞",
+      "lane": "top",
+      "ms": 38,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "艾翁",
+      "lane": "jungle",
+      "ms": 28,
+      "father": 11,
+      "son": 16
+    },
+    {
+      "name": "艾翁",
+      "lane": "top",
+      "ms": 37,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "艾翁",
+      "lane": "middle",
+      "ms": 30,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "艾翁",
+      "lane": "support",
+      "ms": 32,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "卡莉丝塔",
+      "lane": "bottom",
+      "ms": 29,
+      "father": 13,
+      "son": 22
+    },
+    {
+      "name": "卡莉丝塔",
+      "lane": "top",
+      "ms": 36,
+      "father": 10,
+      "son": 6
+    },
+    {
+      "name": "卡莉丝塔",
+      "lane": "middle",
+      "ms": 34,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "巴德",
+      "lane": "support",
+      "ms": 29,
+      "father": 27,
+      "son": 33
+    },
+    {
+      "name": "洛",
+      "lane": "support",
+      "ms": 30,
+      "father": 26,
+      "son": 30
+    },
+    {
+      "name": "霞",
+      "lane": "bottom",
+      "ms": 31,
+      "father": 16,
+      "son": 21
+    },
+    {
+      "name": "奥恩",
+      "lane": "top",
+      "ms": 32,
+      "father": 27,
+      "son": 27
+    },
+    {
+      "name": "奥恩",
+      "lane": "middle",
+      "ms": 35,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "奥恩",
+      "lane": "support",
+      "ms": 31,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "塞拉斯",
+      "lane": "jungle",
+      "ms": 29,
+      "father": 35,
+      "son": 38
+    },
+    {
+      "name": "塞拉斯",
+      "lane": "top",
+      "ms": 37,
+      "father": 28,
+      "son": 11
+    },
+    {
+      "name": "塞拉斯",
+      "lane": "middle",
+      "ms": 46,
+      "father": 44,
+      "son": 34
+    },
+    {
+      "name": "塞拉斯",
+      "lane": "support",
+      "ms": 41,
+      "father": 27,
+      "son": 18
+    },
+    {
+      "name": "妮蔻",
+      "lane": "support",
+      "ms": 30,
+      "father": 26,
+      "son": 23
+    },
+    {
+      "name": "妮蔻",
+      "lane": "top",
+      "ms": 37,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "妮蔻",
+      "lane": "middle",
+      "ms": 30,
+      "father": 4,
+      "son": 6
+    },
+    {
+      "name": "厄斐琉斯",
+      "lane": "bottom",
+      "ms": 29,
+      "father": 19,
+      "son": 16
+    },
+    {
+      "name": "芮尔",
+      "lane": "support",
+      "ms": 30,
+      "father": 16,
+      "son": 35
+    },
+    {
+      "name": "派克",
+      "lane": "support",
+      "ms": 27,
+      "father": 25,
+      "son": 35
+    },
+    {
+      "name": "薇古丝",
+      "lane": "middle",
+      "ms": 32,
+      "father": 29,
+      "son": 24
+    },
+    {
+      "name": "薇古丝",
+      "lane": "support",
+      "ms": 33,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "永恩",
+      "lane": "top",
+      "ms": 37,
+      "father": 45,
+      "son": 49
+    },
+    {
+      "name": "永恩",
+      "lane": "middle",
+      "ms": 59,
+      "father": 43,
+      "son": 37
+    },
+    {
+      "name": "安蓓萨",
+      "lane": "top",
+      "ms": 39,
+      "father": 35,
+      "son": 38
+    },
+    {
+      "name": "安蓓萨",
+      "lane": "jungle",
+      "ms": 31,
+      "father": 14,
+      "son": 11
+    },
+    {
+      "name": "安蓓萨",
+      "lane": "middle",
+      "ms": 28,
+      "father": 6,
+      "son": 6
+    },
+    {
+      "name": "梅尔",
+      "lane": "middle",
+      "ms": 28,
+      "father": 27,
+      "son": 9
+    },
+    {
+      "name": "梅尔",
+      "lane": "bottom",
+      "ms": 36,
+      "father": 10,
+      "son": 4
+    },
+    {
+      "name": "梅尔",
+      "lane": "support",
+      "ms": 36,
+      "father": 14,
+      "son": 5
+    },
+    {
+      "name": "芸阿娜",
+      "lane": "bottom",
+      "ms": 34,
+      "father": 24,
+      "son": 23
+    },
+    {
+      "name": "洛克",
+      "lane": "middle",
+      "ms": 30,
+      "father": 30,
+      "son": 40
+    },
+    {
+      "name": "洛克",
+      "lane": "top",
+      "ms": 35,
+      "father": 1,
+      "son": 0
+    },
+    {
+      "name": "洛克",
+      "lane": "jungle",
+      "ms": 35,
+      "father": 15,
+      "son": 11
+    },
+    {
+      "name": "瑟提",
+      "lane": "top",
+      "ms": 30,
+      "father": 30,
+      "son": 28
+    },
+    {
+      "name": "瑟提",
+      "lane": "middle",
+      "ms": 272,
+      "father": 1,
+      "son": 4
+    },
+    {
+      "name": "瑟提",
+      "lane": "support",
+      "ms": 263,
+      "father": 1,
+      "son": 2
+    },
+    {
+      "name": "莉莉娅",
+      "lane": "jungle",
+      "ms": 29,
+      "father": 27,
+      "son": 27
+    },
+    {
+      "name": "格温",
+      "lane": "top",
+      "ms": 35,
+      "father": 21,
+      "son": 26
+    },
+    {
+      "name": "格温",
+      "lane": "jungle",
+      "ms": 278,
+      "father": 2,
+      "son": 5
+    },
+    {
+      "name": "格温",
+      "lane": "middle",
+      "ms": 277,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "烈娜塔 · 戈拉斯克",
+      "lane": "support",
+      "ms": 32,
+      "father": 17,
+      "son": 19
+    },
+    {
+      "name": "阿萝拉",
+      "lane": "middle",
+      "ms": 31,
+      "father": 25,
+      "son": 28
+    },
+    {
+      "name": "阿萝拉",
+      "lane": "top",
+      "ms": 279,
+      "father": 6,
+      "son": 6
+    },
+    {
+      "name": "尼菈",
+      "lane": "bottom",
+      "ms": 29,
+      "father": 5,
+      "son": 10
+    },
+    {
+      "name": "奎桑提",
+      "lane": "top",
+      "ms": 34,
+      "father": 47,
+      "son": 41
+    },
+    {
+      "name": "奎桑提",
+      "lane": "middle",
+      "ms": 282,
+      "father": 0,
+      "son": 1
+    },
+    {
+      "name": "奎桑提",
+      "lane": "support",
+      "ms": 282,
+      "father": 2,
+      "son": 2
+    },
+    {
+      "name": "斯莫德",
+      "lane": "bottom",
+      "ms": 31,
+      "father": 14,
+      "son": 10
+    },
+    {
+      "name": "斯莫德",
+      "lane": "top",
+      "ms": 281,
+      "father": 1,
+      "son": 1
+    },
+    {
+      "name": "斯莫德",
+      "lane": "middle",
+      "ms": 280,
+      "father": 3,
+      "son": 2
+    },
+    {
+      "name": "米利欧",
+      "lane": "support",
+      "ms": 35,
+      "father": 26,
+      "son": 26
+    },
+    {
+      "name": "亚恒",
+      "lane": "top",
+      "ms": 56,
+      "father": 28,
+      "son": 31
+    },
+    {
+      "name": "亚恒",
+      "lane": "jungle",
+      "ms": 269,
+      "father": 1,
+      "son": 4
+    },
+    {
+      "name": "亚恒",
+      "lane": "middle",
+      "ms": 281,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "亚恒",
+      "lane": "support",
+      "ms": 280,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "彗",
+      "lane": "middle",
+      "ms": 39,
+      "father": 23,
+      "son": 31
+    },
+    {
+      "name": "彗",
+      "lane": "top",
+      "ms": 30,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "彗",
+      "lane": "bottom",
+      "ms": 35,
+      "father": 4,
+      "son": 5
+    },
+    {
+      "name": "彗",
+      "lane": "support",
+      "ms": 33,
+      "father": 9,
+      "son": 7
+    },
+    {
+      "name": "纳亚菲利",
+      "lane": "jungle",
+      "ms": 33,
+      "father": 30,
+      "son": 28
+    },
+    {
+      "name": "纳亚菲利",
+      "lane": "top",
+      "ms": 30,
+      "father": 5,
+      "son": 1
+    },
+    {
+      "name": "纳亚菲利",
+      "lane": "middle",
+      "ms": 31,
+      "father": 13,
+      "son": 7
+    }
+  ],
+  "offline": [
+    {
+      "name": "安妮",
+      "lane": "middle",
+      "ms": 56,
+      "father": 19,
+      "son": 18
+    },
+    {
+      "name": "安妮",
+      "lane": "top",
+      "ms": 41,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "安妮",
+      "lane": "support",
+      "ms": 32,
+      "father": 2,
+      "son": 1
+    },
+    {
+      "name": "奥拉夫",
+      "lane": "top",
+      "ms": 32,
+      "father": 30,
+      "son": 35
+    },
+    {
+      "name": "奥拉夫",
+      "lane": "jungle",
+      "ms": 43,
+      "father": 2,
+      "son": 0
+    },
+    {
+      "name": "加里奥",
+      "lane": "middle",
+      "ms": 36,
+      "father": 42,
+      "son": 31
+    },
+    {
+      "name": "加里奥",
+      "lane": "top",
+      "ms": 40,
+      "father": 0,
+      "son": 6
+    },
+    {
+      "name": "加里奥",
+      "lane": "support",
+      "ms": 36,
+      "father": 14,
+      "son": 14
+    },
+    {
+      "name": "崔斯特",
+      "lane": "middle",
+      "ms": 42,
+      "father": 34,
+      "son": 43
+    },
+    {
+      "name": "崔斯特",
+      "lane": "top",
+      "ms": 41,
+      "father": 5,
+      "son": 3
+    },
+    {
+      "name": "崔斯特",
+      "lane": "support",
+      "ms": 33,
+      "father": 6,
+      "son": 0
+    },
+    {
+      "name": "赵信",
+      "lane": "jungle",
+      "ms": 36,
+      "father": 26,
+      "son": 24
+    },
+    {
+      "name": "赵信",
+      "lane": "top",
+      "ms": 36,
+      "father": 3,
+      "son": 1
+    },
+    {
+      "name": "赵信",
+      "lane": "middle",
+      "ms": 35,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "厄加特",
+      "lane": "top",
+      "ms": 34,
+      "father": 13,
+      "son": 26
+    },
+    {
+      "name": "厄加特",
+      "lane": "middle",
+      "ms": 35,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "厄加特",
+      "lane": "support",
+      "ms": 30,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "乐芙兰",
+      "lane": "middle",
+      "ms": 28,
+      "father": 26,
+      "son": 40
+    },
+    {
+      "name": "乐芙兰",
+      "lane": "support",
+      "ms": 43,
+      "father": 16,
+      "son": 15
+    },
+    {
+      "name": "弗拉基米尔",
+      "lane": "middle",
+      "ms": 38,
+      "father": 21,
+      "son": 25
+    },
+    {
+      "name": "弗拉基米尔",
+      "lane": "top",
+      "ms": 38,
+      "father": 18,
+      "son": 21
+    },
+    {
+      "name": "弗拉基米尔",
+      "lane": "bottom",
+      "ms": 34,
+      "father": 1,
+      "son": 2
+    },
+    {
+      "name": "费德提克",
+      "lane": "jungle",
+      "ms": 34,
+      "father": 15,
+      "son": 20
+    },
+    {
+      "name": "费德提克",
+      "lane": "top",
+      "ms": 36,
+      "father": 2,
+      "son": 3
+    },
+    {
+      "name": "费德提克",
+      "lane": "middle",
+      "ms": 35,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "费德提克",
+      "lane": "support",
+      "ms": 33,
+      "father": 6,
+      "son": 10
+    },
+    {
+      "name": "凯尔",
+      "lane": "top",
+      "ms": 31,
+      "father": 15,
+      "son": 16
+    },
+    {
+      "name": "凯尔",
+      "lane": "middle",
+      "ms": 39,
+      "father": 2,
+      "son": 4
+    },
+    {
+      "name": "易",
+      "lane": "jungle",
+      "ms": 43,
+      "father": 27,
+      "son": 34
+    },
+    {
+      "name": "易",
+      "lane": "top",
+      "ms": 39,
+      "father": 9,
+      "son": 5
+    },
+    {
+      "name": "易",
+      "lane": "middle",
+      "ms": 35,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "易",
+      "lane": "bottom",
+      "ms": 30,
+      "father": 1,
+      "son": 3
+    },
+    {
+      "name": "阿利斯塔",
+      "lane": "support",
+      "ms": 29,
+      "father": 26,
+      "son": 37
+    },
+    {
+      "name": "瑞兹",
+      "lane": "middle",
+      "ms": 44,
+      "father": 37,
+      "son": 19
+    },
+    {
+      "name": "瑞兹",
+      "lane": "top",
+      "ms": 36,
+      "father": 20,
+      "son": 17
+    },
+    {
+      "name": "赛恩",
+      "lane": "top",
+      "ms": 39,
+      "father": 33,
+      "son": 30
+    },
+    {
+      "name": "赛恩",
+      "lane": "jungle",
+      "ms": 35,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "赛恩",
+      "lane": "middle",
+      "ms": 30,
+      "father": 12,
+      "son": 8
+    },
+    {
+      "name": "赛恩",
+      "lane": "support",
+      "ms": 37,
+      "father": 2,
+      "son": 2
+    },
+    {
+      "name": "希维尔",
+      "lane": "bottom",
+      "ms": 31,
+      "father": 18,
+      "son": 18
+    },
+    {
+      "name": "索拉卡",
+      "lane": "support",
+      "ms": 36,
+      "father": 22,
+      "son": 19
+    },
+    {
+      "name": "提莫",
+      "lane": "top",
+      "ms": 45,
+      "father": 34,
+      "son": 40
+    },
+    {
+      "name": "提莫",
+      "lane": "jungle",
+      "ms": 40,
+      "father": 1,
+      "son": 1
+    },
+    {
+      "name": "提莫",
+      "lane": "middle",
+      "ms": 35,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "提莫",
+      "lane": "bottom",
+      "ms": 31,
+      "father": 2,
+      "son": 3
+    },
+    {
+      "name": "提莫",
+      "lane": "support",
+      "ms": 38,
+      "father": 7,
+      "son": 1
+    },
+    {
+      "name": "崔丝塔娜",
+      "lane": "bottom",
+      "ms": 37,
+      "father": 20,
+      "son": 22
+    },
+    {
+      "name": "崔丝塔娜",
+      "lane": "middle",
+      "ms": 41,
+      "father": 12,
+      "son": 14
+    },
+    {
+      "name": "沃里克",
+      "lane": "jungle",
+      "ms": 32,
+      "father": 30,
+      "son": 17
+    },
+    {
+      "name": "沃里克",
+      "lane": "top",
+      "ms": 42,
+      "father": 22,
+      "son": 29
+    },
+    {
+      "name": "努努和威朗普",
+      "lane": "jungle",
+      "ms": 33,
+      "father": 21,
+      "son": 25
+    },
+    {
+      "name": "努努和威朗普",
+      "lane": "middle",
+      "ms": 35,
+      "father": 12,
+      "son": 14
+    },
+    {
+      "name": "努努和威朗普",
+      "lane": "support",
+      "ms": 36,
+      "father": 2,
+      "son": 0
+    },
+    {
+      "name": "厄运小姐",
+      "lane": "bottom",
+      "ms": 30,
+      "father": 16,
+      "son": 16
+    },
+    {
+      "name": "厄运小姐",
+      "lane": "support",
+      "ms": 33,
+      "father": 3,
+      "son": 0
+    },
+    {
+      "name": "艾希",
+      "lane": "bottom",
+      "ms": 32,
+      "father": 21,
+      "son": 14
+    },
+    {
+      "name": "艾希",
+      "lane": "support",
+      "ms": 30,
+      "father": 7,
+      "son": 4
+    },
+    {
+      "name": "泰达米尔",
+      "lane": "top",
+      "ms": 29,
+      "father": 33,
+      "son": 25
+    },
+    {
+      "name": "泰达米尔",
+      "lane": "jungle",
+      "ms": 35,
+      "father": 1,
+      "son": 0
+    },
+    {
+      "name": "泰达米尔",
+      "lane": "middle",
+      "ms": 36,
+      "father": 4,
+      "son": 10
+    },
+    {
+      "name": "贾克斯",
+      "lane": "top",
+      "ms": 46,
+      "father": 38,
+      "son": 47
+    },
+    {
+      "name": "贾克斯",
+      "lane": "jungle",
+      "ms": 38,
+      "father": 13,
+      "son": 11
+    },
+    {
+      "name": "贾克斯",
+      "lane": "support",
+      "ms": 36,
+      "father": 2,
+      "son": 3
+    },
+    {
+      "name": "莫甘娜",
+      "lane": "support",
+      "ms": 36,
+      "father": 27,
+      "son": 17
+    },
+    {
+      "name": "莫甘娜",
+      "lane": "top",
+      "ms": 39,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "莫甘娜",
+      "lane": "jungle",
+      "ms": 29,
+      "father": 2,
+      "son": 2
+    },
+    {
+      "name": "莫甘娜",
+      "lane": "middle",
+      "ms": 32,
+      "father": 2,
+      "son": 7
+    },
+    {
+      "name": "基兰",
+      "lane": "support",
+      "ms": 28,
+      "father": 19,
+      "son": 26
+    },
+    {
+      "name": "基兰",
+      "lane": "top",
+      "ms": 35,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "基兰",
+      "lane": "middle",
+      "ms": 30,
+      "father": 1,
+      "son": 2
+    },
+    {
+      "name": "辛吉德",
+      "lane": "top",
+      "ms": 29,
+      "father": 25,
+      "son": 33
+    },
+    {
+      "name": "辛吉德",
+      "lane": "jungle",
+      "ms": 37,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "辛吉德",
+      "lane": "middle",
+      "ms": 36,
+      "father": 5,
+      "son": 6
+    },
+    {
+      "name": "辛吉德",
+      "lane": "support",
+      "ms": 36,
+      "father": 2,
+      "son": 1
+    },
+    {
+      "name": "伊芙琳",
+      "lane": "jungle",
+      "ms": 29,
+      "father": 24,
+      "son": 22
+    },
+    {
+      "name": "伊芙琳",
+      "lane": "top",
+      "ms": 36,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "图奇",
+      "lane": "bottom",
+      "ms": 37,
+      "father": 13,
+      "son": 12
+    },
+    {
+      "name": "图奇",
+      "lane": "jungle",
+      "ms": 37,
+      "father": 1,
+      "son": 1
+    },
+    {
+      "name": "图奇",
+      "lane": "middle",
+      "ms": 29,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "图奇",
+      "lane": "support",
+      "ms": 32,
+      "father": 7,
+      "son": 3
+    },
+    {
+      "name": "卡尔萨斯",
+      "lane": "jungle",
+      "ms": 34,
+      "father": 16,
+      "son": 20
+    },
+    {
+      "name": "卡尔萨斯",
+      "lane": "top",
+      "ms": 28,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "卡尔萨斯",
+      "lane": "middle",
+      "ms": 33,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "卡尔萨斯",
+      "lane": "bottom",
+      "ms": 30,
+      "father": 0,
+      "son": 2
+    },
+    {
+      "name": "卡尔萨斯",
+      "lane": "support",
+      "ms": 31,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "科加斯",
+      "lane": "jungle",
+      "ms": 30,
+      "father": 35,
+      "son": 28
+    },
+    {
+      "name": "科加斯",
+      "lane": "top",
+      "ms": 36,
+      "father": 23,
+      "son": 21
+    },
+    {
+      "name": "科加斯",
+      "lane": "middle",
+      "ms": 37,
+      "father": 9,
+      "son": 8
+    },
+    {
+      "name": "科加斯",
+      "lane": "support",
+      "ms": 34,
+      "father": 3,
+      "son": 0
+    },
+    {
+      "name": "阿木木",
+      "lane": "jungle",
+      "ms": 28,
+      "father": 16,
+      "son": 6
+    },
+    {
+      "name": "阿木木",
+      "lane": "support",
+      "ms": 38,
+      "father": 6,
+      "son": 13
+    },
+    {
+      "name": "拉莫斯",
+      "lane": "jungle",
+      "ms": 30,
+      "father": 19,
+      "son": 15
+    },
+    {
+      "name": "拉莫斯",
+      "lane": "top",
+      "ms": 37,
+      "father": 1,
+      "son": 0
+    },
+    {
+      "name": "拉莫斯",
+      "lane": "support",
+      "ms": 30,
+      "father": 1,
+      "son": 1
+    },
+    {
+      "name": "艾尼维亚",
+      "lane": "middle",
+      "ms": 30,
+      "father": 24,
+      "son": 26
+    },
+    {
+      "name": "艾尼维亚",
+      "lane": "top",
+      "ms": 36,
+      "father": 15,
+      "son": 22
+    },
+    {
+      "name": "艾尼维亚",
+      "lane": "support",
+      "ms": 36,
+      "father": 13,
+      "son": 4
+    },
+    {
+      "name": "萨科",
+      "lane": "jungle",
+      "ms": 32,
+      "father": 27,
+      "son": 21
+    },
+    {
+      "name": "萨科",
+      "lane": "support",
+      "ms": 30,
+      "father": 19,
+      "son": 11
+    },
+    {
+      "name": "蒙多医生",
+      "lane": "top",
+      "ms": 33,
+      "father": 32,
+      "son": 32
+    },
+    {
+      "name": "蒙多医生",
+      "lane": "jungle",
+      "ms": 30,
+      "father": 2,
+      "son": 1
+    },
+    {
+      "name": "蒙多医生",
+      "lane": "middle",
+      "ms": 29,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "蒙多医生",
+      "lane": "support",
+      "ms": 31,
+      "father": 1,
+      "son": 0
+    },
+    {
+      "name": "娑娜",
+      "lane": "support",
+      "ms": 28,
+      "father": 10,
+      "son": 11
+    },
+    {
+      "name": "卡萨丁",
+      "lane": "middle",
+      "ms": 32,
+      "father": 24,
+      "son": 20
+    },
+    {
+      "name": "卡萨丁",
+      "lane": "top",
+      "ms": 35,
+      "father": 0,
+      "son": 1
+    },
+    {
+      "name": "艾瑞莉娅",
+      "lane": "top",
+      "ms": 29,
+      "father": 36,
+      "son": 39
+    },
+    {
+      "name": "艾瑞莉娅",
+      "lane": "middle",
+      "ms": 42,
+      "father": 25,
+      "son": 29
+    },
+    {
+      "name": "迦娜",
+      "lane": "support",
+      "ms": 30,
+      "father": 17,
+      "son": 20
+    },
+    {
+      "name": "普朗克",
+      "lane": "top",
+      "ms": 34,
+      "father": 43,
+      "son": 48
+    },
+    {
+      "name": "普朗克",
+      "lane": "middle",
+      "ms": 34,
+      "father": 2,
+      "son": 6
+    },
+    {
+      "name": "库奇",
+      "lane": "bottom",
+      "ms": 28,
+      "father": 12,
+      "son": 17
+    },
+    {
+      "name": "库奇",
+      "lane": "top",
+      "ms": 36,
+      "father": 21,
+      "son": 15
+    },
+    {
+      "name": "库奇",
+      "lane": "middle",
+      "ms": 36,
+      "father": 11,
+      "son": 8
+    },
+    {
+      "name": "卡尔玛",
+      "lane": "support",
+      "ms": 35,
+      "father": 30,
+      "son": 34
+    },
+    {
+      "name": "塔里克",
+      "lane": "support",
+      "ms": 30,
+      "father": 8,
+      "son": 11
+    },
+    {
+      "name": "维迦",
+      "lane": "middle",
+      "ms": 26,
+      "father": 18,
+      "son": 20
+    },
+    {
+      "name": "维迦",
+      "lane": "top",
+      "ms": 39,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "维迦",
+      "lane": "bottom",
+      "ms": 34,
+      "father": 4,
+      "son": 7
+    },
+    {
+      "name": "维迦",
+      "lane": "support",
+      "ms": 35,
+      "father": 6,
+      "son": 8
+    },
+    {
+      "name": "特朗德尔",
+      "lane": "top",
+      "ms": 33,
+      "father": 16,
+      "son": 15
+    },
+    {
+      "name": "特朗德尔",
+      "lane": "jungle",
+      "ms": 40,
+      "father": 9,
+      "son": 16
+    },
+    {
+      "name": "特朗德尔",
+      "lane": "support",
+      "ms": 33,
+      "father": 0,
+      "son": 1
+    },
+    {
+      "name": "斯维因",
+      "lane": "support",
+      "ms": 30,
+      "father": 27,
+      "son": 19
+    },
+    {
+      "name": "斯维因",
+      "lane": "top",
+      "ms": 35,
+      "father": 6,
+      "son": 7
+    },
+    {
+      "name": "斯维因",
+      "lane": "middle",
+      "ms": 36,
+      "father": 8,
+      "son": 11
+    },
+    {
+      "name": "斯维因",
+      "lane": "bottom",
+      "ms": 32,
+      "father": 10,
+      "son": 10
+    },
+    {
+      "name": "凯特琳",
+      "lane": "bottom",
+      "ms": 32,
+      "father": 26,
+      "son": 13
+    },
+    {
+      "name": "布里茨",
+      "lane": "support",
+      "ms": 34,
+      "father": 29,
+      "son": 43
+    },
+    {
+      "name": "墨菲特",
+      "lane": "top",
+      "ms": 31,
+      "father": 42,
+      "son": 36
+    },
+    {
+      "name": "墨菲特",
+      "lane": "jungle",
+      "ms": 34,
+      "father": 2,
+      "son": 6
+    },
+    {
+      "name": "墨菲特",
+      "lane": "middle",
+      "ms": 31,
+      "father": 7,
+      "son": 11
+    },
+    {
+      "name": "墨菲特",
+      "lane": "support",
+      "ms": 36,
+      "father": 2,
+      "son": 0
+    },
+    {
+      "name": "卡特琳娜",
+      "lane": "middle",
+      "ms": 29,
+      "father": 25,
+      "son": 40
+    },
+    {
+      "name": "卡特琳娜",
+      "lane": "bottom",
+      "ms": 35,
+      "father": 4,
+      "son": 3
+    },
+    {
+      "name": "魔腾",
+      "lane": "jungle",
+      "ms": 34,
+      "father": 35,
+      "son": 21
+    },
+    {
+      "name": "魔腾",
+      "lane": "top",
+      "ms": 36,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "茂凯",
+      "lane": "support",
+      "ms": 31,
+      "father": 18,
+      "son": 19
+    },
+    {
+      "name": "茂凯",
+      "lane": "top",
+      "ms": 31,
+      "father": 11,
+      "son": 10
+    },
+    {
+      "name": "茂凯",
+      "lane": "jungle",
+      "ms": 30,
+      "father": 10,
+      "son": 12
+    },
+    {
+      "name": "雷克顿",
+      "lane": "top",
+      "ms": 34,
+      "father": 37,
+      "son": 40
+    },
+    {
+      "name": "雷克顿",
+      "lane": "middle",
+      "ms": 36,
+      "father": 6,
+      "son": 4
+    },
+    {
+      "name": "嘉文四世",
+      "lane": "jungle",
+      "ms": 35,
+      "father": 39,
+      "son": 29
+    },
+    {
+      "name": "嘉文四世",
+      "lane": "support",
+      "ms": 34,
+      "father": 8,
+      "son": 7
+    },
+    {
+      "name": "伊莉丝",
+      "lane": "jungle",
+      "ms": 34,
+      "father": 31,
+      "son": 31
+    },
+    {
+      "name": "伊莉丝",
+      "lane": "top",
+      "ms": 34,
+      "father": 0,
+      "son": 1
+    },
+    {
+      "name": "伊莉丝",
+      "lane": "support",
+      "ms": 34,
+      "father": 13,
+      "son": 17
+    },
+    {
+      "name": "奥莉安娜",
+      "lane": "middle",
+      "ms": 31,
+      "father": 36,
+      "son": 23
+    },
+    {
+      "name": "孙悟空",
+      "lane": "jungle",
+      "ms": 29,
+      "father": 34,
+      "son": 29
+    },
+    {
+      "name": "孙悟空",
+      "lane": "top",
+      "ms": 40,
+      "father": 15,
+      "son": 15
+    },
+    {
+      "name": "孙悟空",
+      "lane": "support",
+      "ms": 27,
+      "father": 2,
+      "son": 0
+    },
+    {
+      "name": "布兰德",
+      "lane": "support",
+      "ms": 29,
+      "father": 18,
+      "son": 11
+    },
+    {
+      "name": "布兰德",
+      "lane": "top",
+      "ms": 34,
+      "father": 0,
+      "son": 1
+    },
+    {
+      "name": "布兰德",
+      "lane": "jungle",
+      "ms": 30,
+      "father": 1,
+      "son": 1
+    },
+    {
+      "name": "布兰德",
+      "lane": "middle",
+      "ms": 32,
+      "father": 7,
+      "son": 3
+    },
+    {
+      "name": "布兰德",
+      "lane": "bottom",
+      "ms": 31,
+      "father": 1,
+      "son": 2
+    },
+    {
+      "name": "李青",
+      "lane": "jungle",
+      "ms": 29,
+      "father": 31,
+      "son": 45
+    },
+    {
+      "name": "薇恩",
+      "lane": "top",
+      "ms": 31,
+      "father": 33,
+      "son": 19
+    },
+    {
+      "name": "薇恩",
+      "lane": "middle",
+      "ms": 35,
+      "father": 0,
+      "son": 1
+    },
+    {
+      "name": "薇恩",
+      "lane": "bottom",
+      "ms": 31,
+      "father": 15,
+      "son": 4
+    },
+    {
+      "name": "兰博",
+      "lane": "top",
+      "ms": 33,
+      "father": 27,
+      "son": 32
+    },
+    {
+      "name": "兰博",
+      "lane": "jungle",
+      "ms": 36,
+      "father": 1,
+      "son": 0
+    },
+    {
+      "name": "兰博",
+      "lane": "middle",
+      "ms": 30,
+      "father": 1,
+      "son": 1
+    },
+    {
+      "name": "兰博",
+      "lane": "support",
+      "ms": 31,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "卡西奥佩娅",
+      "lane": "middle",
+      "ms": 28,
+      "father": 20,
+      "son": 23
+    },
+    {
+      "name": "卡西奥佩娅",
+      "lane": "top",
+      "ms": 38,
+      "father": 9,
+      "son": 8
+    },
+    {
+      "name": "卡西奥佩娅",
+      "lane": "bottom",
+      "ms": 28,
+      "father": 4,
+      "son": 9
+    },
+    {
+      "name": "斯卡纳",
+      "lane": "jungle",
+      "ms": 33,
+      "father": 13,
+      "son": 19
+    },
+    {
+      "name": "斯卡纳",
+      "lane": "top",
+      "ms": 31,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "斯卡纳",
+      "lane": "support",
+      "ms": 33,
+      "father": 10,
+      "son": 10
+    },
+    {
+      "name": "黑默丁格",
+      "lane": "top",
+      "ms": 44,
+      "father": 21,
+      "son": 21
+    },
+    {
+      "name": "黑默丁格",
+      "lane": "middle",
+      "ms": 29,
+      "father": 1,
+      "son": 1
+    },
+    {
+      "name": "黑默丁格",
+      "lane": "bottom",
+      "ms": 29,
+      "father": 0,
+      "son": 2
+    },
+    {
+      "name": "黑默丁格",
+      "lane": "support",
+      "ms": 32,
+      "father": 5,
+      "son": 4
+    },
+    {
+      "name": "内瑟斯",
+      "lane": "top",
+      "ms": 40,
+      "father": 41,
+      "son": 44
+    },
+    {
+      "name": "内瑟斯",
+      "lane": "middle",
+      "ms": 38,
+      "father": 24,
+      "son": 20
+    },
+    {
+      "name": "奈德丽",
+      "lane": "jungle",
+      "ms": 31,
+      "father": 21,
+      "son": 40
+    },
+    {
+      "name": "奈德丽",
+      "lane": "top",
+      "ms": 36,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "奈德丽",
+      "lane": "support",
+      "ms": 30,
+      "father": 3,
+      "son": 0
+    },
+    {
+      "name": "乌迪尔",
+      "lane": "jungle",
+      "ms": 30,
+      "father": 11,
+      "son": 13
+    },
+    {
+      "name": "乌迪尔",
+      "lane": "top",
+      "ms": 49,
+      "father": 9,
+      "son": 8
+    },
+    {
+      "name": "乌迪尔",
+      "lane": "middle",
+      "ms": 34,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "波比",
+      "lane": "support",
+      "ms": 29,
+      "father": 15,
+      "son": 23
+    },
+    {
+      "name": "波比",
+      "lane": "top",
+      "ms": 37,
+      "father": 18,
+      "son": 21
+    },
+    {
+      "name": "波比",
+      "lane": "jungle",
+      "ms": 34,
+      "father": 7,
+      "son": 7
+    },
+    {
+      "name": "古拉加斯",
+      "lane": "top",
+      "ms": 29,
+      "father": 27,
+      "son": 30
+    },
+    {
+      "name": "古拉加斯",
+      "lane": "jungle",
+      "ms": 34,
+      "father": 9,
+      "son": 11
+    },
+    {
+      "name": "古拉加斯",
+      "lane": "middle",
+      "ms": 30,
+      "father": 1,
+      "son": 5
+    },
+    {
+      "name": "古拉加斯",
+      "lane": "support",
+      "ms": 38,
+      "father": 5,
+      "son": 3
+    },
+    {
+      "name": "潘森",
+      "lane": "support",
+      "ms": 34,
+      "father": 28,
+      "son": 25
+    },
+    {
+      "name": "潘森",
+      "lane": "top",
+      "ms": 44,
+      "father": 27,
+      "son": 32
+    },
+    {
+      "name": "潘森",
+      "lane": "jungle",
+      "ms": 36,
+      "father": 18,
+      "son": 12
+    },
+    {
+      "name": "潘森",
+      "lane": "middle",
+      "ms": 38,
+      "father": 14,
+      "son": 21
+    },
+    {
+      "name": "伊泽瑞尔",
+      "lane": "bottom",
+      "ms": 31,
+      "father": 26,
+      "son": 19
+    },
+    {
+      "name": "伊泽瑞尔",
+      "lane": "support",
+      "ms": 38,
+      "father": 14,
+      "son": 3
+    },
+    {
+      "name": "莫德凯撒",
+      "lane": "top",
+      "ms": 34,
+      "father": 35,
+      "son": 31
+    },
+    {
+      "name": "莫德凯撒",
+      "lane": "jungle",
+      "ms": 32,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "莫德凯撒",
+      "lane": "middle",
+      "ms": 31,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "约里克",
+      "lane": "top",
+      "ms": 28,
+      "father": 36,
+      "son": 26
+    },
+    {
+      "name": "约里克",
+      "lane": "middle",
+      "ms": 37,
+      "father": 1,
+      "son": 0
+    },
+    {
+      "name": "阿卡丽",
+      "lane": "middle",
+      "ms": 32,
+      "father": 39,
+      "son": 28
+    },
+    {
+      "name": "阿卡丽",
+      "lane": "top",
+      "ms": 37,
+      "father": 37,
+      "son": 32
+    },
+    {
+      "name": "凯南",
+      "lane": "top",
+      "ms": 38,
+      "father": 22,
+      "son": 34
+    },
+    {
+      "name": "凯南",
+      "lane": "middle",
+      "ms": 30,
+      "father": 0,
+      "son": 1
+    },
+    {
+      "name": "凯南",
+      "lane": "support",
+      "ms": 29,
+      "father": 2,
+      "son": 1
+    },
+    {
+      "name": "盖伦",
+      "lane": "top",
+      "ms": 28,
+      "father": 36,
+      "son": 27
+    },
+    {
+      "name": "盖伦",
+      "lane": "middle",
+      "ms": 37,
+      "father": 2,
+      "son": 9
+    },
+    {
+      "name": "蕾欧娜",
+      "lane": "support",
+      "ms": 33,
+      "father": 24,
+      "son": 38
+    },
+    {
+      "name": "玛尔扎哈",
+      "lane": "middle",
+      "ms": 36,
+      "father": 32,
+      "son": 20
+    },
+    {
+      "name": "玛尔扎哈",
+      "lane": "top",
+      "ms": 31,
+      "father": 5,
+      "son": 3
+    },
+    {
+      "name": "玛尔扎哈",
+      "lane": "bottom",
+      "ms": 35,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "泰隆",
+      "lane": "jungle",
+      "ms": 29,
+      "father": 29,
+      "son": 38
+    },
+    {
+      "name": "泰隆",
+      "lane": "middle",
+      "ms": 37,
+      "father": 21,
+      "son": 31
+    },
+    {
+      "name": "锐雯",
+      "lane": "top",
+      "ms": 30,
+      "father": 21,
+      "son": 23
+    },
+    {
+      "name": "锐雯",
+      "lane": "jungle",
+      "ms": 36,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "锐雯",
+      "lane": "middle",
+      "ms": 30,
+      "father": 1,
+      "son": 0
+    },
+    {
+      "name": "克格莫",
+      "lane": "bottom",
+      "ms": 29,
+      "father": 8,
+      "son": 14
+    },
+    {
+      "name": "克格莫",
+      "lane": "top",
+      "ms": 43,
+      "father": 4,
+      "son": 2
+    },
+    {
+      "name": "克格莫",
+      "lane": "middle",
+      "ms": 37,
+      "father": 16,
+      "son": 12
+    },
+    {
+      "name": "慎",
+      "lane": "top",
+      "ms": 33,
+      "father": 27,
+      "son": 32
+    },
+    {
+      "name": "慎",
+      "lane": "jungle",
+      "ms": 38,
+      "father": 1,
+      "son": 0
+    },
+    {
+      "name": "慎",
+      "lane": "support",
+      "ms": 38,
+      "father": 12,
+      "son": 10
+    },
+    {
+      "name": "拉克丝",
+      "lane": "support",
+      "ms": 31,
+      "father": 39,
+      "son": 19
+    },
+    {
+      "name": "拉克丝",
+      "lane": "middle",
+      "ms": 36,
+      "father": 21,
+      "son": 20
+    },
+    {
+      "name": "泽拉斯",
+      "lane": "middle",
+      "ms": 32,
+      "father": 30,
+      "son": 26
+    },
+    {
+      "name": "泽拉斯",
+      "lane": "bottom",
+      "ms": 35,
+      "father": 13,
+      "son": 9
+    },
+    {
+      "name": "泽拉斯",
+      "lane": "support",
+      "ms": 39,
+      "father": 30,
+      "son": 20
+    },
+    {
+      "name": "希瓦娜",
+      "lane": "jungle",
+      "ms": 39,
+      "father": 16,
+      "son": 17
+    },
+    {
+      "name": "希瓦娜",
+      "lane": "top",
+      "ms": 34,
+      "father": 1,
+      "son": 1
+    },
+    {
+      "name": "阿狸",
+      "lane": "middle",
+      "ms": 34,
+      "father": 41,
+      "son": 31
+    },
+    {
+      "name": "阿狸",
+      "lane": "top",
+      "ms": 28,
+      "father": 2,
+      "son": 5
+    },
+    {
+      "name": "格雷福斯",
+      "lane": "jungle",
+      "ms": 35,
+      "father": 37,
+      "son": 24
+    },
+    {
+      "name": "菲兹",
+      "lane": "middle",
+      "ms": 29,
+      "father": 29,
+      "son": 23
+    },
+    {
+      "name": "菲兹",
+      "lane": "top",
+      "ms": 37,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "菲兹",
+      "lane": "jungle",
+      "ms": 32,
+      "father": 12,
+      "son": 15
+    },
+    {
+      "name": "沃利贝尔",
+      "lane": "top",
+      "ms": 34,
+      "father": 35,
+      "son": 31
+    },
+    {
+      "name": "沃利贝尔",
+      "lane": "jungle",
+      "ms": 35,
+      "father": 7,
+      "son": 1
+    },
+    {
+      "name": "雷恩加尔",
+      "lane": "jungle",
+      "ms": 31,
+      "father": 19,
+      "son": 20
+    },
+    {
+      "name": "雷恩加尔",
+      "lane": "top",
+      "ms": 30,
+      "father": 4,
+      "son": 4
+    },
+    {
+      "name": "雷恩加尔",
+      "lane": "support",
+      "ms": 30,
+      "father": 1,
+      "son": 2
+    },
+    {
+      "name": "韦鲁斯",
+      "lane": "bottom",
+      "ms": 28,
+      "father": 16,
+      "son": 13
+    },
+    {
+      "name": "韦鲁斯",
+      "lane": "top",
+      "ms": 37,
+      "father": 36,
+      "son": 25
+    },
+    {
+      "name": "韦鲁斯",
+      "lane": "middle",
+      "ms": 37,
+      "father": 4,
+      "son": 2
+    },
+    {
+      "name": "诺提勒斯",
+      "lane": "support",
+      "ms": 34,
+      "father": 28,
+      "son": 49
+    },
+    {
+      "name": "维克托",
+      "lane": "middle",
+      "ms": 30,
+      "father": 43,
+      "son": 42
+    },
+    {
+      "name": "维克托",
+      "lane": "top",
+      "ms": 34,
+      "father": 7,
+      "son": 7
+    },
+    {
+      "name": "维克托",
+      "lane": "bottom",
+      "ms": 32,
+      "father": 7,
+      "son": 17
+    },
+    {
+      "name": "瑟庄妮",
+      "lane": "jungle",
+      "ms": 28,
+      "father": 19,
+      "son": 22
+    },
+    {
+      "name": "瑟庄妮",
+      "lane": "top",
+      "ms": 33,
+      "father": 2,
+      "son": 0
+    },
+    {
+      "name": "瑟庄妮",
+      "lane": "support",
+      "ms": 31,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "菲奥娜",
+      "lane": "top",
+      "ms": 30,
+      "father": 34,
+      "son": 36
+    },
+    {
+      "name": "吉格斯",
+      "lane": "bottom",
+      "ms": 31,
+      "father": 8,
+      "son": 18
+    },
+    {
+      "name": "吉格斯",
+      "lane": "middle",
+      "ms": 35,
+      "father": 3,
+      "son": 6
+    },
+    {
+      "name": "吉格斯",
+      "lane": "support",
+      "ms": 29,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "璐璐",
+      "lane": "support",
+      "ms": 29,
+      "father": 32,
+      "son": 54
+    },
+    {
+      "name": "德莱文",
+      "lane": "bottom",
+      "ms": 32,
+      "father": 12,
+      "son": 17
+    },
+    {
+      "name": "德莱文",
+      "lane": "top",
+      "ms": 33,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "赫卡里姆",
+      "lane": "jungle",
+      "ms": 28,
+      "father": 27,
+      "son": 35
+    },
+    {
+      "name": "卡兹克",
+      "lane": "jungle",
+      "ms": 32,
+      "father": 28,
+      "son": 32
+    },
+    {
+      "name": "德莱厄斯",
+      "lane": "top",
+      "ms": 30,
+      "father": 37,
+      "son": 32
+    },
+    {
+      "name": "德莱厄斯",
+      "lane": "jungle",
+      "ms": 36,
+      "father": 2,
+      "son": 0
+    },
+    {
+      "name": "德莱厄斯",
+      "lane": "support",
+      "ms": 30,
+      "father": 3,
+      "son": 0
+    },
+    {
+      "name": "杰斯",
+      "lane": "top",
+      "ms": 31,
+      "father": 45,
+      "son": 42
+    },
+    {
+      "name": "杰斯",
+      "lane": "jungle",
+      "ms": 40,
+      "father": 28,
+      "son": 30
+    },
+    {
+      "name": "杰斯",
+      "lane": "middle",
+      "ms": 38,
+      "father": 14,
+      "son": 16
+    },
+    {
+      "name": "丽桑卓",
+      "lane": "middle",
+      "ms": 38,
+      "father": 29,
+      "son": 29
+    },
+    {
+      "name": "丽桑卓",
+      "lane": "top",
+      "ms": 30,
+      "father": 11,
+      "son": 10
+    },
+    {
+      "name": "丽桑卓",
+      "lane": "support",
+      "ms": 38,
+      "father": 1,
+      "son": 3
+    },
+    {
+      "name": "黛安娜",
+      "lane": "middle",
+      "ms": 38,
+      "father": 21,
+      "son": 28
+    },
+    {
+      "name": "黛安娜",
+      "lane": "top",
+      "ms": 30,
+      "father": 1,
+      "son": 1
+    },
+    {
+      "name": "黛安娜",
+      "lane": "jungle",
+      "ms": 32,
+      "father": 23,
+      "son": 14
+    },
+    {
+      "name": "奎因",
+      "lane": "top",
+      "ms": 31,
+      "father": 12,
+      "son": 13
+    },
+    {
+      "name": "奎因",
+      "lane": "jungle",
+      "ms": 39,
+      "father": 11,
+      "son": 10
+    },
+    {
+      "name": "奎因",
+      "lane": "middle",
+      "ms": 34,
+      "father": 1,
+      "son": 0
+    },
+    {
+      "name": "奎因",
+      "lane": "support",
+      "ms": 30,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "辛德拉",
+      "lane": "middle",
+      "ms": 31,
+      "father": 31,
+      "son": 39
+    },
+    {
+      "name": "辛德拉",
+      "lane": "bottom",
+      "ms": 42,
+      "father": 10,
+      "son": 8
+    },
+    {
+      "name": "辛德拉",
+      "lane": "support",
+      "ms": 28,
+      "father": 3,
+      "son": 2
+    },
+    {
+      "name": "奥瑞利安索尔",
+      "lane": "middle",
+      "ms": 28,
+      "father": 19,
+      "son": 18
+    },
+    {
+      "name": "奥瑞利安索尔",
+      "lane": "top",
+      "ms": 34,
+      "father": 0,
+      "son": 1
+    },
+    {
+      "name": "奥瑞利安索尔",
+      "lane": "bottom",
+      "ms": 32,
+      "father": 3,
+      "son": 6
+    },
+    {
+      "name": "奥瑞利安索尔",
+      "lane": "support",
+      "ms": 31,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "凯隐",
+      "lane": "jungle",
+      "ms": 34,
+      "father": 30,
+      "son": 21
+    },
+    {
+      "name": "凯隐",
+      "lane": "top",
+      "ms": 30,
+      "father": 2,
+      "son": 1
+    },
+    {
+      "name": "佐伊",
+      "lane": "middle",
+      "ms": 28,
+      "father": 23,
+      "son": 30
+    },
+    {
+      "name": "佐伊",
+      "lane": "top",
+      "ms": 52,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "佐伊",
+      "lane": "support",
+      "ms": 32,
+      "father": 14,
+      "son": 3
+    },
+    {
+      "name": "婕拉",
+      "lane": "support",
+      "ms": 31,
+      "father": 19,
+      "son": 20
+    },
+    {
+      "name": "婕拉",
+      "lane": "jungle",
+      "ms": 39,
+      "father": 20,
+      "son": 22
+    },
+    {
+      "name": "婕拉",
+      "lane": "middle",
+      "ms": 34,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "卡莎",
+      "lane": "bottom",
+      "ms": 28,
+      "father": 28,
+      "son": 23
+    },
+    {
+      "name": "萨勒芬妮",
+      "lane": "support",
+      "ms": 44,
+      "father": 33,
+      "son": 24
+    },
+    {
+      "name": "萨勒芬妮",
+      "lane": "bottom",
+      "ms": 34,
+      "father": 2,
+      "son": 5
+    },
+    {
+      "name": "纳尔",
+      "lane": "top",
+      "ms": 41,
+      "father": 33,
+      "son": 40
+    },
+    {
+      "name": "扎克",
+      "lane": "jungle",
+      "ms": 32,
+      "father": 24,
+      "son": 33
+    },
+    {
+      "name": "扎克",
+      "lane": "top",
+      "ms": 36,
+      "father": 12,
+      "son": 18
+    },
+    {
+      "name": "扎克",
+      "lane": "middle",
+      "ms": 34,
+      "father": 0,
+      "son": 1
+    },
+    {
+      "name": "扎克",
+      "lane": "support",
+      "ms": 32,
+      "father": 6,
+      "son": 5
+    },
+    {
+      "name": "亚索",
+      "lane": "middle",
+      "ms": 30,
+      "father": 37,
+      "son": 34
+    },
+    {
+      "name": "亚索",
+      "lane": "top",
+      "ms": 36,
+      "father": 34,
+      "son": 31
+    },
+    {
+      "name": "亚索",
+      "lane": "bottom",
+      "ms": 36,
+      "father": 15,
+      "son": 12
+    },
+    {
+      "name": "维克兹",
+      "lane": "support",
+      "ms": 32,
+      "father": 20,
+      "son": 20
+    },
+    {
+      "name": "维克兹",
+      "lane": "top",
+      "ms": 35,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "维克兹",
+      "lane": "middle",
+      "ms": 34,
+      "father": 5,
+      "son": 6
+    },
+    {
+      "name": "维克兹",
+      "lane": "bottom",
+      "ms": 29,
+      "father": 2,
+      "son": 7
+    },
+    {
+      "name": "塔莉垭",
+      "lane": "middle",
+      "ms": 28,
+      "father": 22,
+      "son": 18
+    },
+    {
+      "name": "塔莉垭",
+      "lane": "jungle",
+      "ms": 37,
+      "father": 16,
+      "son": 17
+    },
+    {
+      "name": "塔莉垭",
+      "lane": "bottom",
+      "ms": 34,
+      "father": 2,
+      "son": 0
+    },
+    {
+      "name": "塔莉垭",
+      "lane": "support",
+      "ms": 31,
+      "father": 2,
+      "son": 0
+    },
+    {
+      "name": "卡蜜尔",
+      "lane": "top",
+      "ms": 29,
+      "father": 36,
+      "son": 37
+    },
+    {
+      "name": "卡蜜尔",
+      "lane": "support",
+      "ms": 36,
+      "father": 27,
+      "son": 19
+    },
+    {
+      "name": "阿克尚",
+      "lane": "middle",
+      "ms": 32,
+      "father": 22,
+      "son": 20
+    },
+    {
+      "name": "阿克尚",
+      "lane": "top",
+      "ms": 30,
+      "father": 2,
+      "son": 3
+    },
+    {
+      "name": "阿克尚",
+      "lane": "bottom",
+      "ms": 31,
+      "father": 2,
+      "son": 1
+    },
+    {
+      "name": "阿克尚",
+      "lane": "support",
+      "ms": 30,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "卑尔维斯",
+      "lane": "jungle",
+      "ms": 33,
+      "father": 15,
+      "son": 25
+    },
+    {
+      "name": "卑尔维斯",
+      "lane": "top",
+      "ms": 30,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "布隆",
+      "lane": "support",
+      "ms": 29,
+      "father": 24,
+      "son": 30
+    },
+    {
+      "name": "烬",
+      "lane": "bottom",
+      "ms": 37,
+      "father": 24,
+      "son": 21
+    },
+    {
+      "name": "千珏",
+      "lane": "jungle",
+      "ms": 38,
+      "father": 24,
+      "son": 22
+    },
+    {
+      "name": "千珏",
+      "lane": "bottom",
+      "ms": 28,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "泽丽",
+      "lane": "bottom",
+      "ms": 28,
+      "father": 15,
+      "son": 23
+    },
+    {
+      "name": "金克丝",
+      "lane": "bottom",
+      "ms": 42,
+      "father": 24,
+      "son": 20
+    },
+    {
+      "name": "塔姆",
+      "lane": "support",
+      "ms": 32,
+      "father": 21,
+      "son": 18
+    },
+    {
+      "name": "塔姆",
+      "lane": "top",
+      "ms": 31,
+      "father": 10,
+      "son": 12
+    },
+    {
+      "name": "贝蕾亚",
+      "lane": "jungle",
+      "ms": 32,
+      "father": 33,
+      "son": 20
+    },
+    {
+      "name": "贝蕾亚",
+      "lane": "top",
+      "ms": 28,
+      "father": 0,
+      "son": 1
+    },
+    {
+      "name": "贝蕾亚",
+      "lane": "middle",
+      "ms": 31,
+      "father": 4,
+      "son": 4
+    },
+    {
+      "name": "佛耶戈",
+      "lane": "jungle",
+      "ms": 29,
+      "father": 34,
+      "son": 31
+    },
+    {
+      "name": "佛耶戈",
+      "lane": "top",
+      "ms": 33,
+      "father": 2,
+      "son": 0
+    },
+    {
+      "name": "佛耶戈",
+      "lane": "middle",
+      "ms": 31,
+      "father": 4,
+      "son": 4
+    },
+    {
+      "name": "赛娜",
+      "lane": "support",
+      "ms": 29,
+      "father": 25,
+      "son": 27
+    },
+    {
+      "name": "赛娜",
+      "lane": "bottom",
+      "ms": 34,
+      "father": 4,
+      "son": 2
+    },
+    {
+      "name": "卢锡安",
+      "lane": "bottom",
+      "ms": 32,
+      "father": 22,
+      "son": 18
+    },
+    {
+      "name": "卢锡安",
+      "lane": "top",
+      "ms": 31,
+      "father": 2,
+      "son": 2
+    },
+    {
+      "name": "卢锡安",
+      "lane": "middle",
+      "ms": 32,
+      "father": 12,
+      "son": 9
+    },
+    {
+      "name": "劫",
+      "lane": "middle",
+      "ms": 41,
+      "father": 31,
+      "son": 36
+    },
+    {
+      "name": "劫",
+      "lane": "top",
+      "ms": 41,
+      "father": 8,
+      "son": 5
+    },
+    {
+      "name": "劫",
+      "lane": "jungle",
+      "ms": 31,
+      "father": 29,
+      "son": 21
+    },
+    {
+      "name": "克烈",
+      "lane": "top",
+      "ms": 37,
+      "father": 15,
+      "son": 29
+    },
+    {
+      "name": "克烈",
+      "lane": "middle",
+      "ms": 30,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "克烈",
+      "lane": "support",
+      "ms": 30,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "艾克",
+      "lane": "jungle",
+      "ms": 29,
+      "father": 25,
+      "son": 33
+    },
+    {
+      "name": "艾克",
+      "lane": "top",
+      "ms": 35,
+      "father": 2,
+      "son": 0
+    },
+    {
+      "name": "艾克",
+      "lane": "middle",
+      "ms": 32,
+      "father": 20,
+      "son": 23
+    },
+    {
+      "name": "奇亚娜",
+      "lane": "jungle",
+      "ms": 40,
+      "father": 27,
+      "son": 39
+    },
+    {
+      "name": "奇亚娜",
+      "lane": "middle",
+      "ms": 36,
+      "father": 19,
+      "son": 29
+    },
+    {
+      "name": "蔚",
+      "lane": "jungle",
+      "ms": 33,
+      "father": 40,
+      "son": 26
+    },
+    {
+      "name": "蔚",
+      "lane": "support",
+      "ms": 33,
+      "father": 1,
+      "son": 0
+    },
+    {
+      "name": "亚托克斯",
+      "lane": "top",
+      "ms": 36,
+      "father": 47,
+      "son": 37
+    },
+    {
+      "name": "亚托克斯",
+      "lane": "jungle",
+      "ms": 36,
+      "father": 8,
+      "son": 10
+    },
+    {
+      "name": "亚托克斯",
+      "lane": "middle",
+      "ms": 27,
+      "father": 1,
+      "son": 3
+    },
+    {
+      "name": "娜美",
+      "lane": "support",
+      "ms": 29,
+      "father": 22,
+      "son": 17
+    },
+    {
+      "name": "阿兹尔",
+      "lane": "middle",
+      "ms": 31,
+      "father": 26,
+      "son": 15
+    },
+    {
+      "name": "阿兹尔",
+      "lane": "top",
+      "ms": 34,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "悠米",
+      "lane": "support",
+      "ms": 30,
+      "father": 29,
+      "son": 34
+    },
+    {
+      "name": "莎弥拉",
+      "lane": "bottom",
+      "ms": 30,
+      "father": 18,
+      "son": 11
+    },
+    {
+      "name": "锤石",
+      "lane": "support",
+      "ms": 30,
+      "father": 35,
+      "son": 49
+    },
+    {
+      "name": "俄洛伊",
+      "lane": "top",
+      "ms": 45,
+      "father": 29,
+      "son": 24
+    },
+    {
+      "name": "俄洛伊",
+      "lane": "middle",
+      "ms": 29,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "雷克塞",
+      "lane": "jungle",
+      "ms": 28,
+      "father": 16,
+      "son": 27
+    },
+    {
+      "name": "雷克塞",
+      "lane": "top",
+      "ms": 33,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "艾翁",
+      "lane": "jungle",
+      "ms": 28,
+      "father": 11,
+      "son": 16
+    },
+    {
+      "name": "艾翁",
+      "lane": "top",
+      "ms": 35,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "艾翁",
+      "lane": "middle",
+      "ms": 30,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "艾翁",
+      "lane": "support",
+      "ms": 32,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "卡莉丝塔",
+      "lane": "bottom",
+      "ms": 29,
+      "father": 13,
+      "son": 22
+    },
+    {
+      "name": "卡莉丝塔",
+      "lane": "top",
+      "ms": 35,
+      "father": 10,
+      "son": 6
+    },
+    {
+      "name": "卡莉丝塔",
+      "lane": "middle",
+      "ms": 58,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "巴德",
+      "lane": "support",
+      "ms": 31,
+      "father": 27,
+      "son": 33
+    },
+    {
+      "name": "洛",
+      "lane": "support",
+      "ms": 46,
+      "father": 26,
+      "son": 30
+    },
+    {
+      "name": "霞",
+      "lane": "bottom",
+      "ms": 30,
+      "father": 16,
+      "son": 21
+    },
+    {
+      "name": "奥恩",
+      "lane": "top",
+      "ms": 37,
+      "father": 27,
+      "son": 27
+    },
+    {
+      "name": "奥恩",
+      "lane": "middle",
+      "ms": 35,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "奥恩",
+      "lane": "support",
+      "ms": 30,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "塞拉斯",
+      "lane": "jungle",
+      "ms": 29,
+      "father": 35,
+      "son": 38
+    },
+    {
+      "name": "塞拉斯",
+      "lane": "top",
+      "ms": 42,
+      "father": 28,
+      "son": 11
+    },
+    {
+      "name": "塞拉斯",
+      "lane": "middle",
+      "ms": 47,
+      "father": 44,
+      "son": 34
+    },
+    {
+      "name": "塞拉斯",
+      "lane": "support",
+      "ms": 41,
+      "father": 27,
+      "son": 18
+    },
+    {
+      "name": "妮蔻",
+      "lane": "support",
+      "ms": 39,
+      "father": 26,
+      "son": 23
+    },
+    {
+      "name": "妮蔻",
+      "lane": "top",
+      "ms": 33,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "妮蔻",
+      "lane": "middle",
+      "ms": 32,
+      "father": 4,
+      "son": 6
+    },
+    {
+      "name": "厄斐琉斯",
+      "lane": "bottom",
+      "ms": 28,
+      "father": 19,
+      "son": 16
+    },
+    {
+      "name": "芮尔",
+      "lane": "support",
+      "ms": 31,
+      "father": 16,
+      "son": 35
+    },
+    {
+      "name": "派克",
+      "lane": "support",
+      "ms": 39,
+      "father": 25,
+      "son": 35
+    },
+    {
+      "name": "薇古丝",
+      "lane": "middle",
+      "ms": 30,
+      "father": 29,
+      "son": 24
+    },
+    {
+      "name": "薇古丝",
+      "lane": "support",
+      "ms": 34,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "永恩",
+      "lane": "top",
+      "ms": 39,
+      "father": 45,
+      "son": 49
+    },
+    {
+      "name": "永恩",
+      "lane": "middle",
+      "ms": 48,
+      "father": 43,
+      "son": 37
+    },
+    {
+      "name": "安蓓萨",
+      "lane": "top",
+      "ms": 29,
+      "father": 35,
+      "son": 38
+    },
+    {
+      "name": "安蓓萨",
+      "lane": "jungle",
+      "ms": 38,
+      "father": 14,
+      "son": 11
+    },
+    {
+      "name": "安蓓萨",
+      "lane": "middle",
+      "ms": 37,
+      "father": 6,
+      "son": 6
+    },
+    {
+      "name": "梅尔",
+      "lane": "middle",
+      "ms": 31,
+      "father": 27,
+      "son": 9
+    },
+    {
+      "name": "梅尔",
+      "lane": "bottom",
+      "ms": 37,
+      "father": 10,
+      "son": 4
+    },
+    {
+      "name": "梅尔",
+      "lane": "support",
+      "ms": 30,
+      "father": 14,
+      "son": 5
+    },
+    {
+      "name": "芸阿娜",
+      "lane": "bottom",
+      "ms": 28,
+      "father": 24,
+      "son": 23
+    },
+    {
+      "name": "洛克",
+      "lane": "middle",
+      "ms": 29,
+      "father": 30,
+      "son": 40
+    },
+    {
+      "name": "洛克",
+      "lane": "top",
+      "ms": 36,
+      "father": 1,
+      "son": 0
+    },
+    {
+      "name": "洛克",
+      "lane": "jungle",
+      "ms": 32,
+      "father": 15,
+      "son": 11
+    },
+    {
+      "name": "瑟提",
+      "lane": "top",
+      "ms": 33,
+      "father": 30,
+      "son": 28
+    },
+    {
+      "name": "瑟提",
+      "lane": "middle",
+      "ms": 277,
+      "father": 1,
+      "son": 4
+    },
+    {
+      "name": "瑟提",
+      "lane": "support",
+      "ms": 265,
+      "father": 1,
+      "son": 2
+    },
+    {
+      "name": "莉莉娅",
+      "lane": "jungle",
+      "ms": 33,
+      "father": 27,
+      "son": 27
+    },
+    {
+      "name": "格温",
+      "lane": "top",
+      "ms": 29,
+      "father": 21,
+      "son": 26
+    },
+    {
+      "name": "格温",
+      "lane": "jungle",
+      "ms": 284,
+      "father": 2,
+      "son": 5
+    },
+    {
+      "name": "格温",
+      "lane": "middle",
+      "ms": 279,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "烈娜塔 · 戈拉斯克",
+      "lane": "support",
+      "ms": 38,
+      "father": 17,
+      "son": 19
+    },
+    {
+      "name": "阿萝拉",
+      "lane": "middle",
+      "ms": 26,
+      "father": 25,
+      "son": 28
+    },
+    {
+      "name": "阿萝拉",
+      "lane": "top",
+      "ms": 277,
+      "father": 6,
+      "son": 6
+    },
+    {
+      "name": "尼菈",
+      "lane": "bottom",
+      "ms": 29,
+      "father": 5,
+      "son": 10
+    },
+    {
+      "name": "奎桑提",
+      "lane": "top",
+      "ms": 35,
+      "father": 47,
+      "son": 41
+    },
+    {
+      "name": "奎桑提",
+      "lane": "middle",
+      "ms": 278,
+      "father": 0,
+      "son": 1
+    },
+    {
+      "name": "奎桑提",
+      "lane": "support",
+      "ms": 264,
+      "father": 2,
+      "son": 2
+    },
+    {
+      "name": "斯莫德",
+      "lane": "bottom",
+      "ms": 29,
+      "father": 14,
+      "son": 10
+    },
+    {
+      "name": "斯莫德",
+      "lane": "top",
+      "ms": 285,
+      "father": 1,
+      "son": 1
+    },
+    {
+      "name": "斯莫德",
+      "lane": "middle",
+      "ms": 280,
+      "father": 3,
+      "son": 2
+    },
+    {
+      "name": "米利欧",
+      "lane": "support",
+      "ms": 29,
+      "father": 26,
+      "son": 26
+    },
+    {
+      "name": "亚恒",
+      "lane": "top",
+      "ms": 30,
+      "father": 28,
+      "son": 31
+    },
+    {
+      "name": "亚恒",
+      "lane": "jungle",
+      "ms": 284,
+      "father": 1,
+      "son": 4
+    },
+    {
+      "name": "亚恒",
+      "lane": "middle",
+      "ms": 264,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "亚恒",
+      "lane": "support",
+      "ms": 31,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "彗",
+      "lane": "middle",
+      "ms": 35,
+      "father": 23,
+      "son": 31
+    },
+    {
+      "name": "彗",
+      "lane": "top",
+      "ms": 30,
+      "father": 0,
+      "son": 0
+    },
+    {
+      "name": "彗",
+      "lane": "bottom",
+      "ms": 35,
+      "father": 4,
+      "son": 5
+    },
+    {
+      "name": "彗",
+      "lane": "support",
+      "ms": 34,
+      "father": 9,
+      "son": 7
+    },
+    {
+      "name": "纳亚菲利",
+      "lane": "jungle",
+      "ms": 31,
+      "father": 30,
+      "son": 28
+    },
+    {
+      "name": "纳亚菲利",
+      "lane": "top",
+      "ms": 37,
+      "father": 5,
+      "son": 1
+    },
+    {
+      "name": "纳亚菲利",
+      "lane": "middle",
+      "ms": 30,
+      "father": 13,
+      "son": 7
+    }
+  ]
+}
