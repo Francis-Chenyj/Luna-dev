@@ -2,9 +2,24 @@
 param([string]$NodePath = 'node')
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot '..\scripts\check-tools.ps1')
-$node = (Get-Command $NodePath -CommandType Application -ErrorAction Stop).Source
+$node = Resolve-LunaApplication $NodePath
 $testPath = Join-Path ([IO.Path]::GetTempPath()) ('luna-check-tools-' + [guid]::NewGuid().ToString('N').Substring(0,8))
 New-Item -ItemType Directory -Path $testPath | Out-Null
+$firstToolPath = Join-Path $testPath 'first installation'
+$secondToolPath = Join-Path $testPath 'second installation'
+New-Item -ItemType Directory -Path $firstToolPath,$secondToolPath | Out-Null
+$toolName = 'luna-resolution-' + [guid]::NewGuid().ToString('N') + '.exe'
+$firstTool = Join-Path $firstToolPath $toolName
+$secondTool = Join-Path $secondToolPath $toolName
+New-Item -ItemType File -Path $firstTool,$secondTool | Out-Null
+$originalPath = $env:PATH
+try {
+    $env:PATH = $firstToolPath + ';' + $secondToolPath + ';' + $originalPath
+    if (@(Get-Command $toolName -CommandType Application).Count -ne 2) { throw 'Duplicate-PATH fixture is invalid.' }
+    if ((Resolve-LunaApplication $toolName) -cne $firstTool) { throw 'Executable resolution did not preserve PATH priority.' }
+    if ((Resolve-LunaApplication $secondTool) -cne $secondTool) { throw 'Explicit executable path was not respected.' }
+} finally { $env:PATH = $originalPath }
+Write-Output 'PASS: duplicate executable installations preserve PATH priority and explicit paths.'
 $values = @('two words','a"b','C:\trailing space\','')
 Invoke-LunaCheckProcess -FilePath $node -Arguments (@('-e','process.stdout.write(JSON.stringify(process.argv.slice(1)))') + $values) `
     -WorkingDirectory $testPath -LogPrefix (Join-Path $testPath 'arguments')

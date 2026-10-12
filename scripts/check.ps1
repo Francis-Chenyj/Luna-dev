@@ -4,7 +4,7 @@ $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'check-tools.ps1')
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 $projectPath = [IO.Path]::GetFullPath((Split-Path -Parent $PSScriptRoot)).TrimEnd('\')
-$node = (Get-Command $NodePath -CommandType Application -ErrorAction Stop).Source
+$node = Resolve-LunaApplication $NodePath
 $windowsPowerShell = Join-Path $env:WINDIR 'System32\WindowsPowerShell\v1.0\powershell.exe'
 if (-not [Environment]::Is64BitOperatingSystem -or -not (Test-Path -LiteralPath (Join-Path $env:WINDIR 'Microsoft.NET\Framework64\v4.0.30319\csc.exe'))) {
     throw 'The complete suite requires 64-bit Windows and the .NET Framework compiler.'

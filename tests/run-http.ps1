@@ -15,7 +15,7 @@ if (Test-Path -LiteralPath (Join-Path $runtimePath 'cache')) { throw 'HTTP verif
 foreach ($required in @('Luna.exe','Luna.exe.config','web\index.html','data\library\1-5\manifest.json','LICENSE','CHANGELOG.md','THIRD_PARTY_NOTICES.md')) {
     if (-not (Test-Path -LiteralPath (Join-Path $runtimePath $required) -PathType Leaf)) { throw "Missing runtime file: $required" }
 }
-$node = (Get-Command $NodePath -CommandType Application -ErrorAction Stop).Source
+$node = Resolve-LunaApplication $NodePath
 $logPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($LogDirectory)
 Assert-LunaRegularPath $logPath
 New-Item -ItemType Directory -Path $logPath -Force | Out-Null

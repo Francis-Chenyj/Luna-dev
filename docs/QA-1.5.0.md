@@ -115,3 +115,16 @@ This is a local technical acceptance record, not a clean-machine or all-Windows 
 第三方授权和 Riot 产品注册继续保留待办，`publicReleaseReady` 仍为 `false`。本次不申请代码签名、不创建仓库、不上传或发布到 GitHub。
 
 This local documentation refresh keeps application version 1.5.0 and preserves program source, UI files, bundled data and previous archives. The selected artifacts are in `dist/v1.5.0-final-review-r2/`; r2 identifies a local review directory only. The first run stopped during the timeout-cleanup regression because Windows process-tree termination failed in the restricted execution environment; that failed result is retained in `dist/ci-docs-final-20261012/report.json`. A standalone local probe reproduced the environment limitation and was cleaned up; no check was removed or bypassed. The complete rerun outside that restricted environment is recorded in `dist/ci-docs-final-20261012-r2/report.json`, with final artifact checks in local `verification.json` beside the ZIPs. Earlier manual UI/scaling evidence is retained, not counted as newly performed. Third-party permissions and Riot registration remain pending (`publicReleaseReady: false`); no code-signing application, repository creation, upload or publication is performed.
+
+## 2026-10-13 development publication / 公开开发版准备
+
+维护者选择公开 `Francis-Chenyj/Luna-dev` 源码仓库并提供开发预发布下载，程序版本仍为 1.5.0，预发布标签为 `v1.5.0-dev.1`。本节是后续记录；以上各轮本地验收仍保留各自的日期和范围。
+
+- 新仓库地址、双语“开发中”提示、下载与反馈入口已同步；历史审阅包保留。
+- 改名后的本地完整检查 `dist/ci-publish-20261013/` 16 项通过，包括 84 项 JavaScript 测试、8 组 C# 测试及运行包/源码包检查。
+- [首次云端检查](https://github.com/Francis-Chenyj/Luna-dev/actions/runs/38277937504) 暴露多套 Node.js 同时出现在 PATH 时的脚本错误：Windows PowerShell 返回多个应用路径，原代码误将它们拼成一个可执行路径。该次失败保留，不记为通过。
+- 已将三个检查入口统一为按 PATH 优先级解析单个应用，保留显式路径选择；新增重复路径和显式路径回归检查，专项测试通过。
+- 修复后的本地完整检查记录位于 `dist/ci-publish-20261013-r2/`；重新生成的附件位于 `dist/v1.5.0-dev.1-r2/`。云端最终结果以 [Actions](https://github.com/Francis-Chenyj/Luna-dev/actions) 对应提交的记录为准。`r2` 仅区分本地目录，不是第二个公开版本。
+- 本轮没有改变对局数据或产品行为，没有重做此前全部人工界面和 Windows 缩放验收；第三方授权、Riot 注册及代码签名状态不变。
+
+The renamed development repository uses tag `v1.5.0-dev.1` with application version 1.5.0. All 16 local checks passed before upload. The first hosted run found a multi-installation PATH resolution bug in the verification scripts; the failed run is retained. The fix selects one executable by PATH priority and respects explicit paths, with a passing regression check. The full rerun and refreshed packages have separate local directories; the Actions page records the final hosted result. Earlier manual UI/scaling evidence and unresolved third-party review remain unchanged.

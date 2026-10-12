@@ -10,6 +10,8 @@ Version history for Luna. For current instructions, see the [user guide](docs/US
 
 ## 1.5.0-dev.1 — 2026-10-13（开发预发布 / Development pre-release）
 
+- 修复 Windows 自动检查在 PATH 中同时存在多套 Node.js 时无法启动的问题；按 PATH 顺序选取单个程序，保留显式路径优先，并加入回归检查。
+- Fix Windows verification with multiple Node.js installations on PATH; resolve a single executable by PATH priority, respect explicit paths and cover both in a regression check.
 - 仓库命名为 `Francis-Chenyj/Luna-dev`，统一程序主页、双语文档、反馈和下载入口；程序内版本仍为 1.5.0。
 - Use `Francis-Chenyj/Luna-dev` for project, feedback and download links; the application version remains 1.5.0.
 - 同步最新说明并重新打包，保留第三方授权与 Riot 注册待办，旧本地审阅包保留。

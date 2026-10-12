@@ -9,9 +9,9 @@ This checklist covers the complete local build, not a separate demo edition. It 
 ## 1. 当前开发预发布 / Selected pre-release
 
 - GitHub 标签为 `v1.5.0-dev.1`，程序内版本仍为 `1.5.0`，标记为 Pre-release。
-- 本次附件目录为 `dist/v1.5.0-dev.1/`。旧审阅包保留，不覆盖。
+- 本次附件目录为 `dist/v1.5.0-dev.1-r2/`。旧审阅包保留，不覆盖。
 - 以同一目录的 `SHA256SUMS.txt` 和 `release-files.json` 识别文件，包名相同不代表内容相同。
-- 本次本地自动检查记录为 `dist/ci-publish-20261013/`；云端检查以仓库 Actions 对应提交的结果为准。
+- 本次本地自动检查记录为 `dist/ci-publish-20261013-r2/`；云端检查以仓库 Actions 对应提交的结果为准。
 - 先前的人工界面、真实 Windows 缩放与迁移验收保留原日期及范围，见 QA；本次主页链接变更不冒充重复了全部人工验收。
 - 第三方授权与 Riot 注册继续待办，`publicReleaseReady` 维持 `false`。这是证据核查状态，不是仓库是否公开。
 

@@ -33,9 +33,9 @@ Windows 10 / 11, .NET Framework 4.7.2+ and a modern browser; an Edge app window 
 - `SHA256SUMS.txt`: package and manifest hashes. / 校验文件。
 - `release-files.json`: per-file package inventory. / 逐文件清单。
 
-The selected artifacts are generated in `dist/v1.5.0-dev.1/`. Earlier local review ZIPs remain unchanged. Identify this build using its companion checksums and per-file inventory. Both ZIPs include third-party data/assets with unresolved distribution review. The executable is not code-signed.
+The selected artifacts are generated in `dist/v1.5.0-dev.1-r2/`. Earlier local review ZIPs remain unchanged. Identify this build using its companion checksums and per-file inventory. Both ZIPs include third-party data/assets with unresolved distribution review. The executable is not code-signed.
 
-本次附件生成于 `dist/v1.5.0-dev.1/`，此前本地审阅包保留原样。请用本次校验文件和逐文件清单识别构建；两个 ZIP 均包含分发条件仍待核实的第三方数据与素材。EXE 尚未进行代码签名。
+本次附件生成于 `dist/v1.5.0-dev.1-r2/`，此前本地审阅包保留原样。请用本次校验文件和逐文件清单识别构建；两个 ZIP 均包含分发条件仍待核实的第三方数据与素材。EXE 尚未进行代码签名。
 
 ## Install and upgrade / 安装与升级
 

@@ -1,6 +1,12 @@
 ﻿# Shared by local verification and its regression checks. No network setup or downloads.
 Set-StrictMode -Version Latest
 
+function Resolve-LunaApplication([string]$Name) {
+    # Windows PowerShell may return every matching executable on PATH.
+    # Use the first match, as normal command invocation does.
+    return (Get-Command $Name -CommandType Application -ErrorAction Stop | Select-Object -First 1).Source
+}
+
 function Assert-LunaRegularPath([string]$Path) {
     $current = [IO.Path]::GetFullPath($Path)
     while ($current) {
