@@ -35,9 +35,9 @@ Luna 1.5.0 简体中文、深色主题，使用随包数据：亚托克斯、上
 
 ## 下载与快速开始
 
-**开发中 · 预发布版本。**请到 [Releases 下载页](https://github.com/Francis-Chenyj/Luna-dev/releases)获取 `Luna-v1.5.0-Windows.zip`。`Luna-v1.5.0-Source.zip` 用于开发，不含可执行程序。请一并下载 `SHA256SUMS.txt` 核对 ZIP 的 SHA-256。第三方分发授权和 Riot 注册仍待完成，详见[分发状态](release-status.json)与[第三方声明](THIRD_PARTY_NOTICES.md)。
+**开发中 · 预发布版本。** 请到 [Releases 下载页](https://github.com/Francis-Chenyj/Luna-dev/releases)获取 `Luna-v1.5.0-Windows.zip`。`Luna-v1.5.0-Source.zip` 用于开发，不含可执行程序。请一并下载 `SHA256SUMS.txt` 核对 ZIP 的 SHA-256。第三方分发授权和 Riot 注册仍待完成，详见[分发状态](release-status.json)与[第三方声明](THIRD_PARTY_NOTICES.md)。
 
-**运行要求：**Windows 10 / 11、.NET Framework 4.7.2 或更高版本，以及现代浏览器。优先使用 Edge 独立应用窗口。普通使用无需 Node.js、Python、账号、API Key 或管理员权限。
+**运行要求：** Windows 10 / 11、.NET Framework 4.7.2 或更高版本，以及现代浏览器。优先使用 Edge 独立应用窗口。普通使用无需 Node.js、Python、账号、API Key 或管理员权限。
 
 下载 Windows 运行包后：
 
