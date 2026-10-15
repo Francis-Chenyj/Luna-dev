@@ -15,3 +15,5 @@
 *.ico binary
 *.zip binary
 *.exe binary
+# The SDK manifest hashes original vendor bytes, including license line endings.
+vendor/webview2/** -text
