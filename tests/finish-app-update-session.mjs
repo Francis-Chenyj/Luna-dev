@@ -1,0 +1,41 @@
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import {spawn} from 'node:child_process';
+import {createHash} from 'node:crypto';
+import assert from 'node:assert/strict';
+const [runtime,releaseDirectory,reportPath]=process.argv.slice(2);
+const read=async name=>JSON.parse((await fs.readFile(name,'utf8')).replace(/^\uFEFF/,''));
+const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+const hash=async name=>createHash('sha256').update(await fs.readFile(name)).digest('hex');
+const release=await read(path.join(releaseDirectory,'release-files.json'));
+const archive=release.packages.find(p=>p.kind==='Windows');
+const config=await read(path.join(runtime,'fixture.json'));
+config.archive=path.join(releaseDirectory,archive.name);config.metadata=path.join(releaseDirectory,'luna-update.json');config.delayMs=1;
+await fs.writeFile(path.join(runtime,'fixture.json'),JSON.stringify(config));
+const settingsPath=path.join(runtime,'cache/settings.json');
+const expectedSettings=await hash(settingsPath),expectedPersonal=await hash(path.join(runtime,'personal-note.txt'));
+await fs.writeFile(path.join(runtime,'cache/user-state-test.json'),'retained local data');
+const expectedData=await hash(path.join(runtime,'cache/user-state-test.json'));
+let url='http://127.0.0.1:18773',child;
+const api=async(route,method='GET')=>{const res=await fetch(url+route,{method,headers:{'X-Luna':'1'},signal:AbortSignal.timeout(3000)});assert.ok(res.ok,route+' '+res.status);return res.json();};
+const until=async(check,message)=>{for(let i=0;i<150;i++){try{const result=await check();if(result)return result;}catch{}await delay(100);}throw Error(message);};
+try{
+  child=spawn(path.join(runtime,'Luna.exe'),['--no-browser','--port','18773'],{cwd:runtime,windowsHide:true,stdio:'ignore'});
+  await until(async()=>((await api('/api/health')).version==='1.6.1'),'Predecessor did not start');
+  await api('/api/app-update/check','POST');
+  await until(async()=>((await api('/api/app-update')).state==='ready'),'Final package was not staged');
+  const staged=await read(path.join(runtime,'cache/app-update/release.json'));
+  assert.equal(JSON.parse(Buffer.from(staged.payload,'base64').toString()).sha256,archive.sha256,'Must install the final signed package, not a previous staged ZIP');
+  await api('/api/maintenance/run?action=update&removeData=false','POST');
+  await until(async()=>child.exitCode!==null,'Old process did not exit');
+  await until(async()=>{
+    url=(await fs.readFile(path.join(runtime,'cache/running-url.txt'),'utf8')).trim();
+    const health=await api('/api/health');return health.version===release.version&&!health.offline&&(await api('/api/app-update')).state==='installed';
+  },'Updated process did not report installed');
+  const detail=await api('/api/detail?championId=103&lane=middle&mode=father&thresholdLevel=1&sensitivity=5');assert.ok(detail.data);
+  assert.equal(await hash(settingsPath),expectedSettings);assert.equal(await hash(path.join(runtime,'personal-note.txt')),expectedPersonal);assert.equal(await hash(path.join(runtime,'cache/user-state-test.json')),expectedData);
+  assert.equal(await hash(path.join(runtime,'Luna.exe')),archive.files.find(f=>f.path==='Luna/Luna.exe').sha256);
+  const status=await api('/api/app-update');assert.equal(status.newVersion,'');
+  const result={passed:true,version:release.version,state:status.state,finalPackageSha256:archive.sha256,settingsRetained:true,personalFileRetained:true,cachedDataRetained:true,localQuery:true,rollbackVersion:(await read(path.join(runtime,'cache/app-update/rollback/installed-files.json'))).version,fixture:'Current updater with a lower fixture version; loopback download; real helper and unmodified final signed target'};
+  await fs.writeFile(reportPath,JSON.stringify(result,null,2));console.log(JSON.stringify(result));
+}finally{try{await api('/api/quit','POST');}catch{}}

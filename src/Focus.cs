@@ -1,3 +1,7 @@
+using File = Luna.LocalFile;
+using Directory = Luna.LocalDirectory;
+using FileInfo = Luna.LocalFileInfo;
+using DirectoryInfo = Luna.LocalDirectoryInfo;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -9,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace Luna {
     internal static partial class Program {
-        static readonly string FocusDir = Path.Combine(CacheDir, "focus");
+        static string FocusDir { get { return Path.Combine(CacheDir, "focus"); } }
         static readonly object FocusSync = new object();
         static List<string> FocusRecent;
         static int FocusUpdated;
@@ -138,7 +142,7 @@ namespace Luna {
             foreach (string path in Directory.GetFiles(FocusDir, "focus-*.json.gz")) {
                 string pair = Path.GetFileName(path); pair = pair.Substring(0, pair.Length - 8);
                 if (!ValidFocus(pair) || !SafeFocusPath(path)) continue;
-                try { if (ReadFocusedPair(pair) != null) files.Add(new FileInfo(path)); } catch { }
+                try { if (ReadFocusedPair(pair) != null) files.Add(new FileInfo(path)); } catch { QuarantineOwnedFile(path); }
             }
             long bytes = files.Sum(f => f.Length); int remaining = files.Count;
             foreach (var file in files.OrderByDescending(f => { int i = recent.IndexOf(f.Name.Substring(0, f.Name.Length - 8)); return i < 0 ? Int32.MaxValue : i; }).ThenBy(f => f.LastWriteTimeUtc)) {

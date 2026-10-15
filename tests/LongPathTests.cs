@@ -10,12 +10,15 @@ internal static class LongPathTests {
     }
     static int Main() {
         try {
-            string parent = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "cache", "library", new string('a', 64));
+            string parent = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "cache", "library");
             string filename = "detail-266-middle-father-1-5.json.gz";
-            string folder = Path.Combine(parent, new string('b', 240 - parent.Length - filename.Length - 6), "1-5");
+            int target = Math.Max(280, parent.Length + filename.Length + 32);
+            string folder = parent;
+            while (folder.Length + filename.Length + 2 < target) folder = Path.Combine(folder, new string('b', Math.Min(48, target - folder.Length - filename.Length - 2)));
             Directory.CreateDirectory(folder);
+            Console.WriteLine("Fixture directory " + folder.Length + " exists: " + Directory.Exists(folder));
             string path = Path.Combine(folder, filename);
-            if (path.Length + 37 <= 260 || path.Length >= 260) throw new Exception("Test must reproduce a valid final path whose old temp name exceeded 260 characters");
+            if (path.Length <= 260) throw new Exception("Test must exercise an actual path longer than MAX_PATH");
             Call("WriteCompressed", path, new { value = "first" });
             Call("WriteCompressed", path, new { value = "second" });
             var saved = (System.Collections.Generic.Dictionary<string, object>)Call("ReadCompressed", path);
@@ -24,7 +27,7 @@ internal static class LongPathTests {
             Call("WriteRecord", record, new { value = "first" }); Call("WriteRecord", record, new { value = "second" });
             var meta = (System.Collections.Generic.Dictionary<string, object>)Call("ReadRecord", record);
             if (meta["value"].ToString() != "second") throw new Exception("Long-path metadata replacement failed");
-            Console.WriteLine("PASS: compressed and metadata write/read/atomic replacement near Windows path boundary; final path " + path.Length + ", old temporary path " + (path.Length + 37) + ", new temporary path " + Call("TemporaryPath", path).ToString().Length + " characters. Does not claim unrestricted long-path support.");
+            Console.WriteLine("PASS: compressed and metadata atomic replacement beyond MAX_PATH; final path " + path.Length + ", temporary path " + Call("TemporaryPath", path).ToString().Length + " characters.");
             return 0;
         } catch (Exception ex) { Console.Error.WriteLine(ex); return 1; }
     }

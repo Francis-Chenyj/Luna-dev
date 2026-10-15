@@ -26,6 +26,37 @@ internal static class SettingsTests {
     static int Main(string[] args) {
         try {
             if (args.Length == 3 && args[0] == "--writer") { for (int i = 0; i < 20; i++) Call("SavePreference", args[1], args[2]); return 0; }
+            var explicitDark = Map(Call("FrameColors", "dark", false, false));
+            var explicitLight = Map(Call("FrameColors", "light", true, false));
+            Check((int)explicitDark["Dark"] == 1 && (int)explicitLight["Dark"] == 0, "App theme must take priority over Windows theme");
+            Check(Json.Serialize(explicitDark) == Json.Serialize(Map(Call("FrameColors", "system", true, false))) && Json.Serialize(explicitLight) == Json.Serialize(Map(Call("FrameColors", "system", false, false))), "System frame theme did not follow Windows");
+            foreach (string theme in new[] { "dark", "light", "system" }) {
+                var contrast = Map(Call("FrameColors", theme, true, true));
+                Check((int)contrast["Dark"] == 0 && (int)contrast["Caption"] == -1 && (int)contrast["Text"] == -1, "High contrast must retain system caption/text colors");
+            }
+            Pass("native frame follows app/system theme and respects Windows high contrast");
+            var frame = new Luna.Program.FrameAttributeState(); int writes = 0, last = 0;
+            Func<int, int> write = v => { writes++; last = v; return 0; };
+            frame.Apply(123, () => null, write, -1);
+            Check(writes == 1 && frame.Applied == 123, "Unsupported GET must still allow SET");
+            frame.Apply(123, () => null, write, -1); Check(writes == 1, "Write-only attribute needlessly repeated");
+            frame.Apply(456, () => null, write, -1); Check(writes == 2 && last == 456, "Write-only theme cannot switch");
+            frame.Restore(() => null, write); Check(last == -1, "Write-only attribute did not reset to system default");
+            var failedFrame = new Luna.Program.FrameAttributeState(); failedFrame.Apply(1, () => null, v => -1, 0);
+            Check(!failedFrame.Applied.HasValue && !failedFrame.Original.HasValue, "Failed native write claimed success");
+            frame.Apply(100, () => 50, write, -1); int before = writes;
+            frame.Restore(() => 999, write); Check(writes == before, "Restoration overwrote another owner's change");
+            Pass("write-only DWM attributes, theme changes, native failures and ownership");
+            foreach (string saved in new[] { "ask", "tray", "exit", "invalid", null }) {
+                Check(Luna.Program.ResolveCloseAction(saved, true, false) == "exit" && Luna.Program.ResolveCloseAction(saved, false, true) == "exit", "Explicit/session exit must bypass tray preferences");
+                Check(Luna.Program.ResolveCloseAction(saved, false, false) == (saved == "tray" || saved == "exit" ? saved : "ask"), "Close preference resolution failed");
+            }
+            Check((string)Prefs()["closeAction"] == "ask", "First launch must ask");
+            Call("SavePreference", "closeAction", "tray"); Call("SavePreference", "theme", "dark");
+            Check((string)Prefs()["closeAction"] == "tray", "Unrelated preference lost remembered tray choice");
+            Call("SavePreference", "closeAction", "ask"); Reject(() => Call("SavePreference", "closeAction", "minimize"));
+            Call("SavePreference", "theme", "system");
+            Pass("close policy defaults, explicit exit, session end and remembered-choice persistence");
             Check((bool)Prefs()["autoUpdate"] && (string)Prefs()["language"] == "system" && (string)Prefs()["theme"] == "system", "Default preferences changed");
             Call("SavePreference", "language", "en"); Call("SavePreference", "theme", "light"); Call("SavePreference", "autoUpdate", "false");
             Check((string)Prefs()["language"] == "en" && (string)Prefs()["theme"] == "light" && !(bool)Prefs()["autoUpdate"], "Independent saves lost a choice");
@@ -36,9 +67,9 @@ internal static class SettingsTests {
             foreach (var child in children) { Check(child.WaitForExit(15000) && child.ExitCode == 0, "Concurrent settings writer failed"); child.Dispose(); }
             Check((string)Prefs()["language"] == "zh-CN" && (string)Prefs()["theme"] == "dark" && !(bool)Prefs()["autoUpdate"], "Cross-process update lost a field"); Pass("two processes share preferences without lost updates");
             File.WriteAllText(FilePath, "{broken"); Check(Info()["warning"].ToString() == "settings.unreadable" && !(bool)Prefs()["autoUpdate"], "Corrupt preferences must fail without network updates");
-            Call("SavePreference", "theme", "light"); Check(Directory.GetFiles(Path.GetDirectoryName(FilePath), "settings.invalid-*.json").Any(p => File.ReadAllText(p) == "{broken"), "Corrupt file was not preserved");
+            Call("SavePreference", "theme", "light"); Check(Directory.GetFiles(Path.Combine(Path.GetDirectoryName(FilePath), "quarantine"), "luna-*.bad").Any(p => File.ReadAllText(p) == "{broken"), "Corrupt file was not preserved");
             const string future = "{\"schema\":99,\"private\":\"keep-me\"}"; File.WriteAllText(FilePath, future); Reject(() => Call("SavePreference", "theme", "dark")); Check(File.ReadAllText(FilePath) == future, "Unsupported format overwritten");
-            File.WriteAllText(FilePath, "{\"schema\":1,\"language\":\"en\",\"theme\":\"system\",\"autoUpdate\":true}"); Pass("corrupt recovery and future-format preservation");
+            File.WriteAllText(FilePath, "{\"schema\":1,\"language\":\"en\",\"theme\":\"system\",\"autoUpdate\":true}"); Check((string)Prefs()["closeAction"] == "ask", "Old settings must migrate to Ask"); Pass("corrupt recovery, old-settings migration and future-format preservation");
             Set("Offline", true); Set("AutomaticUpdatesEnabled", true); Check(!(bool)Info()["automaticUpdatesThisRun"] && Info()["mode"].ToString() == "offline", "Offline bypass");
             Call("ScheduleStartupUpdate"); Check((int)App.GetField("StartupUpdateScheduled", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null) == 0, "Offline scheduled networking");
             Set("Offline", false); Set("CommandLineDisablesUpdates", true); Set("AutomaticUpdatesEnabled", false); Call("SavePreference", "autoUpdate", "true");

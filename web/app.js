@@ -2,6 +2,7 @@
   'use strict';
   const I = window.LunaI18n, t = I.t, C = window.LunaCore, $ = id => document.getElementById(id), e = C.escape;
   const state = {heroes:[],lanes:[],hero:null,lane:'',laneOrigin:'default',threshold:1,sensitivity:5,group:'all',seq:0,controller:null,results:{},queryBusy:false,suggestions:[],active:-1,history:[],offline:false,connection:'checking',exited:false,initialized:false};
+  const groups=new Set(['all','all_segment','high_mid_segment','high_segment','high_low_segment','mid_segment','mid_low_segment','low_segment']);
   const application = new AbortController();
   // Window-local LRU: only validated, exactly matching results; never an error or a guessed profile.
   const recentResults = C.createResultCache({now:()=>performance.now()});
@@ -46,6 +47,7 @@
     $('refresh-button').textContent=heroBusy?(data.state==='queued'?t("已排入优先更新…"):t("正在更新此英雄…")):t("↻ 联网更新此英雄");
     $('hero-update-status').textContent=I.jobMessage(data,true)||t("仅当前分路与筛选条件，严父和大儿一起更新。");
     $('hero-update-status').classList.toggle('warning',data.state==='error');
+    for(const mode of ['father','son'])if(state.results[mode]?.phase==='missing')renderResult(mode);
     if(refresh&&data.state==='complete'&&data.savedAt&&lastHeroCompletion!==key+data.savedAt){
       lastHeroCompletion=key+data.savedAt;loadResults();
     }
@@ -108,7 +110,7 @@
   function clearSelection() {
     cancelQuery();clearTimeout(searchTimer);closeSuggestions();state.hero=null;state.lane='';state.laneOrigin='default';state.results={};heroStatusKey=null;heroBusy=false;heroRequestEpoch++;
     document.body.classList.remove('has-selection');
-    for(const id of ['selection-panel','filters','results','lane-unavailable'])$(id).hidden=true;
+    for(const id of ['selection-panel','filters','results','lane-unavailable','profile-availability'])$(id).hidden=true;
     $('results').classList.remove('updating');$('welcome').hidden=false;$('result-meta').textContent='';
   }
   const heroById = id => state.heroes.find(h=>h.id===Number(id));
@@ -171,6 +173,7 @@
   function writeLocation(replace=false) {
     if(!state.hero || state.exited) return;
     const query=new URLSearchParams({hero:state.hero.id,lane:state.lane,threshold:state.threshold,sensitivity:state.sensitivity});
+    if(state.group!=='all')query.set('group',state.group);
     const hash='#'+query.toString(); if(location.hash!==hash) history[replace?'replaceState':'pushState'](null,'',hash);
   }
   function chooseHero(hero, {source='search',lane}={}) {
@@ -218,7 +221,7 @@
     let notice='';
     if(pending)notice=`<span class="loading-mark"></span>${result.retained?t("已显示上次成功结果 · "):''}${retryText}`;
     else if(result.error)notice=`${result.retained?t("已保留本窗口上次成功读取的同条件结果。<br>"):''}${e(I.message(result.error))}${result.kind==='service'?t("<p class=\"recovery-hint\">重新双击“启动Luna.cmd”。服务恢复后，当前窗口会自动重新查询；也可点击顶部“重新连接”。</p>"):`<div class="recovery-actions"><button class="secondary-button" data-retry="1">${e(t('重新查询'))}</button>${result.kind==='invalid'?t("<button class=\"quiet-button\" data-library=\"1\">查看离线库</button>"):''}</div>`}`;
-    else if(result.phase==='missing')notice=`${result.retained?t("已保留本窗口上次成功读取的同条件结果。<br>"):''}${e(I.message(result.issue) || t('此筛选组合尚未保存。'))}<div class="recovery-actions"><button class="secondary-button" data-library="1">${e(t('查看离线库'))}</button>${state.threshold!==1||state.sensitivity!==5?t("<button class=\"quiet-button\" data-defaults=\"1\">恢复默认条件查看</button>"):''}</div>`;
+    else if(result.phase==='missing')notice=`${result.retained?t("已保留本窗口上次成功读取的同条件结果。<br>"):''}${e(I.message(result.issue) || t('此筛选组合尚未保存。'))}<div class="recovery-actions">${state.offline?`<p>${e(t('profile.offline'))}</p>`:`<button class="primary-button" data-download-profile="${e(selectedUpdateKey()||'')}" ${heroBusy?'disabled':''}>${e(t(heroBusy?'profile.downloading':'profile.download'))}</button>`}<button class="secondary-button" data-library="1">${e(t('查看离线库'))}</button>${state.threshold!==1||state.sensitivity!==5?t("<button class=\"quiet-button\" data-defaults=\"1\">恢复默认条件查看</button>"):''}</div>`;
     if(!result.data) {
       body.innerHTML=`<div class="state-block ${result.error?'error':''}">${notice}</div>`;
       count.textContent=pending?'…':'—';return;
@@ -235,8 +238,10 @@
     return `<button class="matchup-card ${item.isConjugate?'conjugate':''}" data-related="${id}" title="${e(tooltip)}"><img src="/icons/${id}.png" alt="" loading="lazy"><span class="matchup-text"><strong>${e(name)}</strong><small>${e(title)}</small><span class="metric">${e(I.valueText(item,mode,C))}${item.isConjugate?t("<span class=\"conjugate-label\">共轭</span>"):''}</span></span></button>`;
   }
   function renderMeta() {
-    if(!state.hero || !Object.hasOwn(state.hero.lanes,state.lane)) {$('result-meta').innerHTML='';return;}
+    if(!state.hero || !Object.hasOwn(state.hero.lanes,state.lane)) {$('result-meta').innerHTML='';$('profile-availability').hidden=true;return;}
+    $('profile-availability').hidden=false;
     const values=Object.values(state.results),pending=values.some(r=>['loading','retrying'].includes(r?.phase));
+    $('profile-availability').textContent=t(pending?'profile.checking':values.some(r=>r?.phase==='missing')?(state.offline?'profile.missingOffline':'profile.missing'):values.length===2&&values.every(r=>r?.data)?'profile.saved':'profile.unavailable');
     const warning=values.some(r=>r?.cache?.warning||r?.retained||r?.phase==='missing');
     const errors=values.some(r=>r?.error),retained=values.some(r=>r?.retained),service=values.some(r=>r?.kind==='service');
     const retry=Math.max(0,...values.map(r=>r?.phase==='retrying'?r.retry:0));
@@ -335,7 +340,10 @@
     const q=new URLSearchParams(location.hash.slice(1)),h=heroById(q.get('hero'));
     if(!h) return false;
     const level=value=>/^[1-5]$/.test(value || '')?Number(value):null;
-    state.threshold=level(q.get('threshold')) || 1;state.sensitivity=level(q.get('sensitivity')) || 5;
+    const threshold=level(q.get('threshold'))||1,sensitivity=level(q.get('sensitivity'))||5;
+    state.group=groups.has(q.get('group'))?q.get('group'):'all';$('segment').value=state.group;
+    if(state.hero?.id===h.id&&state.lane===q.get('lane')&&state.threshold===threshold&&state.sensitivity===sensitivity){renderResult('father');renderResult('son');writeLocation(true);return true;}
+    state.threshold=threshold;state.sensitivity=sensitivity;
     chooseHero(h,{source:'history',lane:q.get('lane')});return true;
   }
   $('search-form').addEventListener('submit',submitSearch);
@@ -356,6 +364,8 @@
   $('quick-heroes').addEventListener('click',event=>{const button=event.target.closest('[data-hero]');if(button) chooseHero(heroById(button.dataset.hero),{source:'recent'});});
   $('lane-buttons').addEventListener('click',event=>{const button=event.target.closest('[data-lane]');if(button&&!button.disabled&&state.hero&&Object.hasOwn(state.hero.lanes,button.dataset.lane)&&button.dataset.lane!==state.lane){state.lane=button.dataset.lane;state.laneOrigin='manual';renderSelection();writeLocation();loadResults();}});
   $('results').addEventListener('click',event=>{
+    const download=event.target.closest('[data-download-profile]');
+    if(download?.dataset?.downloadProfile){if(download.dataset.downloadProfile===selectedUpdateKey())updateCurrentHero();return;}
     if(event.target.closest('[data-defaults]')) {restoreDefaults();return;}
     if(event.target.closest('[data-library]')) {openLibrary();return;}
     if(event.target.closest('[data-retry]')) {loadResults();return;}
@@ -364,19 +374,21 @@
     if(hero){chooseHero(hero,{source:'related'});$('selection-panel').scrollIntoView({behavior:'smooth',block:'start'});}else toast('本地目录尚未收录此英雄，请在“数据管理”中更新离线库。');
   });
   $('threshold').addEventListener('input',filterChanged);$('sensitivity').addEventListener('input',filterChanged);
-  $('segment').addEventListener('change',()=>{state.group=$('segment').value;renderResult('father');renderResult('son');});
+  $('segment').addEventListener('change',()=>{state.group=groups.has($('segment').value)?$('segment').value:'all';$('segment').value=state.group;writeLocation();renderResult('father');renderResult('son');});
   function restoreDefaults() {state.threshold=1;state.sensitivity=5;state.group='all';$('segment').value='all';renderSelection();writeLocation();loadResults();}
   $('reset-button').addEventListener('click',restoreDefaults);
-  $('refresh-button').addEventListener('click',async()=>{
+  async function updateCurrentHero(){
     const key=selectedUpdateKey();if(!key||state.offline||heroBusy)return;
     heroBusy=true;resetHeroUpdateStatus();const epoch=++heroRequestEpoch;
+    for(const mode of ['father','son'])if(state.results[mode]?.phase==='missing')renderResult(mode);
     try {
       const data=await api('/api/hero/update?'+new URLSearchParams({key}),{method:'POST',timeout:5000});
       if(epoch===heroRequestEpoch)showHeroUpdate(data,key);await readLibrary();
     } catch(error) {
-      if(epoch===heroRequestEpoch&&key===selectedUpdateKey()){heroBusy=false;resetHeroUpdateStatus();$('hero-update-status').textContent=error.message;$('hero-update-status').classList.add('warning');}
+      if(epoch===heroRequestEpoch&&key===selectedUpdateKey()){heroBusy=false;resetHeroUpdateStatus();$('hero-update-status').textContent=error.message;$('hero-update-status').classList.add('warning');for(const mode of ['father','son'])if(state.results[mode]?.phase==='missing')renderResult(mode);}
     }
-  });
+  }
+  $('refresh-button').addEventListener('click',updateCurrentHero);
   $('help-button').addEventListener('click',()=>$('help-dialog').showModal());$('close-help').addEventListener('click',()=>$('help-dialog').close());
   $('help-dialog').addEventListener('click',event=>{if(event.target===$('help-dialog')){const r=event.target.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom) event.target.close();}});
   async function reloadCatalog() {
@@ -502,6 +514,7 @@
       if(state.offline)toast('离线模式：默认条件已保存全英雄关系，可直接查询。');
       restoreLocation();
       $('hero-search').disabled=false;$('search-button').disabled=false;
+      window.chrome?.webview?.postMessage?.('luna-ui-ready');
       $('hero-search').focus();
       readLibrary();
     } catch(error){if(!state.exited){$('fatal').hidden=false;$('fatal').textContent=error.message;$('data-status').textContent=t("程序初始化失败");}}

@@ -1,4 +1,4 @@
-const test=require('node:test');
+﻿const test=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const vm=require('node:vm');
@@ -7,6 +7,49 @@ const code=fs.readFileSync(require.resolve('../web/app.js'),'utf8');
 const html=fs.readFileSync(require.resolve('../web/index.html'),'utf8');
 const heroes=[{id:266,name:'亚托克斯',title:'暗裔剑魔',en:'Aatrox',keywords:'剑魔',lanes:{top:100,jungle:20}},{id:103,name:'阿狸',title:'九尾妖狐',en:'Ahri',keywords:'狐狸',lanes:{middle:100}}];
 const lanes=[{key:'top',label:'上路'},{key:'jungle',label:'打野'},{key:'middle',label:'中路'}];
+
+test('all eight scope choices survive reload and history without refetching on scope-only changes',async t=>{
+  const env=await setup();t.after(()=>env.close());await env.choose(266);
+  const before=env.requests.filter(r=>r.path.startsWith('/api/detail')).length;
+  const groups=['all','all_segment','high_mid_segment','high_segment','high_low_segment','mid_segment','mid_low_segment','low_segment'];
+  for(const group of groups){
+    env.$('segment').value=group;await env.$('segment').emit('change');
+    const reloaded=await setup({hash:env.location.hash});t.after(()=>reloaded.close());
+    assert.equal(reloaded.$('segment').value,group);
+    assert.equal(new URLSearchParams(env.location.hash.slice(1)).get('group')||'all',group);
+  }
+  await env.back();assert.equal(env.$('segment').value,'mid_low_segment');
+  await env.forward();assert.equal(env.$('segment').value,'low_segment');
+  assert.equal(env.requests.filter(r=>r.path.startsWith('/api/detail')).length,before);
+  env.location.hash='#hero=266&lane=top&group=bogus';await env.window.emit('popstate');
+  assert.equal(env.$('segment').value,'all');assert.doesNotMatch(env.location.hash,/bogus/);
+  env.$('segment').value='high_segment';await env.$('segment').emit('change');await env.$('reset-button').emit('click');
+  assert.equal(env.$('segment').value,'all');assert.doesNotMatch(env.location.hash,/group=/);
+});
+test('missing-filter action downloads only the current champion/profile and deduplicates both columns',async t=>{
+  const env=await setup({server:{detail:q=>q.get('thresholdLevel')==='2'?{data:null,cache:{}}:detail(q)}});t.after(()=>env.close());
+  await env.choose(266);env.$('threshold').value='2';await env.$('threshold').emit('input');await env.advance(300);
+  assert.match(env.$('profile-availability').textContent,/尚未完整保存/);
+  assert.match(env.$('father-body').innerHTML,/下载此英雄的当前条件/);
+  env.server.heroStatus=()=>({state:'queued',busy:true});
+  const target={closest:selector=>selector==='[data-download-profile]'?{dataset:{downloadProfile:'detail-266-top-father-2-5'}}:null};
+  await env.$('results').emit('click',{target});await env.$('results').emit('click',{target});await flush();
+  const calls=env.requests.filter(r=>r.path.startsWith('/api/hero/update'));
+  assert.equal(calls.length,1);assert.match(calls[0].path,/detail-266-top-father-2-5/);
+  assert.match(env.$('father-body').innerHTML,/disabled/);assert.match(env.$('son-body').innerHTML,/disabled/);
+  await env.home();await env.choose(103);await env.$('results').emit('click',{target});await flush();
+  assert.equal(env.requests.filter(r=>r.path.startsWith('/api/hero/update')).length,1);
+  const offline=await setup({hash:'#hero=266&lane=top&threshold=2',server:{health:{app:'luna-local',offline:true},detail:()=>({data:null})}});t.after(()=>offline.close());
+  assert.match(offline.$('father-body').innerHTML,/离线模式无法下载/);assert.doesNotMatch(offline.$('father-body').innerHTML,/data-download-profile/);
+  assert.match(offline.$('profile-availability').textContent,/离线模式请恢复默认条件/);assert.doesNotMatch(offline.$('profile-availability').textContent,/可在下方下载/);
+});
+test('waiting storage measurement explains the download lock and preserves an earlier report',async t=>{
+  const env=await setup({server:{space:{success:true,busy:false,waiting:true,report:null}}});t.after(()=>env.close());
+  await env.$('settings-button').emit('click');await env.$('tab-data').emit('click');await flush();
+  assert.match(env.$('space-summary').textContent,/结束后自动统计/);
+  env.server.space.report={checkedAt:'2026-10-16T00:00:00Z',totalBytes:1048576,bytes:{program:1048576}};
+  await env.advance(2000);assert.match(env.$('space-summary').textContent,/1.00 MiB/);assert.match(env.$('space-summary').textContent,/结束后自动统计/);
+});
 
 test('language switches preserve the current lane, filters and pending query without another request',async t=>{
   const env=await setup({server:{detail:()=> 'pending'}});t.after(()=>env.close());
@@ -27,10 +70,14 @@ test('English rendering preserves relationship scores, source dates and category
 });
 test('theme follows system changes only when selected and saving failures restore prior preferences',async t=>{
   const env=await setup({dark:true});t.after(()=>env.close());assert.equal(env.document.documentElement.dataset.theme,'dark');
+  assert.equal(env.$('theme-color').attributes.content,'#111715');
   env.appearance.matches=false;await env.appearance.emit('change');assert.equal(env.document.documentElement.dataset.theme,'light');
+  assert.equal(env.$('theme-color').attributes.content,'#f4f7f1');
   env.$('theme-select').value='dark';await env.$('theme-select').emit('change');await env.appearance.emit('change');assert.equal(env.document.documentElement.dataset.theme,'dark');
+  assert.equal(env.$('theme-color').attributes.content,'#111715');
   env.server.saveFailure=true;env.$('theme-select').value='light';await env.$('theme-select').emit('change');
   assert.equal(env.$('theme-select').value,'dark');assert.equal(env.document.documentElement.dataset.theme,'dark');assert.match(env.$('settings-save-status').textContent,/未能保存/);
+  assert.equal(env.$('theme-color').attributes.content,'#111715');
 });
 test('startup preference is visible, saved across sessions and cannot bypass offline mode',async t=>{
   const env=await setup({server:{health:{app:'luna-local',offline:true}}});t.after(()=>env.close());
@@ -60,6 +107,7 @@ function detail(q,name='缓存英雄',needsRefresh=false) {
   return {data:{champion:{championId:Number(q.get('championId'))},mode:q.get('mode'),lane:q.get('lane'),sections:[{key:'all_segment',label:'全分段',items:[{championId:9999,championNameEn:name,championNameCn:'测试称号',fatherValue:2}]}]},cache:{source:needsRefresh?'cache':'live',fetchedAt:'2026-09-20T00:00:00Z',needsRefresh}};
 }
 class Element {
+  append(...children){(this.children??=[]).push(...children);}
   constructor(){this.hidden=false;this.disabled=false;this.value='';this.textContent='';this.innerHTML='';this.dataset={};this.listeners={};this.attributes={};this.classes=new Set();this.classList={add:x=>this.classes.add(x),remove:x=>this.classes.delete(x),toggle:(x,on)=>on?this.classes.add(x):this.classes.delete(x)};}
   addEventListener(name,fn){(this.listeners[name]??=[]).push(fn);}
   async emit(name,event={}){for(const fn of this.listeners[name]||[])await fn(event);}
@@ -72,13 +120,14 @@ async function setup(options={}) {
   const elements=new Map([...html.matchAll(/<[^>]*\bid="([^"]+)"[^>]*>/g)].map(m=>{const node=new Element();node.hidden=/\bhidden\b/.test(m[0]);node.disabled=/\bdisabled\b/.test(m[0]);return [m[1],node];}));
   const $=id=>{assert.ok(elements.has(id),'Unknown DOM id: '+id);return elements.get(id);};
   const workspace=new Element(),document=new Element(),window=new Element();
-  document.getElementById=$;document.body=new Element();document.documentElement=new Element();document.querySelectorAll=()=>[];document.querySelector=selector=>selector==='.workspace'?workspace:selector==='.local-badge'?$('service-status'):null;
+  document.getElementById=$;document.createElement=()=>new Element();document.body=new Element();document.documentElement=new Element();document.querySelectorAll=()=>[];document.querySelector=selector=>selector==='.workspace'?workspace:selector==='.local-badge'?$('service-status'):null;
   const appearance=new Element();appearance.matches=!!options.dark;
+  window.chrome={webview:new Element()};
   const copied=[];window.matchMedia=()=>appearance;window.navigator={clipboard:{async writeText(value){if(options.clipboardDenied)throw new Error('Denied');copied.push(value);}}};
   const requests=[],pending=[],timers=new Map();let tick=0,nextTimer=0;
   const schedule=(fn,delay,interval=false)=>{const id=++nextTimer;timers.set(id,{fn,time:tick+delay,delay,interval});return id;};
   const server={down:!!options.down,catalog:catalog(),health:{app:'luna-local',offline:false},library:{success:true,complete:true,saved:4,expected:4,profiles:['1-5'],revision:'initial',sourceGeneratedAt:'2026-10-10T22:10:00Z',job:{busy:false,state:'idle',message:'本地查询',done:0,total:0,profile:'1-5'}},detail:(q)=>detail(q,'结果-'+q.get('lane')), ...options.server};
-  server.settings??={success:true,preferences:{schema:1,language:'zh-CN',theme:'system',autoUpdate:true},systemLanguage:'zh-CN',mode:server.health.offline?'offline':'normal',automaticUpdatesThisRun:!server.health.offline,warning:'',version:'1.5.0'};
+  server.settings??={success:true,preferences:{schema:1,language:'zh-CN',theme:'system',autoUpdate:true,closeAction:'ask'},systemLanguage:'zh-CN',mode:server.health.offline?'offline':'normal',automaticUpdatesThisRun:!server.health.offline,warning:'',version:'1.5.2',desktopWindowAvailable:true};
   const location={hash:options.hash||'',pathname:'/',search:'',reload(){}};
   const entries=[location.hash];let historyIndex=0;
   const history={
@@ -90,11 +139,23 @@ async function setup(options={}) {
     if(server.down)throw new TypeError('Network unavailable');
     const url=new URL(path,'http://127.0.0.1:17653');
     let result;
-    if(url.pathname==='/api/catalog')result=server.catalog;
+    if(url.pathname==='/api/space'||url.pathname==='/api/space/clean')result=server.space||{success:true,busy:false,report:{checkedAt:'2026-10-15T01:00:00Z',totalBytes:100,bytes:{program:100},partial:false}};
+    else if(url.pathname==='/api/app-update')result=server.appUpdate||{success:true,state:'noRelease',busy:false,managed:true,offline:server.health.offline};
+    else if(['/api/app-update/check','/api/app-update/download','/api/app-update/cancel'].includes(url.pathname)){server.appUpdate={success:true,state:url.pathname.endsWith('/cancel')?'paused':'downloading',busy:!url.pathname.endsWith('/cancel'),newVersion:'1.7.0',managed:true};result=server.appUpdate;}
+    else if(url.pathname==='/api/maintenance')result=server.maintenance||{success:true,available:true,path:'D:/isolated/Luna'};
+    else if(url.pathname==='/api/maintenance/run')result=server.maintenanceFailure?{success:false,httpStatus:400,message:'maintenance.sourceFolder'}:{success:true};
+    else if(url.pathname==='/api/catalog')result=server.catalog;
     else if(url.pathname==='/api/settings')result=structuredClone(server.settings);
     else if(url.pathname==='/api/settings/save'){
       if(server.saveFailure)result={success:false,httpStatus:400,message:'settings.saveFailed'};
-      else{const key=url.searchParams.get('key'),value=url.searchParams.get('value');server.settings.preferences[key]=key==='autoUpdate'?value==='true':value;result=structuredClone(server.settings);}
+      else{
+        const key=url.searchParams.get('key'),value=url.searchParams.get('value');
+        server.settings.preferences[key]=['autoUpdate','appAutoCheck','appAutoDownload'].includes(key)?value==='true':value;
+        if(key==='appAutoDownload'&&value==='true')server.settings.preferences.appAutoCheck=true;
+        if(key==='appAutoCheck'&&value==='false')server.settings.preferences.appAutoDownload=false;
+        if(['appAutoDownload','appAutoCheck'].includes(key)&&value==='true'&&server.settings.mode==='normal')server.appUpdate={success:true,state:'checking',busy:true,managed:true};
+        result=structuredClone(server.settings);
+      }
     }
     else if(url.pathname==='/api/diagnostics')result=server.diagnostics||{success:true,version:'1.5.0',mode:'normal',automaticUpdatesThisRun:true,errors:[]};
     else if(url.pathname==='/api/folders/open')result={success:true};
@@ -106,6 +167,10 @@ async function setup(options={}) {
     else if(url.pathname==='/api/hero/update')result=server.heroUpdate?server.heroUpdate(url.searchParams):{success:true,state:'queued',busy:true,message:'已排入优先更新'};
     else if(url.pathname==='/api/library/update'){server.library.job={busy:true,state:'downloading',message:'更新中',done:1,total:4,profile:'1-5'};result={success:true};}
     else if(url.pathname==='/api/library/cancel'){server.library.job={busy:false,state:'cancelled',message:'更新已停止',done:1,total:4,profile:'1-5'};result={success:true};}
+    else if(url.pathname==='/api/window/close'){
+      if(server.closeFailure)result={success:false,httpStatus:400,error:'settings.saveFailed'};
+      else {if(url.searchParams.get('remember')==='true')server.settings.preferences.closeAction=url.searchParams.get('choice');result={success:true};}
+    }
     else if(url.pathname==='/api/quit')result={success:true};
     else if(url.pathname==='/api/detail')result=server.detail(url.searchParams,entry);
     else throw new Error('Unexpected endpoint '+path);
@@ -138,6 +203,95 @@ test('home exposes library management before any champion is selected',async t=>
   await env.$('home-library-button').emit('click');assert.equal(env.$('library-dialog').open,true);
   assert.ok(env.requests.every(r=>!r.path.startsWith('/api/library/update')));
   assert.doesNotMatch(html.match(/<p[^>]*class="intro"[^>]*>(.*?)<\/p>/s)?.[1]||'',/螃蟹/);
+});
+
+test('application maintenance requires confirmation and defaults to keeping user data',async t=>{
+  const env=await setup();t.after(()=>env.close());
+  await env.$('settings-button').emit('click');await env.$('tab-updates').emit('click');await flush();
+  assert.equal(env.$('app-check-toggle').checked,true);assert.equal(env.$('app-download-toggle').checked,false);
+  await env.$('app-uninstall').emit('click');
+  assert.equal(env.$('maintenance-dialog').open,true);assert.equal(env.$('maintenance-path').textContent,'D:/isolated/Luna');assert.equal(env.$('maintenance-remove-data').checked,false);
+  await env.$('maintenance-cancel').emit('click');assert.ok(env.requests.every(r=>!r.path.startsWith('/api/maintenance/run')));
+  await env.$('app-uninstall').emit('click');await env.$('maintenance-confirm').emit('click');
+  assert.equal(env.requests.filter(r=>r.path==='/api/maintenance/run?action=uninstall&removeData=false').length,1);
+});
+
+test('automatic download displays coupled server preferences and progress immediately without a second check request',async t=>{
+  const env=await setup();t.after(()=>env.close());await env.choose(266);
+  await env.$('settings-button').emit('click');await env.$('tab-updates').emit('click');await flush();
+  env.$('app-check-toggle').checked=false;await env.$('app-check-toggle').emit('change');await flush();
+  env.$('app-download-toggle').checked=true;await env.$('app-download-toggle').emit('change');await flush();
+  assert.equal(env.$('app-check-toggle').checked,true);assert.equal(env.$('app-download-toggle').checked,true);
+  assert.match(env.$('app-update-status').textContent,/正在检查程序更新/);
+  assert.match(env.$('settings-save-status').textContent,/已开启自动检查和自动下载/);
+  assert.ok(env.requests.every(r=>r.path!=='/api/app-update/check'));
+  assert.match(env.$('father-body').innerHTML,/结果-top/);
+  env.$('app-download-toggle').checked=false;await env.$('app-download-toggle').emit('change');await flush();
+  assert.equal(env.$('app-check-toggle').checked,true);assert.match(env.$('settings-save-status').textContent,/保留版本检查/);
+  env.$('app-check-toggle').checked=false;await env.$('app-check-toggle').emit('change');await flush();
+  assert.equal(env.$('app-check-toggle').checked,false);assert.equal(env.$('app-download-toggle').checked,false);
+  assert.match(env.$('settings-save-status').textContent,/已关闭自动检查和自动下载/);
+});
+
+test('failed update preference saves restore both switches and never report that a check started',async t=>{
+  const env=await setup({server:{saveFailure:true}});t.after(()=>env.close());
+  await env.$('settings-button').emit('click');await env.$('tab-updates').emit('click');await flush();
+  env.$('app-download-toggle').checked=true;await env.$('app-download-toggle').emit('change');await flush();
+  assert.equal(env.$('app-check-toggle').checked,true);assert.equal(env.$('app-download-toggle').checked,false);
+  assert.match(env.$('settings-save-status').textContent,/未能保存/);
+  assert.ok(env.requests.every(r=>r.path!=='/api/app-update/check'));
+});
+
+test('a successful restart shows installation completion without a stale update badge or install button',async t=>{
+  const env=await setup({server:{appUpdate:{success:true,state:'installed',busy:false,newVersion:'',managed:true}}});t.after(()=>env.close());
+  await env.$('settings-button').emit('click');await env.$('tab-updates').emit('click');await flush();
+  assert.match(env.$('app-update-status').textContent,/已成功更新到当前版本/);
+  assert.equal(env.$('app-update-badge').hidden,true);assert.equal(env.$('app-apply').hidden,true);assert.equal(env.$('app-download').hidden,true);
+  env.$('language-select').value='en';await env.$('language-select').emit('change');await flush();
+  assert.match(env.$('app-update-status').textContent,/Successfully updated/);
+});
+
+test('offline and manual-only launches explain saved update choices without pretending to start networking',async t=>{
+  for(const mode of ['offline','manual']){
+    const env=await setup({server:{health:{app:'luna-local',offline:mode==='offline'}}});t.after(()=>env.close());
+    env.server.settings.mode=mode;await env.$('settings-button').emit('click');await env.$('tab-updates').emit('click');await flush();
+    env.$('app-download-toggle').checked=true;await env.$('app-download-toggle').emit('change');await flush();
+    assert.equal(env.$('app-update-policy-note').hidden,false);
+    assert.match(env.$('settings-save-status').textContent,/下次普通启动/);
+    env.$('language-select').value='en';await env.$('language-select').emit('change');await flush();
+    assert.match(env.$('app-update-policy-note').textContent,/next normal launch/);
+    assert.ok(env.requests.every(r=>r.path!=='/api/app-update/check'));
+  }
+});
+
+test('explicit data removal is one-shot and failed maintenance leaves champion lookup available',async t=>{
+  const env=await setup({server:{maintenanceFailure:true}});t.after(()=>env.close());await env.choose(266);
+  await env.$('app-uninstall').emit('click');env.$('maintenance-remove-data').checked=true;await env.$('maintenance-confirm').emit('click');
+  assert.ok(env.requests.some(r=>r.path.endsWith('action=uninstall&removeData=true')));assert.equal(env.$('maintenance-confirm').disabled,false);
+  assert.match(env.$('father-body').innerHTML,/结果-top/);await env.$('maintenance-cancel').emit('click');await env.$('app-uninstall').emit('click');
+  assert.equal(env.$('maintenance-remove-data').checked,false);await env.$('maintenance-cancel').emit('click');await env.home();await env.search('阿狸');assert.match(env.location.hash,/lane=middle/);
+});
+
+test('source protection, offline update status and release notes cannot trigger installation',async t=>{
+  const env=await setup({server:{health:{app:'luna-local',offline:true},appUpdate:{success:true,state:'ready',offline:true,managed:false,newVersion:'1.7.0',notes:'<img src=x onerror=alert(1)>'},maintenance:{success:true,available:false,path:'D:/source'}}});t.after(()=>env.close());
+  await env.$('settings-button').emit('click');await env.$('tab-updates').emit('click');await flush();
+  assert.equal(env.$('app-check').disabled,true);assert.equal(env.$('app-apply').disabled,true);assert.equal(env.$('app-uninstall').disabled,true);
+  assert.equal(env.$('app-update-notes').textContent,'<img src=x onerror=alert(1)>');assert.equal(env.$('app-update-notes').innerHTML,'');
+  await env.$('app-uninstall').emit('click');assert.notEqual(env.$('maintenance-dialog').open,true);assert.ok(env.requests.every(r=>!r.path.startsWith('/api/maintenance/run')));
+});
+
+test('space view shows every measured category and records partial scans without blocking lookup',async t=>{
+  const env=await setup({server:{space:{success:true,busy:false,report:{totalBytes:1048576,checkedAt:'2026-10-15T00:00:00Z',partial:true,bytes:{program:524288,browser:524288}}}}});t.after(()=>env.close());
+  await env.$('settings-button').emit('click');await env.$('tab-data').emit('click');await flush();
+  assert.match(env.$('space-summary').textContent,/1\.00 MiB/);assert.equal(env.$('space-breakdown').children.length,8);
+  await env.$('space-clean').emit('click');assert.ok(env.requests.some(r=>r.path==='/api/space/clean'));await env.search('阿狸');assert.match(env.location.hash,/lane=middle/);
+});
+
+test('new-version badge opens Application and automatic download remains an explicit preference',async t=>{
+  const env=await setup({server:{appUpdate:{success:true,state:'available',newVersion:'1.7.0',managed:true}}});t.after(()=>env.close());
+  await env.advance(15001);assert.equal(env.$('app-update-badge').hidden,false);await env.$('settings-button').emit('click');assert.equal(env.$('settings-updates').hidden,false);
+  assert.ok(env.requests.every(r=>!r.path.startsWith('/api/app-update/download')));
+  env.$('app-download-toggle').checked=true;await env.$('app-download-toggle').emit('change');assert.equal(env.server.settings.preferences.appAutoDownload,true);
 });
 
 test('first hero gets a sensible default, then search preserves a supported session lane',async t=>{
@@ -701,4 +855,45 @@ test('source version checks are visible but do not relabel data or change its lo
   env.server.library.sourceCheckedAt='2026-10-11T02:00:00Z';await env.advance(15000);
   assert.equal(env.$('library-local-update').textContent,saved);assert.notEqual(env.$('library-source-check').textContent,checked);
   assert.ok(env.requests.every(r=>!r.path.startsWith('/api/library/update')));
+});
+
+test('native close opens one cancellable dialog without changing query context',async t=>{
+  const env=await setup();t.after(()=>env.close());await env.choose(266,'jungle');
+  const hash=env.location.hash,before=env.requests.filter(x=>x.path.startsWith('/api/detail')).length;
+  await env.window.chrome.webview.emit('message',{data:'luna-close-request'});
+  assert.equal(env.$('close-dialog').open,true);assert.equal(env.$('close-tray').checked,true);
+  env.$('close-remember').checked=true;
+  await env.window.chrome.webview.emit('message',{data:'luna-close-request'});assert.equal(env.$('close-remember').checked,true);
+  await env.$('close-cancel').emit('click');assert.equal(env.$('close-dialog').open,false);
+  assert.equal(env.location.hash,hash);assert.equal(env.requests.filter(x=>x.path.startsWith('/api/detail')).length,before);
+  assert.ok(!env.requests.some(x=>x.path.startsWith('/api/window/close')));
+});
+test('tray choice persists only when requested and settings can reset it',async t=>{
+  const env=await setup();t.after(()=>env.close());
+  await env.window.chrome.webview.emit('message',{data:'luna-close-request'});env.$('close-remember').checked=true;
+  await env.$('close-confirm').emit('click');assert.equal(env.$('close-dialog').open,false);
+  assert.equal(env.server.settings.preferences.closeAction,'tray');assert.equal(env.$('close-action-select').value,'tray');
+  env.$('close-action-select').value='ask';await env.$('close-action-select').emit('change');assert.equal(env.server.settings.preferences.closeAction,'ask');
+  await env.window.chrome.webview.emit('message',{data:'luna-close-request'});env.$('close-exit').checked=true;
+  await env.$('close-confirm').emit('click');assert.equal(env.server.settings.preferences.closeAction,'ask');
+  assert.ok(env.requests.some(x=>x.path==='/api/window/close?choice=exit&remember=false'));
+});
+test('failed remember/close keeps the dialog and query available for retry',async t=>{
+  const env=await setup({server:{closeFailure:true}});t.after(()=>env.close());await env.choose(266);
+  const before=env.$('father-body').innerHTML;
+  await env.window.chrome.webview.emit('message',{data:'luna-close-request'});env.$('close-remember').checked=true;
+  await env.$('close-confirm').emit('click');assert.equal(env.$('close-dialog').open,true);assert.equal(env.$('close-confirm').disabled,false);
+  assert.equal(env.server.settings.preferences.closeAction,'ask');assert.equal(env.$('father-body').innerHTML,before);
+  assert.match(env.$('close-status').textContent,/未能|重试/);
+  env.server.closeFailure=false;await env.$('close-confirm').emit('click');assert.equal(env.$('close-dialog').open,false);
+});
+test('browser mode explicitly disables tray preference controls',async t=>{
+  const env=await setup();t.after(()=>env.close());env.server.settings.desktopWindowAvailable=false;
+  await env.window.emit('focus');await flush();assert.equal(env.$('close-action-select').disabled,true);assert.equal(env.$('close-unavailable').hidden,false);
+});
+
+test('an ordinary browser sharing the native server cannot offer tray preferences',async t=>{
+  const env=await setup();t.after(()=>env.close());delete env.window.chrome;
+  await env.$('settings-button').emit('click');env.server.settings.version='1.5.2-browser-check';await env.window.emit('focus');await flush();
+  assert.equal(env.$('close-action-select').disabled,true);assert.equal(env.$('close-unavailable').hidden,false);
 });

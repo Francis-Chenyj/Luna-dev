@@ -1,3 +1,7 @@
+using File = Luna.LocalFile;
+using Directory = Luna.LocalDirectory;
+using FileInfo = Luna.LocalFileInfo;
+using DirectoryInfo = Luna.LocalDirectoryInfo;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -9,7 +13,7 @@ using System.Threading;
 
 namespace Luna {
     internal static partial class Program {
-        const string AppVersion = "1.5.0";
+        const string AppVersion = "1.6.3";
         static string SettingsFile { get { return Path.Combine(CacheDir, "settings.json"); } }
         static string LogDirectory { get { return Path.Combine(CacheDir, "logs"); } }
         static bool CommandLineDisablesUpdates;
@@ -18,8 +22,9 @@ namespace Luna {
 
         sealed class Preferences {
             public int schema = 1;
-            public string language = "system", theme = "system";
+            public string language = "system", theme = "system", closeAction = "ask";
             public bool autoUpdate = true;
+            public bool appAutoCheck = true, appAutoDownload = false;
         }
         sealed class SettingsException : ArgumentException {
             public readonly string Code;
@@ -36,26 +41,32 @@ namespace Luna {
                 if (new FileInfo(SettingsFile).Length > 16384) throw new IOException();
                 var record = Json().DeserializeObject(File.ReadAllText(SettingsFile, Encoding.UTF8)) as Dictionary<string, object>;
                 if (record == null) throw new IOException();
-                if (Str(record, "schema") != "1") { warning = "settings.unsupported"; return new Preferences { autoUpdate = false }; }
-                string language = Str(record, "language"), theme = Str(record, "theme");
-                if (!new[] { "system", "zh-CN", "en" }.Contains(language) || !new[] { "system", "dark", "light" }.Contains(theme) || !(Get(record, "autoUpdate") is bool)) throw new IOException();
-                return new Preferences { language = language, theme = theme, autoUpdate = (bool)record["autoUpdate"] };
-            } catch { warning = "settings.unreadable"; return new Preferences { autoUpdate = false }; }
+                if (Str(record, "schema") != "1") { warning = "settings.unsupported"; return new Preferences { autoUpdate = false, appAutoCheck = false }; }
+                string language = Str(record, "language"), theme = Str(record, "theme"), closeAction = Str(record, "closeAction", "ask");
+                if (!new[] { "system", "zh-CN", "en" }.Contains(language) || !new[] { "system", "dark", "light" }.Contains(theme) || !new[] { "ask", "tray", "exit" }.Contains(closeAction) || !(Get(record, "autoUpdate") is bool)) throw new IOException();
+                bool check = Get(record, "appAutoCheck", true).Equals(true);
+                // Respect an old explicit opt-out; a legacy download-only preference
+                // must not silently turn networking back on during migration.
+                return new Preferences { language = language, theme = theme, closeAction = closeAction, autoUpdate = (bool)record["autoUpdate"],
+                    appAutoCheck = check, appAutoDownload = check && Get(record, "appAutoDownload", false).Equals(true) };
+            } catch { warning = "settings.unreadable"; return new Preferences { autoUpdate = false, appAutoCheck = false }; }
         }
         static string SystemLanguage() { return CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "zh" ? "zh-CN" : "en"; }
         static string RunMode() { return Offline ? "offline" : CommandLineDisablesUpdates ? "manual" : "normal"; }
         static object SettingsInfo() {
             string warning; var preferences = ReadPreferences(out warning);
             return new { success = true, preferences = preferences, warning = warning, systemLanguage = SystemLanguage(), version = AppVersion,
-                mode = RunMode(), automaticUpdatesThisRun = !Offline && AutomaticUpdatesEnabled };
+                mode = RunMode(), desktopWindowAvailable = Desktop != null, automaticUpdatesThisRun = !Offline && AutomaticUpdatesEnabled };
         }
         // Update one key under a folder-specific cross-process lock. Tabs and launch
         // modes share preferences, without a stale form overwriting another choice.
         static object SavePreference(string key, string value) {
             if (key == "language" && !new[] { "system", "zh-CN", "en" }.Contains(value) ||
                 key == "theme" && !new[] { "system", "dark", "light" }.Contains(value) ||
-                key == "autoUpdate" && value != "true" && value != "false" ||
-                !new[] { "language", "theme", "autoUpdate" }.Contains(key)) throw new SettingsException("settings.invalid");
+                key == "closeAction" && !new[] { "ask", "tray", "exit" }.Contains(value) ||
+                new[] { "autoUpdate", "appAutoCheck", "appAutoDownload" }.Contains(key) && value != "true" && value != "false" ||
+                !new[] { "language", "theme", "autoUpdate", "closeAction", "appAutoCheck", "appAutoDownload" }.Contains(key)) throw new SettingsException("settings.invalid");
+            bool updateChanged = false;
             using (var mutex = new Mutex(false, "Local\\LunaSettings_" + Hash(Root.ToLowerInvariant()).Substring(0, 24))) {
                 bool acquired;
                 try { acquired = mutex.WaitOne(2000); } catch (AbandonedMutexException) { acquired = true; }
@@ -67,18 +78,33 @@ namespace Luna {
                     Directory.CreateDirectory(CacheDir);
                     if (key == "language") preferences.language = value;
                     if (key == "theme") preferences.theme = value;
+                    if (key == "closeAction") preferences.closeAction = value;
                     if (key == "autoUpdate") preferences.autoUpdate = value == "true";
+                    if (key == "appAutoCheck") {
+                        updateChanged = preferences.appAutoCheck != (value == "true");
+                        preferences.appAutoCheck = value == "true";
+                        if (!preferences.appAutoCheck) preferences.appAutoDownload = false;
+                    }
+                    if (key == "appAutoDownload") {
+                        updateChanged = preferences.appAutoDownload != (value == "true");
+                        preferences.appAutoDownload = value == "true";
+                        if (preferences.appAutoDownload) preferences.appAutoCheck = true;
+                    }
                     // Keep an unreadable file for local recovery before replacing it.
-                    if (warning != "" && File.Exists(SettingsFile)) File.Copy(SettingsFile, Path.Combine(CacheDir, "settings.invalid-" + Guid.NewGuid().ToString("N") + ".json"));
+                    if (warning != "" && File.Exists(SettingsFile)) QuarantineOwnedFile(SettingsFile);
                     WriteRecord(SettingsFile, preferences);
-                    return SettingsInfo();
+                    if (Desktop != null) Desktop.RefreshAppearance();
                 } catch (SettingsException) { throw; }
                 catch (Exception ex) { RecordDiagnostic(ex); throw new SettingsException("settings.saveFailed"); }
                 finally { mutex.ReleaseMutex(); }
             }
+            // Schedule only after the complete coupled preference is durably saved,
+            // and outside the settings mutex. Network work never blocks this request.
+            if (updateChanged) AppUpdatePreferenceChanged(key, value == "true");
+            return SettingsInfo();
         }
         static string FolderFor(string kind) {
-            string path = kind == "logs" ? LogDirectory : kind == "data" ? CacheDir : null;
+            string path = kind == "logs" ? LogDirectory : kind == "data" ? CacheDir : kind == "updates" ? AppUpdateDir : null;
             if (path == null) throw new SettingsException("folder.invalid");
             if (!PlainPath(path)) throw new SettingsException("folder.unavailable");
             return path;

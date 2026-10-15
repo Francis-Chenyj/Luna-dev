@@ -1,4 +1,10 @@
+> 当前 1.6.3 的本地修复、源码身份和发布验证见 [操作补充](AUDIT_REPAIRS.md)及 [QA](QA-1.6.3.md)。下文是历史公开预发布记录。
+
 # Luna 1.5.0 发布核对清单 / Release checklist
+
+> 2026-10-15：新增的 1.5.1 是本地审阅版，尚未推送或发布，见 [1.5.1 发布说明](RELEASE-v1.5.1.md)和 [QA](QA-1.5.1.md)。下文保留上一次 1.5.0 公开预发布的文件边界与验收记录，不代表 1.5.1 已上传。
+>
+> The 1.5.1 revision is local and unpublished. The checklist below retains the preceding 1.5.0 public pre-release record; it does not claim publication of 1.5.1.
 
 维护者 / Maintainer：**FrancisChen** · 日期 / Date：2026-10-13（Asia/Shanghai）
 

@@ -4,7 +4,9 @@
 
 **English** · [简体中文](USER_GUIDE.zh-CN.md) · [Project overview](../README.md) · [Developer guide](DEVELOPER_GUIDE.md) · [Changelog](../CHANGELOG.md)
 
-**Applies to version 1.5.0 · Author: FrancisChen**
+**Applies to version 1.6.3 · Author: FrancisChen**
+
+See the [1.6.3 repair guide](AUDIT_REPAIRS.md) for scope restoration, missing-profile downloads, storage waiting messages and damaged-update recovery.
 
 Project home: [Luna on GitHub](https://github.com/Francis-Chenyj/Luna-dev). Luna is in development and distributed as a pre-release; [distribution status](../release-status.json) is tracked separately.
 
@@ -25,12 +27,12 @@ This guide describes current operation by task. Version history belongs in the c
 
 ## Install and launch
 
-Luna requires Windows 10 / 11, .NET Framework 4.7.2+ and a modern browser. It prefers an Edge app window and otherwise uses the default browser. Normal use needs no developer tools, login, API key or administrator privileges.
+Luna requires Windows 10 / 11, .NET Framework 4.7.2+ and Microsoft Edge WebView2 Runtime. It uses a native desktop window; install the [Evergreen Runtime](https://developer.microsoft.com/microsoft-edge/webview2/) if needed. Browser compatibility mode (`Luna.exe --browser`) does not support tray controls. Normal use needs no developer tools, login, API key or administrator privileges.
 
-There is no public download yet. If you already have a local Windows package:
+Version 1.6.3 is a local revision. The public release is listed separately on GitHub. With the local Windows package:
 
-1. **Fully extract** `Luna-v1.5.0-Windows.zip` to a writable folder, such as `D:\Apps\Luna`. Do not run from inside the ZIP or copy only the EXE.
-2. Keep `Luna.exe`, `Luna.exe.config`, `web` and `data` together.
+1. **Fully extract** `Luna-v1.6.3-Windows.zip` to a writable folder, such as `D:\Apps\Luna`. Do not run from inside the ZIP or copy only the EXE.
+2. Keep `Luna.exe`, `Luna.exe.config`, both Microsoft.Web.WebView2 DLLs, `runtimes`, `web` and `data` together.
 3. Run `Luna.exe` or `启动Luna.cmd`, then wait for the local-service status at the top right.
 4. Search for a champion and choose a lane. The default profile is bundled and ready to query.
 
@@ -43,7 +45,7 @@ There is no public download yet. If you already have a local Windows package:
 
 The source ZIP contains no executable; build it using the [developer guide](DEVELOPER_GUIDE.md). If `SHA256SUMS.txt` accompanies a package, use PowerShell's `Get-FileHash -Algorithm SHA256` and compare the ZIP hash with its matching filename. Checksums verify content consistency.
 
-Luna listens only on this computer. Normal launch defaults to port 17653; the offline script uses 17683, with subsequent ports tried if occupied. Luna does not configure system startup, proxies or firewall rules. Closing the window leaves the service running until about 10–11 minutes without requests; use **退出 (Exit)** to stop immediately.
+Luna listens only on this computer. Normal launch defaults to port 17653; the offline script uses 17683, with subsequent ports tried if occupied. Luna does not configure system startup, proxies or firewall rules. The title-bar close button and Alt+F4 ask whether to minimize to the tray or exit. The tray keeps ongoing updates alive; double-click its green L icon or relaunch the same shortcut to restore the existing query. Exit in the page or tray menu stops the service immediately. Remembering a choice is optional; change it in **Settings → General → When closing the window**. Windows shutdown/logoff is never blocked by this choice. Browser/headless mode retains the 10–11 minute idle timeout.
 
 ## Settings, appearance and support
 
@@ -57,6 +59,8 @@ Open **Settings** at the top right. Changes are saved in `cache/settings.json` b
 | About | Luna icon, version, FrancisChen, Luna homepage, local changelog, original-code MIT license and third-party notices. These documents remain readable offline. |
 
 Follow system uses the Windows display language at launch (Chinese selects Simplified Chinese; other languages select English) and responds to system light/dark appearance changes. An explicit choice overrides the system. Closing a window is not necessarily a new service launch: use **Exit**, then start Luna again to apply a changed startup-update preference.
+
+In 1.6.0, the owned desktop window follows the selected theme on supported Windows versions. App changes are applied immediately; system-theme changes are detected within about one second. Windows high contrast preserves system caption colors. Older Windows versions and browser compatibility mode may keep system/browser frame colors. Restart after upgrading the EXE. See [QA](QA-1.6.0.md) for measured results and limits.
 
 Offline mode always disables network updates. The `--no-auto-update` launch option always disables automatic updates for that run; saved preferences cannot override either restriction. This switch updates data, not the Luna application itself.
 
@@ -126,7 +130,9 @@ Background work prioritizes current and recent champions before continuing the c
 
 The offline launcher prohibits external updates while retaining access to all saved default and extra profiles. Network buttons are disabled in offline windows; use the normal launcher to update. To disable only the startup check while allowing manual updates, see [local launch options](DEVELOPER_GUIDE.md#local-launch-options).
 
-Data updates **do not install a newer Luna application**. Application upgrades require a replacement Windows package.
+Data updates **do not install a newer Luna application**. Manage application updates separately in **Settings → Application**. Automatic download is initially off; installation requires confirmation and a compatible signed stable release.
+
+In 1.6.3, enabling automatic downloads enables checks too and immediately checks/downloads an eligible update. Turning checks off turns automatic downloads off; turning only downloads off retains checks and saved progress. Manual downloads remain available. Offline or manual-only launches explain that choices are saved without automatic networking this session. After a successful restart, the app reports success. See [Application updates in the README](../README.md#application-updates) for the complete rules.
 
 ## Sources and timestamps
 
@@ -144,14 +150,16 @@ The management panel separately records the **last successful upstream check**. 
 
 ## Upgrades, backups and storage
 
-Use **退出 (Exit)** to stop the old service before upgrading:
+Complete 1.6.0 runtime folders support **Settings → Application → Check for app updates**. Downloads can resume; confirming Restart and update replaces program files while keeping preferences and offline data. A failed local startup/query health check restores the old program. Without a signed stable update, the current version remains usable. Source folders cannot be upgraded in place.
+
+For manual migration or older releases, use **退出 (Exit)** to stop the old service first:
 
 1. Keep the old folder as a backup and extract the complete new Windows package into another writable folder.
 2. Before launching the new copy, **copy** the old `cache` folder into it to preserve language/theme/startup-update preferences, downloaded profiles, champion updates and resume progress. Keep the original folder intact.
 3. Launch from the new folder. Rerun `创建Luna桌面快捷方式.cmd` if you want a desktop shortcut.
 4. Check **Settings → About** for the version, confirm your preferences and a saved query, then retain the old folder until you are satisfied. The package does not migrate or delete old folders automatically.
 
-Recent queries belong to the browser's local storage, not `cache`. Copying the folder does not transfer them to a different browser or port. When two local review ZIPs share the same version, identify the intended build using the accompanying `SHA256SUMS.txt` and release-file inventory; do not identify it by its filename alone.
+Native-window recent queries use local storage inside `cache/webview2`; browser compatibility mode uses that browser's profile. Records are tied to an origin, so different browsers or ports may show different histories. When two local review ZIPs share the same version, identify the intended build using the accompanying `SHA256SUMS.txt` and release-file inventory; do not identify it by its filename alone.
 
 | Location | Contents |
 | --- | --- |
@@ -164,9 +172,11 @@ Recent queries belong to the browser's local storage, not `cache`. Copying the f
 
 Deleting `cache` removes preferences, downloaded updates, local logs and resume progress, while leaving the bundled default library intact. It should not be the first response to an update failure.
 
-Storage maintenance runs at startup, after updates and every 24 hours while the service remains open. Each profile retains its current complete library and one previous usable edition; unfinished downloads can expire after seven days without progress. Champion caches normally retain at most 64 pairs and 8 MiB. Unknown, damaged or locked files are kept conservatively, so this is not a hard quota for the whole folder.
+Maintenance is delayed after startup, retains a 24-hour successful-run interval across restarts, and also runs after new downloads. Each profile retains its current library and one previous usable edition; unfinished downloads can expire after seven days without progress. Champion caches normally retain at most 64 pairs and 8 MiB. Confirmed damaged champion caches and settings backups enter a quarantine capped at 20 files, 10 MiB and seven days. Locked files, unowned files and possibly last-recoverable data are kept conservatively; these are not whole-directory hard quotas.
 
-Data management shows downloaded-data size and space freed during this run. Queries do not continuously add complete libraries; downloading more profiles and editions increases storage. Cache limits are not total memory limits for the browser, interface or local service.
+**Settings → Data → Storage** shows categorized file bytes and their measurement time, including interface caches and application backups. Queries do not continuously add complete libraries; downloading more profiles and editions increases storage. These numbers are neither process memory nor Windows disk allocation size.
+
+Optionally run **安装Luna.cmd** to install into a new empty folder and register with Windows Installed apps. Uninstall from **Settings → Application**, **卸载Luna.cmd**, or the installed copy's Windows entry. User data is kept by default while app-update staging is removed; the entire local `cache` is removed only when explicitly selected. Extra or modified files, other copies and shared runtimes remain. See the [README maintenance instructions](../README.md#optional-installation-and-uninstall).
 
 ## Troubleshooting
 
@@ -180,8 +190,8 @@ Data management shows downloaded-data size and space freed during this run. Quer
 | Query fails or times out | Transient failures retry at most twice within a total five-second wait; then choose **重新查询 (Retry query)**. Corrupt or mismatched data is reported separately |
 | Old dates or backup data appear | Inspect each direction's source and management status; checking or rereading does not mean a download completed |
 | Shortcut fails after moving Luna | Rerun the shortcut script from the new folder |
-| Browser taskbar icon is not Luna | A normal browser tab uses the browser's taskbar icon; Luna's separate window icon applies to Edge app mode |
-| Service continues after closing a window | It stops after about 10–11 minutes without requests; use **退出 (Exit)** for immediate shutdown |
+| Browser taskbar icon is not Luna | A normal browser tab uses the browser's taskbar icon; launch Luna.exe directly for its native window and icon |
+| Service continues after closing a window | Tray mode intentionally stays active; use **Exit** from the page or tray menu. Only browser/headless mode uses the idle timeout |
 | Old interface remains after an upgrade | Verify that you started from the new complete folder, then refresh with Ctrl+R; the previous folder's shortcut may still launch the old copy |
 
 For a useful problem report, record the Luna and Windows versions, normal/offline launch, champion/lane/filter settings, reproduction steps, and expected versus actual results. For display issues, include language, theme, Windows display scale and browser zoom. Screenshots and short log excerpts are optional. **Settings → Support → Copy diagnostics** provides a limited summary; check any extra logs for private information before sharing. Use the bug-report and feature-request links in the README.
@@ -211,3 +221,9 @@ Luna continues to show actual upstream results for the selected lane, threshold 
 Relationships come from [MalzaharAI](https://www.malzaharai.top/counter), names and basic labels from Tencent's catalog, and English/Traditional Chinese labels from Riot Data Dragon. Community-term references are recorded in the bundled search data. Luna preserves upstream results, does not train a model and does not equate generation dates with game patches. Other upstream votes and ratings remain on the original site.
 
 The application is developed by **FrancisChen** and has no affiliation with or endorsement from those sources. See [third-party notices](../THIRD_PARTY_NOTICES.md) for content scope and [README acknowledgements](../README.md#author-and-acknowledgements) for reference projects.
+
+## Desktop-window upgrade (1.6.0)
+
+The owned window uses Microsoft WebView2, preserving language/theme/settings and `cache/library`. Old Edge localStorage is not copied, so its recent-query chips start fresh. New recent history resides in `cache/webview2`. Disposable WebView2 DiskCache/CacheStorage is cleared asynchronously at startup; this never clears localStorage or matchup files. The WebView2 profile and shared installed runtime are additional to the matchup-data space estimate. No fixed total profile size is promised.
+
+On Windows 11, supported title-bar colors follow app light/dark/system appearance. Windows 10 and older runtimes may retain system frame colors. High-contrast mode leaves caption colors to Windows. If the native page cannot load, closing the window offers a native Yes (tray) / No (exit) / Cancel fallback; this startup fallback does not remember a choice.

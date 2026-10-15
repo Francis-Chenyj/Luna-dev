@@ -1,4 +1,4 @@
-# Runtime data, local logs and shortcuts
+﻿# Runtime data, local logs and shortcuts
 cache/
 启动错误.txt
 *.log
@@ -8,6 +8,10 @@ cache/
 # Generated executables and release artifacts
 /dist/
 /Luna.exe
+/Luna.Maintenance.exe
+/installed-files.json
+/luna-update.json
+*private.xml
 /Luna-*.zip
 /release-files.json
 /SHA256SUMS.txt
@@ -30,3 +34,7 @@ node_modules/
 *.key
 
 # Keep Luna.exe.config, LICENSE, notices, source data and scripts tracked.
+
+# Native desktop build outputs (pinned SDK remains in vendor/)
+/Microsoft.Web.WebView2.*.dll
+/runtimes/

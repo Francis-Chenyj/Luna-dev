@@ -1,3 +1,7 @@
+using File = Luna.LocalFile;
+using Directory = Luna.LocalDirectory;
+using FileInfo = Luna.LocalFileInfo;
+using DirectoryInfo = Luna.LocalDirectoryInfo;
 using System;
 using System.IO;
 using System.IO.Compression;
@@ -19,7 +23,7 @@ namespace Luna {
             public Dictionary<string, object> Manifest, Entries;
             public readonly System.Collections.Concurrent.ConcurrentDictionary<string, bool> Damaged = new System.Collections.Concurrent.ConcurrentDictionary<string, bool>();
         }
-        static readonly string LibraryDir = Path.Combine(CacheDir, "library");
+        static string LibraryDir { get { return Path.Combine(CacheDir, "library"); } }
         static readonly object LibrarySync = new object(), JobSync = new object(), RateSync = new object();
         static volatile Dictionary<string, List<LibraryProfile>> Profiles = new Dictionary<string, List<LibraryProfile>>();
         static readonly Dictionary<string, string> ProfilePointers = new Dictionary<string, string>();
@@ -73,14 +77,17 @@ namespace Luna {
             return keys.OrderBy(k => k, StringComparer.Ordinal).ToList();
         }
         static LibraryProfile OpenProfile(string directory, string profile, string source) {
+            return OpenProfileIndex(directory, profile, source, true);
+        }
+        static LibraryProfile OpenProfileIndex(string directory, string profile, string source, bool verifyFiles) {
             try {
                 var manifest = ReadRecord(Path.Combine(directory, "manifest.json"));
                 if (manifest == null || Str(manifest, "schema") != "1" || Str(manifest, "profile") != profile || !Fingerprint(Str(manifest, "fingerprint")) || DateValue(Str(manifest, "sourceGeneratedAt")) == DateTime.MinValue) return null;
                 var entries = Obj(Get(manifest, "entries")); var expected = ExpectedKeys(Obj(Get(manifest, "catalog")), profile);
                 if (entries.Count != expected.Count || Str(manifest, "expected") != expected.Count.ToString() || expected.Any(key => !entries.ContainsKey(key) || !Fingerprint(Str(entries, key)))) return null;
                 var result = new LibraryProfile { Directory = directory, Source = source, Manifest = manifest, Entries = entries };
-                foreach (var entry in entries) {
-                    try { if (FileHash(File.ReadAllBytes(Path.Combine(directory, entry.Key + ".json.gz"))) != Convert.ToString(entry.Value)) result.Damaged[entry.Key] = true; }
+                if (verifyFiles) foreach (var entry in entries) {
+                    try { if (RecordFileHash(Path.Combine(directory, entry.Key + ".json.gz")) != Convert.ToString(entry.Value)) result.Damaged[entry.Key] = true; }
                     catch { result.Damaged[entry.Key] = true; }
                 }
                 return result;
@@ -93,11 +100,11 @@ namespace Luna {
             if (pointer != null) foreach (string field in new[] { "current", "previous" }) {
                 string fingerprint = Str(pointer, field);
                 if (!Fingerprint(fingerprint)) { if (field == "current") unavailableCurrent = true; continue; }
-                var record = OpenProfile(Path.Combine(LibraryDir, fingerprint, profile), profile, field == "current" ? "library" : "previous");
+                var record = OpenProfileIndex(Path.Combine(LibraryDir, fingerprint, profile), profile, field == "current" ? "library" : "previous", false);
                 if (record != null) list.Add(record);
                 else if (field == "current") unavailableCurrent = true;
             }
-            var bundled = OpenProfile(Path.Combine(Root, "data", "library", profile), profile, "bundled");
+            var bundled = OpenProfileIndex(Path.Combine(Root, "data", "library", profile), profile, "bundled", false);
             if (bundled != null) list.Add(bundled);
             foreach (var item in list) item.Fallback = unavailableCurrent || item.Source == "previous";
             return list.OrderByDescending(p => DateValue(Str(p.Manifest, "sourceGeneratedAt"))).ToList();
@@ -133,7 +140,9 @@ namespace Luna {
                 pointers[profile] = PointerIdentity(pointer);
                 if (list.Count > 0) next[profile] = list;
             }
-            // Publish a ready snapshot briefly; hashing the entire library happens above.
+            // Startup reads manifests only. Every queried record is still checked;
+            // a resumable, throttled background audit checks the rest.
+            RestoreAuditedDamage(next);
             lock (LibrarySync) {
                 foreach (var item in pointers) ProfilePointers[item.Key] = item.Value;
                 Profiles = next;
@@ -141,7 +150,7 @@ namespace Luna {
         }
         static Dictionary<string, object> ReadCompressed(string path) {
             if (new FileInfo(path).Length > 16 * 1024 * 1024) throw new IOException("压缩记录过大");
-            using (var stream = File.OpenRead(path)) using (var gzip = new GZipStream(stream, CompressionMode.Decompress)) using (var memory = new MemoryStream()) {
+            using (var stream = File.OpenRead(Deployment.IoPath(path))) using (var gzip = new GZipStream(stream, CompressionMode.Decompress)) using (var memory = new MemoryStream()) {
                 byte[] buffer = new byte[8192]; int n;
                 while ((n = gzip.Read(buffer, 0, buffer.Length)) > 0) { memory.Write(buffer, 0, n); if (memory.Length > 16 * 1024 * 1024) throw new IOException("关系记录过大"); }
                 return Obj(Json().DeserializeObject(Encoding.UTF8.GetString(memory.ToArray())));
@@ -150,11 +159,11 @@ namespace Luna {
         static void WriteCompressed(string path, object record) {
             string temporary = TemporaryPath(path);
             try {
-                using (var file = File.Create(temporary)) using (var gzip = new GZipStream(file, CompressionMode.Compress)) {
+                using (var file = File.Create(Deployment.IoPath(temporary))) using (var gzip = new GZipStream(file, CompressionMode.Compress)) {
                     byte[] bytes = Encoding.UTF8.GetBytes(Json().Serialize(record)); gzip.Write(bytes, 0, bytes.Length);
                 }
-                if (File.Exists(path)) File.Replace(temporary, path, null); else File.Move(temporary, path);
-            } finally { if (File.Exists(temporary)) File.Delete(temporary); }
+                if (File.Exists(Deployment.IoPath(path))) File.Replace(Deployment.IoPath(temporary), Deployment.IoPath(path), null); else File.Move(Deployment.IoPath(temporary), Deployment.IoPath(path));
+            } finally { if (File.Exists(Deployment.IoPath(temporary))) File.Delete(Deployment.IoPath(temporary)); }
         }
         static bool ValidRecord(Dictionary<string, object> record, string key, string fingerprint) {
             return record != null && Str(record, "key") == key && Str(record, "fingerprint") == fingerprint && DateValue(Str(record, "fetchedAt")) != DateTime.MinValue && ValidDetail(Obj(Get(record, "data")), key);
@@ -177,7 +186,7 @@ namespace Luna {
                 if (!profile.Entries.ContainsKey(key)) { skipped = true; continue; }
                 try {
                     string path = Path.Combine(profile.Directory, key + ".json.gz");
-                    if (FileHash(File.ReadAllBytes(path)) != Str(profile.Entries, key)) throw new IOException("记录校验失败：" + key);
+                    if (RecordFileHash(path) != Str(profile.Entries, key)) throw new IOException("记录校验失败：" + key);
                     var record = ReadCompressed(path);
                     if (!ValidRecord(record, key, Str(profile.Manifest, "fingerprint"))) throw new IOException("查询记录与条件不一致：" + key);
                     bool ignored; profile.Damaged.TryRemove(key, out ignored);
@@ -339,7 +348,6 @@ namespace Luna {
                 Progress("正在后台检查原站数据版本；可继续查询本地数据。", "checking");
                 var before = SourceStatus(token); string fingerprint = Str(Obj(before["package"]), "sha256");
                 InitializeLibrary(); // Include profiles published by another local Luna process.
-                MaintainStorage(fingerprint, token);
                 var targets = new List<string> { "1-5", requested };
                 targets.AddRange(Profiles.Keys);
                 if (all) for (int t = 1; t <= 5; t++) for (int s = 1; s <= 5; s++) targets.Add(t + "-" + s);
@@ -349,7 +357,7 @@ namespace Luna {
                 ServiceHeroRequests(token);
                 // Publish the user's two directions before collecting the full lane catalog.
                 RefreshPriorityPairs(before, targets, attempted, 2, token);
-                var pending = targets.Where(p => { List<LibraryProfile> list; return !Profiles.TryGetValue(p, out list) || Str(list[0].Manifest, "fingerprint") != fingerprint || !ProfileFilesIntact(list[0]); }).ToList();
+                var pending = targets.Where(p => { List<LibraryProfile> list; return !Profiles.TryGetValue(p, out list) || Str(list[0].Manifest, "fingerprint") != fingerprint || !list[0].Damaged.IsEmpty || !automatic && !ProfileFilesIntact(list[0]); }).ToList();
                 if (pending.Count == 0) { Progress("检查完成：数据版本未变化，未下载新数据。本机更新时间保持不变。", "complete"); return; }
                 Progress("正在核对五个分路的完整英雄目录…", "checking");
                 var catalog = ResumeCatalog(before, token);
@@ -378,7 +386,7 @@ namespace Luna {
                             if (!ValidDetail(data, key)) throw new IOException("原站返回了不匹配的数据：" + key);
                             token.ThrowIfCancellationRequested(); WriteCompressed(path, new { key = key, fingerprint = fingerprint, fetchedAt = Stamp(), data = data });
                         }
-                        string hash = FileHash(File.ReadAllBytes(path)); lock (entriesLock) entries[key] = hash;
+                        string hash = RecordFileHash(path); lock (entriesLock) entries[key] = hash;
                         lock (JobSync) UpdateDone++;
                     });
                     token.ThrowIfCancellationRequested(); Progress("正在验证完整性与原站版本…", "verifying");
@@ -400,13 +408,13 @@ namespace Luna {
                 else { Log(ex); Progress((automatic ? "自动更新未完成，原有离线库仍可查询。" : "更新未完成，原有离线库仍可查询。") + ex.GetBaseException().Message + " 可手动重试，或下次正常启动时自动检查并续传。", "error"); }
             } finally {
                 PriorityPump = null;
-                if (acquired) { MaintainStorage("", Shutdown.Token); mutex.ReleaseMutex(); }
+                if (acquired) { if (UpdateDone > 0 || DateTime.UtcNow.Ticks >= Interlocked.Read(ref StorageNextCheck)) MaintainStorage("", Shutdown.Token); mutex.ReleaseMutex(); }
                 if (token.IsCancellationRequested) CancelQueuedHeroes();
                 FinishUpdateWorker();
             }
         }
         static bool ProfileFilesIntact(LibraryProfile profile) {
-            try { return profile.Entries.All(item => { string path = Path.Combine(profile.Directory, item.Key + ".json.gz"); return File.Exists(path) && FileHash(File.ReadAllBytes(path)) == Convert.ToString(item.Value); }); }
+            try { return profile.Entries.All(item => { string path = Path.Combine(profile.Directory, item.Key + ".json.gz"); return File.Exists(path) && RecordFileHash(path) == Convert.ToString(item.Value); }); }
             catch { return false; }
         }
     }

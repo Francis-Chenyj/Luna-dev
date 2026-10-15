@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -12,6 +12,26 @@ namespace Luna {
         static DesktopIconService DesktopIcons;
         static string DesktopTag(int port) { return "Luna" + Hash(Root.ToUpperInvariant() + ":" + port).Substring(0, 16); }
         static string DesktopPath { get { return "/" + DesktopTag(Port); } }
+        sealed class FramePalette {
+            public int Dark, Caption, Text;
+        }
+        static FramePalette FrameColors(string preference, bool systemDark, bool highContrast) {
+            // COLORREF is 0x00BBGGRR. In high contrast leave colors to Windows.
+            bool dark = preference == "dark" || preference == "system" && systemDark;
+            return new FramePalette { Dark = highContrast ? 0 : dark ? 1 : 0,
+                Caption = highContrast ? -1 : dark ? 0x151711 : 0xf1f7f4,
+                Text = highContrast ? -1 : dark ? 0xeff4f0 : 0x222d1d };
+        }
+        static FramePalette ReadFrameColors() {
+            string warning; var preferences = ReadPreferences(out warning);
+            bool dark = false, highContrast = false;
+            try { highContrast = System.Windows.Forms.SystemInformation.HighContrast; } catch { }
+            try {
+                using (var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize"))
+                    dark = key != null && Convert.ToInt32(key.GetValue("AppsUseLightTheme", 1)) == 0;
+            } catch { }
+            return FrameColors(preferences.theme, dark, highContrast);
+        }
         static void StartDesktopIcons() {
             lock (LogSync) {
                 if (DesktopIcons != null) return;
@@ -34,6 +54,7 @@ namespace Luna {
                 public uint ProcessId, Dpi;
                 public IntPtr Small, Large;
                 public int SmallSize, LargeSize;
+                public readonly Dictionary<int, FrameAttributeState> Frame = new Dictionary<int, FrameAttributeState>();
             }
             public DesktopIconService(string tag, string root, bool offline, int port) {
                 this.tag = tag;
@@ -49,8 +70,18 @@ namespace Luna {
                 lock (sync) return new { supported = true, error = error, windows = windows.Select(pair => new {
                     dpi = pair.Value.Dpi, smallPixels = pair.Value.SmallSize, largePixels = pair.Value.LargeSize,
                     smallApplied = ReadIcon(pair.Key, 0) == pair.Value.Small,
-                    largeApplied = ReadIcon(pair.Key, 1) == pair.Value.Large
+                    largeApplied = ReadIcon(pair.Key, 1) == pair.Value.Large,
+                    frame = new[] { 20, 35, 36 }.Select(attribute => FrameStatus(pair.Key, pair.Value, attribute)).ToArray()
                 }).ToArray() };
+            }
+            static object FrameStatus(IntPtr hwnd, WindowIcons icons, int attribute) {
+                int value = 0, code; FrameAttributeState state;
+                try { code = DwmGetWindowAttribute(hwnd, attribute, out value, 4); }
+                catch (DllNotFoundException) { code = unchecked((int)0x80004001); }
+                catch (EntryPointNotFoundException) { code = unchecked((int)0x80004001); }
+                return new { attribute = attribute, readResult = "0x" + code.ToString("X8"),
+                    value = code == 0 ? (int?)value : null,
+                    applied = icons.Frame.TryGetValue(attribute, out state) ? state.Applied : null };
             }
             void Run() {
                 try {
@@ -64,6 +95,7 @@ namespace Luna {
                 }
             }
             void Sweep() {
+                var palette = ReadFrameColors();
                 foreach (var pair in windows.ToArray()) {
                     uint pid; GetWindowThreadProcessId(pair.Key, out pid);
                     if (!IsWindow(pair.Key) || pid != pair.Value.ProcessId) {
@@ -92,10 +124,28 @@ namespace Luna {
                             Apply(hwnd, 0, small, ref icons.Small, ref icons.SmallSize);
                             Apply(hwnd, 1, large, ref icons.Large, ref icons.LargeSize);
                             icons.Dpi = dpi;
+                            ApplyFrame(hwnd, icons, 20, palette.Dark);
+                            ApplyFrame(hwnd, icons, 35, palette.Caption);
+                            ApplyFrame(hwnd, icons, 36, palette.Text);
                         } finally { Marshal.ReleaseComObject(store); }
                     } catch (Exception ex) { error = ex.GetType().Name; }
                     return true;
                 }, IntPtr.Zero);
+            }
+            // Browser theme-color is not honored by every Edge --app frame.
+            // Probe the documented DWM attributes only on the exact tagged Luna
+            // window. Unsupported systems keep their own frame; queries and
+            // icons never depend on this optional appearance enhancement.
+            static void ApplyFrame(IntPtr hwnd, WindowIcons icons, int attribute, int value) {
+                FrameAttributeState state;
+                if (!icons.Frame.TryGetValue(attribute, out state)) { state = new FrameAttributeState(); icons.Frame[attribute] = state; }
+                ApplyNativeFrame(hwnd, state, attribute, value);
+            }
+            static void RestoreFrame(IntPtr hwnd, WindowIcons icons) {
+                foreach (var pair in icons.Frame) {
+                    int attribute = pair.Key;
+                    pair.Value.Restore(() => ReadNativeFrame(hwnd, attribute), v => WriteNativeFrame(hwnd, attribute, v));
+                }
             }
             void Apply(IntPtr hwnd, int kind, int pixels, ref IntPtr owned, ref int oldSize) {
                 if (pixels <= 0 || pixels > 256) return;
@@ -111,6 +161,7 @@ namespace Luna {
             static void Release(IntPtr hwnd, WindowIcons icons) {
                 uint pid; GetWindowThreadProcessId(hwnd, out pid);
                 if (pid == icons.ProcessId) {
+                    RestoreFrame(hwnd, icons);
                     IntPtr ignored;
                     if (ReadIcon(hwnd, 0) == icons.Small) SendMessageTimeout(hwnd, 0x80, IntPtr.Zero, IntPtr.Zero, 2, 200, out ignored);
                     if (ReadIcon(hwnd, 1) == icons.Large) SendMessageTimeout(hwnd, 0x80, (IntPtr)1, IntPtr.Zero, 2, 200, out ignored);
@@ -167,6 +218,8 @@ namespace Luna {
             [DllImport("user32.dll", CharSet = CharSet.Unicode)] static extern IntPtr SendMessageTimeout(IntPtr hwnd, uint message, IntPtr wParam, IntPtr lParam, uint flags, uint timeout, out IntPtr result);
             [DllImport("shell32.dll")] static extern int SHGetPropertyStoreForWindow(IntPtr hwnd, ref Guid iid, [MarshalAs(UnmanagedType.Interface)] out IPropertyStore store);
             [DllImport("ole32.dll")] static extern int PropVariantClear(ref PropVariant value);
+            [DllImport("dwmapi.dll")] static extern int DwmGetWindowAttribute(IntPtr hwnd, int attribute, out int value, int size);
+            [DllImport("dwmapi.dll")] static extern int DwmSetWindowAttribute(IntPtr hwnd, int attribute, ref int value, int size);
         }
     }
 }

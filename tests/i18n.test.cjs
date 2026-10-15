@@ -1,5 +1,12 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs');
 const I=require('../web/i18n.js').create();
+test('champion counts use English singular and all translated accessibility attributes are recognized',()=>{
+  I.setLanguage('en');assert.equal(I.t('{0} 位',0),'0 champions');assert.equal(I.t('{0} 位',1),'1 champion');assert.equal(I.t('{0} 位',2),'2 champions');
+  I.setLanguage('zh-CN');assert.equal(I.t('{0} 位',1),'1 位');
+  const html=fs.readFileSync(require.resolve('../web/index.html'),'utf8');
+  for(const m of html.matchAll(/\b(data-i18n[\w-]*)=/g))assert.ok(['data-i18n','data-i18n-title','data-i18n-aria-label','data-i18n-placeholder'].includes(m[1]),'Unknown translation attribute '+m[1]);
+  assert.match(html,/<button[^>]*id="close-dismiss"[^>]*data-i18n-aria-label="close.cancel"/);
+});
 test('all static UI messages and explicit app messages have English translations',()=>{
   const html=fs.readFileSync(require.resolve('../web/index.html'),'utf8'),code=fs.readFileSync(require.resolve('../web/app.js'),'utf8');
   // Browsers decode character references in attribute values before i18n sees them.

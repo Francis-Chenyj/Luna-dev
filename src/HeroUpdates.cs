@@ -1,3 +1,7 @@
+using File = Luna.LocalFile;
+using Directory = Luna.LocalDirectory;
+using FileInfo = Luna.LocalFileInfo;
+using DirectoryInfo = Luna.LocalDirectoryInfo;
 using System;
 using System.Collections.Generic;
 using System.IO;

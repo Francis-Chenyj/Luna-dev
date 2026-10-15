@@ -1,8 +1,55 @@
 # Changelog / 更新日志
 
+## 1.6.3 — 2026-10-16
+
+- 修复损坏升级记录的安全恢复、维护程序与测试夹具的长路径读写、刷新/历史丢失查看范围，以及英文数量和关闭按钮无障碍文案。
+- 缺少筛选数据时可直接下载当前英雄条件；空间统计说明等待原因；升级健康检查增加原生窗口和界面初始化验证。
+- 补充运行包故障测试、源码逐文件身份、双语指南、贡献与安全说明、第三方证据清单。此版本为本地修订，未发布 GitHub；授权与发布者证书仍待维护者完成。
+- Repair details and verification: [release notes](docs/RELEASE-v1.6.3.md), [QA](docs/QA-1.6.3.md).
+
+
+## 1.6.2 — 2026-10-15 (local / 本地)
+
+- Enabling automatic downloads atomically enables checks and immediately checks; disabling checks also disables automatic downloads. 开启自动下载立即检查并联动检查开关，关闭检查同步关闭自动下载。
+- Cancelling automatic work retains progress; rapid off/on queues one check after cancellation, while manual downloads remain independent. 自动任务可停止并保留进度，快速重开不会漏检，手动下载独立保留。
+- Startup reads current preferences; offline/manual-only launches explain saved choices. 界面即时显示进度，启动读取最新设置，离线及仅手动模式明确提示。
+- Bilingual instructions and isolated update verification. 中英文说明与隔离更新测试；未发布 GitHub。
+- See [release notes](docs/RELEASE-v1.6.2.md) and [verification](docs/QA-1.6.2.md).
+
+## 1.6.1 — 2026-10-15 (local / 本地)
+
+- 设置页五个标签统一为圆角按钮，覆盖选中、悬停与键盘焦点状态。
+- 使用说明及文档窗口固定标题、关闭键，正文单独滚动；关闭键不遮挡内容。
+- Luna 首页标识移除外围焦点框，仅以名称下划线提示键盘焦点。
+- Rounded Settings tabs; persistent headers and close controls in reading dialogs; an underline-only keyboard focus indicator on the Luna home link.
+- See [release notes](docs/RELEASE-v1.6.1.md) and [verification](docs/QA-1.6.1.md).
+
+## 1.6.0 — 2026-10-15 (local / 本地)
+
+- Manifest-first startup, per-query integrity checks and resumable background audits. 启动只读清单，查询即时校验，后台检查保存进度。
+- Bounded invalid-cache quarantine and categorized storage reporting. 异常文件隔离区限制数量、大小和期限，补齐空间统计。
+- Signed program updates, resumable downloads, explicit install and rollback. 增加签名验证的程序更新、续传下载、主动确认安装与失败回退。
+- Optional per-user installation and safe uninstall; source and extra files are protected. 支持可选安装及卸载，保护源码与额外文件。
+- [Release notes / 发布说明](docs/RELEASE-v1.6.0.md) · [Verification / 验证](docs/QA-1.6.0.md). Local only; not published to GitHub. 本地交付，不代表已发布。
+
+## 1.5.2 — 2026-10-15 (local / 本地)
+
+- Add an owned WebView2 desktop window, close-to-tray / exit dialog, remembered action, tray restore/exit menu and single-window relaunch. 修正标题栏主题色，增加关闭询问、记住选择、托盘恢复与退出。
+- Preserve local queries and saved matchup data; correct write-only DWM attributes and high-DPI startup sizing. 本地查询与已下载数据继续使用；修正 DWM 写入及高 DPI 初始窗口尺寸。
+- Requires installed WebView2 Runtime; include the pinned SDK and Microsoft license. See [release notes](docs/RELEASE-v1.5.2.md) and [QA](docs/QA-1.5.2.md). 依赖系统已安装的 WebView2，随包附 SDK 和微软许可。
+
+
 记录 Luna 各版本的变化；本地版本记录不代表已在 GitHub 发布。当前操作见[中文用户指南](docs/USER_GUIDE.zh-CN.md)，构建见[中文开发指南](docs/DEVELOPER_GUIDE.zh-CN.md)。
 
 Version history for Luna. For current instructions, see the [user guide](docs/USER_GUIDE.md) or [developer guide](docs/DEVELOPER_GUIDE.md). Local version entries do not imply a public GitHub release.
+
+## 1.5.1 — 2026-10-15（本地审阅 / Local review）
+
+- 页头按钮统一圆角；搜索焦点仅高亮整个圆角搜索区域，保留键盘及高对比度支持。
+- 网页主题色与 Windows 标题栏同步深色、浅色或系统偏好；原生修改仅匹配 Luna 自己的 Edge 独立窗口，不支持的系统保留默认外观。
+- Rounded header buttons and one rounded search focus indicator, with keyboard/high-contrast support.
+- Synchronize page theme-color and the native caption with app/system preferences, scoped to Luna's exact Edge app window; unsupported systems keep their frame.
+- 本轮实际窗口外观仍待人工确认；自动检查和限制见 [QA / Verification](docs/QA-1.5.1.md)。本地修订，尚未推送或发布。Actual window appearance still awaits human confirmation; this revision is local and unpublished.
 
 ## Unreleased / 未发布
 

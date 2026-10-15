@@ -1,0 +1,9 @@
+{
+  "schema": 1,
+  "reviewDate": "2026-10-16",
+  "items": [
+    {"id":"malzaharai","status":"pending","scope":"Offline dataset redistribution and third-party update access","evidence":null,"ownerAction":"Obtain and archive explicit applicable terms or permission covering Luna's actual distribution and update use."},
+    {"id":"riot-assets","status":"pending","scope":"Riot product registration/review and Riot/Tencent asset provenance","evidence":null,"ownerAction":"Complete the applicable product review and provide the relevant record plus the provenance and terms for bundled assets."},
+    {"id":"reference-material","status":"pending","scope":"Third-party screenshots and curated source material","evidence":null,"ownerAction":"Document rights and scope, or replace/remove material whose redistribution basis cannot be established."}
+  ]
+}

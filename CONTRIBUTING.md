@@ -1,0 +1,3 @@
+# CONTRIBUTING
+
+See / 请参阅 [CONTRIBUTING](docs/CONTRIBUTING.md).

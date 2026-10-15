@@ -1,3 +1,7 @@
+using File = Luna.LocalFile;
+using Directory = Luna.LocalDirectory;
+using FileInfo = Luna.LocalFileInfo;
+using DirectoryInfo = Luna.LocalDirectoryInfo;
 using System;
 using System.IO;
 using System.Text;
@@ -30,9 +34,12 @@ namespace Luna {
         static readonly object LogSync = new object();
         static TcpListener Listener;
         static volatile bool Running = true;
+        static int StopRequested;
         static bool Offline;
         static string Address;
         static int Port;
+        static bool DesktopProbe;
+        static string ProbeToken = "";
         static long LastActivity = DateTime.UtcNow.Ticks;
 
         static JavaScriptSerializer Json() { return new JavaScriptSerializer { MaxJsonLength = 16 * 1024 * 1024 }; }
@@ -46,6 +53,11 @@ namespace Luna {
         [STAThread]
         static void Main(string[] args) {
             try {
+                bool maintenanceProbe = args.Contains("--maintenance-probe");
+                DesktopProbe = maintenanceProbe && args.Contains("--desktop-probe");
+                int tokenPosition = Array.IndexOf(args, "--probe-token");
+                if (maintenanceProbe && tokenPosition >= 0 && tokenPosition + 1 < args.Length) ProbeToken = args[tokenPosition + 1];
+                if (!maintenanceProbe && Deployment.NeedsRecovery(Root)) { Deployment.StartWorker(Root, "recover", false, Process.GetCurrentProcess().Id); return; }
                 Offline = args.Contains("--offline");
                 CommandLineDisablesUpdates = args.Contains("--no-auto-update");
                 string settingsWarning;
@@ -62,7 +74,7 @@ namespace Luna {
                     string addressFile = Path.Combine(CacheDir, "address-" + instance + ".txt");
                     if (!acquired) {
                         for (int i = 0; i < 30 && !File.Exists(addressFile); i++) Thread.Sleep(100);
-                        if (!noBrowser && File.Exists(addressFile)) OpenBrowser(File.ReadAllText(addressFile));
+                        if (!noBrowser && File.Exists(addressFile)) { var existing = File.ReadAllText(addressFile); if (!RestoreExistingWindow(existing)) OpenBrowser(existing); }
                         return;
                     }
                     try {
@@ -77,33 +89,50 @@ namespace Luna {
                         File.WriteAllText(addressFile, Address, Encoding.ASCII);
                         File.WriteAllText(Path.Combine(CacheDir, "running-url.txt"), Address, Encoding.ASCII);
                         InitializeLibrary();
-                        ScheduleStorageMaintenance();
-                        ScheduleStartupUpdate();
-                        if (!noBrowser) OpenBrowser(Address);
+                        if (!maintenanceProbe) { ScheduleStartupUpdate(); StartHousekeeping(); ScheduleAppUpdate(); }
+                        bool native = !noBrowser && !args.Contains("--browser");
+                        if (native) { Application.EnableVisualStyles(); Application.SetCompatibleTextRenderingDefault(false); Desktop = new DesktopWindow(); }
+                        else if (!noBrowser) OpenBrowser(Address);
                         using (var timer = new System.Threading.Timer(delegate {
                             ScheduleStorageMaintenance();
-                            // The UI sends a heartbeat. Closing all windows eventually stops this process.
-                            if (DateTime.UtcNow - new DateTime(Interlocked.Read(ref LastActivity), DateTimeKind.Utc) > TimeSpan.FromMinutes(10)) Stop();
+                            // Tray mode intentionally keeps updates running until explicit exit.
+                            if (Desktop == null && DateTime.UtcNow - new DateTime(Interlocked.Read(ref LastActivity), DateTimeKind.Utc) > TimeSpan.FromMinutes(10)) Stop();
                         }, null, 60000, 60000)) {
-                            while (Running) {
-                                TcpClient client;
-                                try { client = Listener.AcceptTcpClient(); }
-                                catch (SocketException) { if (!Running) break; throw; }
-                                catch (ObjectDisposedException) { if (!Running) break; throw; }
-                                if (!Clients.Wait(0)) { client.Close(); continue; }
-                                ThreadPool.QueueUserWorkItem(delegate { try { Handle(client); } finally { Clients.Release(); } });
-                            }
+                            if (native) {
+                                var server = new Thread(delegate() { try { AcceptClients(); } catch (Exception ex) { Log(ex); Stop(); } }) { IsBackground = true, Name = "Luna local server" };
+                                server.Start();
+                                using (Desktop) Application.Run(Desktop);
+                                Stop(); server.Join(2000);
+                            } else AcceptClients();
                         }
                     } finally { if (Listener != null) Listener.Stop(); if (DesktopIcons != null) DesktopIcons.Close(); mutex.ReleaseMutex(); }
                 }
             } catch (Exception ex) {
                 try { File.WriteAllText(Path.Combine(Root, "启动错误.txt"), ex.ToString(), Encoding.UTF8); } catch { }
-                if (!args.Contains("--no-browser")) MessageBox.Show(StartupFailureMessage(), "Luna");
+                if (!args.Contains("--no-browser") && !DesktopProbe) MessageBox.Show(StartupFailureMessage(), "Luna");
                 Environment.ExitCode = 1;
             }
         }
 
-        static void Stop() { Running = false; Shutdown.Cancel(); if (Listener != null) Listener.Stop(); }
+        static void AcceptClients() {
+            while (Running) {
+                TcpClient client;
+                try { client = Listener.AcceptTcpClient(); }
+                catch (SocketException) { if (!Running) break; throw; }
+                catch (ObjectDisposedException) { if (!Running) break; throw; }
+                if (!Clients.Wait(0)) { client.Close(); continue; }
+                ThreadPool.QueueUserWorkItem(delegate { try { Handle(client); } finally { Clients.Release(); } });
+            }
+        }
+        static void Stop() {
+            if (Interlocked.Exchange(ref StopRequested, 1) != 0) return;
+            Running = false;
+            // Cancellation callbacks may wait for active requests. Release the accept
+            // loop/window first so a maintenance handoff can always finish exiting.
+            if (Listener != null) Listener.Stop();
+            if (Desktop != null) Desktop.End();
+            try { Shutdown.Cancel(); } catch (Exception ex) { Log(ex); }
+        }
 
         // Browser cancellation closes this HTTP connection. Propagate that cancellation to
         // queued work and the upstream request, rather than finishing an abandoned query.
@@ -166,7 +195,7 @@ namespace Luna {
                             string marker;
                             if (!headers.TryGetValue("X-Luna", out marker) || marker != "1") { RejectRequest(client, stream, 403, "请从本地程序打开"); return; }
                         }
-                        bool mutation = path == "/api/quit" || path == "/api/library/update" || path == "/api/library/cancel" || path == "/api/library/focus" || path == "/api/hero/update" || path == "/api/settings/save" || path == "/api/folders/open";
+                        bool mutation = path == "/api/quit" || path == "/api/library/update" || path == "/api/library/cancel" || path == "/api/library/focus" || path == "/api/hero/update" || path == "/api/settings/save" || path == "/api/folders/open" || path == "/api/window/show" || path == "/api/window/close" || path == "/api/space/clean" || path == "/api/app-update/check" || path == "/api/app-update/download" || path == "/api/app-update/cancel" || path == "/api/maintenance/run";
                         if (request[0] != (mutation ? "POST" : "GET")) { RejectRequest(client, stream, 405, "不支持此请求方式"); return; }
                         string length;
                         if (headers.ContainsKey("Transfer-Encoding") || (headers.TryGetValue("Content-Length", out length) && length != "0")) { RejectRequest(client, stream, 400, "此接口不接收请求正文"); return; }
@@ -175,7 +204,17 @@ namespace Luna {
                             CancellationToken token = pending.Token;
                             var q = HttpUtility.ParseQueryString(url.Query);
 
-                            if (path == "/api/health") { SendJson(stream, new { app = "luna-local", version = AppVersion, author = "FrancisChen", offline = Offline }); return; }
+                            if (path == "/api/health") { SendJson(stream, new { app = "luna-local", version = AppVersion, author = "FrancisChen", offline = Offline, probeToken = ProbeToken }); return; }
+                            if (path == "/api/space") { SendJson(stream, SpaceInfo()); return; }
+                            if (path == "/api/space/clean") { RequestSpaceMaintenance(); SendJson(stream, SpaceInfo()); return; }
+                            if (path == "/api/app-update") { SendJson(stream, AppUpdateInfo()); return; }
+                            if (path == "/api/app-update/check" || path == "/api/app-update/download") { StartAppUpdate(path.EndsWith("/check") ? "check" : "download"); SendJson(stream, AppUpdateInfo()); return; }
+                            if (path == "/api/app-update/cancel") { CancelAppUpdate(); SendJson(stream, AppUpdateInfo()); return; }
+                            if (path == "/api/maintenance") { SendJson(stream, MaintenanceInfo()); return; }
+                            if (path == "/api/maintenance/run") { PrepareMaintenance(q["action"], q["removeData"]); SendJson(stream, new { success = true }); Stop(); return; }
+                            if (path == "/api/window") { SendJson(stream, WindowInfo()); return; }
+                            if (path == "/api/window/show") { SendJson(stream, new { available = Desktop != null }); if (Desktop != null) Desktop.ShowFromAnotherLaunch(); return; }
+                            if (path == "/api/window/close") { ValidateWindowChoice(q["choice"], q["remember"]); SendJson(stream, new { success = true }); Desktop.Choose(q["choice"]); return; }
                             if (path == "/api/settings") { SendJson(stream, SettingsInfo()); return; }
                             if (path == "/api/settings/save") { SendJson(stream, SavePreference(q["key"], q["value"])); return; }
                             if (path == "/api/folders/open") { OpenLocalFolder(q["kind"]); SendJson(stream, new { success = true }); return; }
@@ -195,6 +234,7 @@ namespace Luna {
                             if (path == "/api/hero/status") { SendJson(stream, HeroUpdateInfo(q["key"])); return; }
                             if (path == "/api/hero/update") { SendJson(stream, StartHeroUpdate(q["key"])); return; }
                             if (path == "/api/detail") {
+                                Interlocked.Exchange(ref LastQueryTicks, DateTime.UtcNow.Ticks);
                                 int id, threshold, sensitivity;
                                 string lane = q["lane"], mode = q["mode"];
                                 if (!int.TryParse(q["championId"], out id) || id < 1 || id > 10000 || !Lanes.Contains(lane) || (mode != "father" && mode != "son") ||
@@ -228,16 +268,16 @@ namespace Luna {
         }
 
         static Dictionary<string, object> ReadRecord(string path) {
-            try { return Obj(Json().DeserializeObject(File.ReadAllText(path, Encoding.UTF8))); } catch { return null; }
+            try { if (!SafeLocalPath(path) || !File.Exists(Deployment.IoPath(path)) || new FileInfo(path).Length > RecordByteLimit) return null; return Obj(Json().DeserializeObject(File.ReadAllText(Deployment.IoPath(path), Encoding.UTF8))); } catch { return null; }
         }
         static string TemporaryPath(string path) { return Path.Combine(Path.GetDirectoryName(path), ".luna-" + Guid.NewGuid().ToString("N") + ".tmp"); }
         static bool ShortTempName(string name) { return System.Text.RegularExpressions.Regex.IsMatch(name, @"^\.luna-[a-f0-9]{32}\.tmp$"); }
         static void WriteRecord(string path, object record) {
             string temp = TemporaryPath(path);
             try {
-                File.WriteAllText(temp, Json().Serialize(record), new UTF8Encoding(false));
-                if (File.Exists(path)) File.Replace(temp, path, null); else File.Move(temp, path);
-            } finally { if (File.Exists(temp)) File.Delete(temp); }
+                File.WriteAllText(Deployment.IoPath(temp), Json().Serialize(record), new UTF8Encoding(false));
+                if (File.Exists(Deployment.IoPath(path))) File.Replace(Deployment.IoPath(temp), Deployment.IoPath(path), null); else File.Move(Deployment.IoPath(temp), Deployment.IoPath(path));
+            } finally { if (File.Exists(Deployment.IoPath(temp))) File.Delete(Deployment.IoPath(temp)); }
         }
         static Dictionary<string, object> Envelope(Dictionary<string, object> record, string source, string warning = "", bool needsRefresh = false) {
             return new Dictionary<string, object> {

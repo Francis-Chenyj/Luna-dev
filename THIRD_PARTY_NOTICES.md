@@ -1,4 +1,4 @@
-# 第三方内容声明 / Third-party notices
+﻿# 第三方内容声明 / Third-party notices
 
 维护者：FrancisChen · 当前适用版本：Luna 1.5.0 · 文档复核：2026-10-12（Asia/Shanghai）
 
@@ -41,3 +41,9 @@ The [MIT license](LICENSE) covers Luna's original code, build scripts, original 
 This document applies to Luna 1.5.0 and was reviewed on 2026-10-12. The English/light and Simplified Chinese/dark previews (`luna-matchups.png` and `luna-matchups-zh-CN.png`) were captured from an isolated offline 1.5.0 copy on that date. The initial source review remains dated 2026-10-11; updating this document and rechecking Riot's public policies do not establish new permissions or a completed product registration/review.
 
 The current complete packages are **development pre-releases**. Pre-release publication does not resolve the pending third-party permissions. MalzaharAI snapshot redistribution and third-party update-access terms remain unconfirmed. The Tencent catalog endpoint has no confirmed open-data license in this review. Riot permits use of official Data Dragon resources subject to its policies; product registration/review and the provenance of the presently bundled images remain unresolved for Luna. See the [dated review](docs/THIRD_PARTY_REVIEW.md) before distributing these files.
+
+## Microsoft WebView2 SDK (1.5.2+)
+
+Luna includes unmodified Microsoft.Web.WebView2 1.0.4258.31 Core/WinForms assemblies and native loaders. Copyright Microsoft Corporation. Redistribution terms are included in [vendor/webview2/LICENSE.txt](vendor/webview2/LICENSE.txt); provenance/checksums are in [vendor/webview2/README.md](vendor/webview2/README.md). These files retain their own license. The separate WebView2 Runtime is supplied and updated by Microsoft.
+
+Luna 随包提供未经修改的微软 WebView2 SDK DLL 与加载器，保留微软版权与完整许可证；不属于 Luna 原创代码的 MIT 授权范围。完整浏览器运行环境由微软单独提供及维护。

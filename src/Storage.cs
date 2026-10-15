@@ -1,3 +1,7 @@
+using File = Luna.LocalFile;
+using Directory = Luna.LocalDirectory;
+using FileInfo = Luna.LocalFileInfo;
+using DirectoryInfo = Luna.LocalDirectoryInfo;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -10,6 +14,7 @@ namespace Luna {
         const int ResumeRetentionDays = 7;
         static int StorageWorker;
         static long StorageNextCheck;
+        static volatile bool StorageWaiting;
         sealed class StorageReport {
             public bool ready, busy, deferred;
             public long downloadedBytes, freedBytes;
@@ -124,11 +129,14 @@ namespace Luna {
 
         // Caller holds the same cross-process mutex as the updater. No external requests.
         static void MaintainStorage(string latestFingerprint, CancellationToken token) {
+            StorageWaiting = false;
             var prior = Storage;
             Storage = new StorageReport { busy = true, ready = prior.ready, downloadedBytes = prior.downloadedBytes, freedBytes = prior.freedBytes, checkedAt = prior.checkedAt, message = "正在自动整理离线数据…" };
             long freed = 0; int removed = 0; bool deferred = false;
             try {
                 DateTime now = DateTime.UtcNow;
+                MaintainExceptionalFiles();
+                MaintainAppDownloads();
                 MaintainFocused();
                 if (!Directory.Exists(LibraryDir)) return;
                 if (!PlainPath(LibraryDir)) { deferred = true; return; }
@@ -197,6 +205,9 @@ namespace Luna {
                 Storage = new StorageReport { ready = true, busy = false, deferred = deferred, downloadedBytes = DownloadedLibraryBytes(), freedBytes = prior.freedBytes + freed, removedProfiles = prior.removedProfiles + removed, checkedAt = Stamp(),
                     message = deferred ? "部分文件暂未清理；为保护数据已保留，下次检查再处理。" : "自动空间管理已开启。" };
                 Interlocked.Exchange(ref StorageNextCheck, DateTime.UtcNow.AddHours(24).Ticks);
+                RefreshSpaceReport(token);
+                if (!token.IsCancellationRequested && !deferred && SafeLocalPath(Path.Combine(CacheDir, "maintenance-state.json")))
+                    WriteRecord(Path.Combine(CacheDir, "maintenance-state.json"), new { checkedAt = Stamp() });
             }
         }
         static void ScheduleStorageMaintenance() {
@@ -205,6 +216,7 @@ namespace Luna {
                 bool acquired = false;
                 using (var mutex = new Mutex(false, "Local\\LunaData_" + Hash(Root).Substring(0, 20))) try {
                     try { acquired = mutex.WaitOne(0); } catch (AbandonedMutexException) { acquired = true; }
+                    StorageWaiting = !acquired;
                     if (acquired) MaintainStorage("", Shutdown.Token);
                     else Interlocked.Exchange(ref StorageNextCheck, DateTime.UtcNow.AddMinutes(1).Ticks);
                 } catch (Exception ex) { Log(ex); }

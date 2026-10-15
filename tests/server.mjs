@@ -1,4 +1,4 @@
-import assert from 'node:assert/strict';
+﻿import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import http from 'node:http';
 import zlib from 'node:zlib';
@@ -23,6 +23,30 @@ function get(path,options={}) {
 const health=await get('/api/health');assert.equal(health.data.app,'luna-local');assert.equal(health.data.offline,offline);assert.equal(health.data.version,expectedVersion);assert.equal(health.data.author,'FrancisChen');
 const preferences=(await get('/api/settings')).data;
 assert.equal(preferences.version,health.data.version);assert.ok(['system','zh-CN','en'].includes(preferences.preferences.language));
+assert.equal(preferences.preferences.closeAction,'ask');
+assert.equal(preferences.desktopWindowAvailable,false);
+assert.equal((await get('/api/window')).data.available,false);
+for(const endpoint of ['/api/window/show','/api/window/close?choice=tray&remember=true']){
+  assert.equal((await get(endpoint)).status,405);
+  assert.equal((await get(endpoint,{method:'POST',headers:{}})).status,403);
+  assert.equal((await get(endpoint,{method:'POST',headers:{...headers,Origin:'https://untrusted.example'}})).status,403);
+}
+assert.equal((await get('/api/window/close?choice=tray&remember=true',{method:'POST'})).status,400);
+assert.equal((await get('/api/settings')).data.preferences.closeAction,'ask','No window must not persist an attempted close');
+for(const endpoint of ['/api/space','/api/app-update','/api/maintenance']){
+  assert.equal((await get(endpoint,{headers:{}})).status,403);
+  assert.equal((await get(endpoint,{headers:{...headers,Origin:'https://untrusted.example'}})).status,403);
+  assert.equal((await get(endpoint)).status,200);
+}
+for(const endpoint of ['/api/space/clean','/api/app-update/check','/api/app-update/download','/api/app-update/cancel','/api/maintenance/run?action=uninstall&removeData=false']){
+  assert.equal((await get(endpoint)).status,405);
+  assert.equal((await get(endpoint,{method:'POST',headers:{}})).status,403);
+  assert.equal((await get(endpoint,{method:'POST',headers:{...headers,Origin:'https://untrusted.example'}})).status,403);
+  assert.equal((await get(endpoint,{method:'POST',body:'unexpected'})).status,400);
+}
+assert.equal((await get('/api/maintenance/run?action=unknown&removeData=false',{method:'POST'})).status,400);
+assert.equal((await get('/api/app-update')).data.offline,offline);
+if(offline) for(const action of ['check','download']) assert.equal((await get('/api/app-update/'+action,{method:'POST'})).status,400);
 assert.equal((await get('/api/settings',{headers:{}})).status,403);
 assert.equal((await get('/api/diagnostics',{headers:{}})).status,403);
 assert.equal((await get('/api/settings/save?key=theme&value=light')).status,405);

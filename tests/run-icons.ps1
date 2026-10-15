@@ -1,6 +1,6 @@
 $ErrorActionPreference = 'Stop'
 $projectPath = Split-Path -Parent $PSScriptRoot
-$testPath = Join-Path ([IO.Path]::GetTempPath()) ('luna-icons-' + [guid]::NewGuid().ToString('N'))
+$testPath = Join-Path ([IO.Path]::GetTempPath()) ('luna-icons-' + [guid]::NewGuid().ToString('N').Substring(0,8))
 New-Item -ItemType Directory -Path $testPath | Out-Null
 $compiler = Join-Path $env:WINDIR 'Microsoft.NET\Framework64\v4.0.30319\csc.exe'
 if (-not (Test-Path -LiteralPath $compiler)) { $compiler = Join-Path $env:WINDIR 'Microsoft.NET\Framework\v4.0.30319\csc.exe' }

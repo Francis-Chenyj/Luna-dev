@@ -106,7 +106,7 @@ internal static class StorageTests {
             string note = Path.Combine(ProfilePath(A), "my-note.txt"); File.WriteAllText(note, "keep me"); Clean();
             Check(File.ReadAllText(note) == "keep me" && Directory.Exists(ProfilePath(A)), "User-added file or containing directory was removed");
             string stray = Path.Combine(Library, "personal"); Directory.CreateDirectory(stray); File.WriteAllText(Path.Combine(stray, "keep.txt"), "keep");
-            string oldTemp = Path.Combine(ProfilePath(B), Key + ".json.gz." + new string('a', 32) + ".tmp"); File.WriteAllText(oldTemp, "orphan"); File.SetLastWriteTimeUtc(oldTemp, DateTime.UtcNow.AddDays(-2));
+            string oldTemp = Path.Combine(ProfilePath(B), Key + ".json.gz." + new string('a', 32) + ".tmp"); File.WriteAllText(Luna.Deployment.IoPath(oldTemp), "orphan"); File.SetLastWriteTimeUtc(Luna.Deployment.IoPath(oldTemp), DateTime.UtcNow.AddDays(-2));
             string shortTemp = Path.Combine(ProfilePath(B), ".luna-" + new string('b', 32) + ".tmp");
             string pointerTemp = Path.Combine(Library, ".luna-" + new string('c', 32) + ".tmp");
             string activeTemp = Path.Combine(ProfilePath(B), ".luna-" + new string('d', 32) + ".tmp");
