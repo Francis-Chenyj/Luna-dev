@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using Microsoft.Win32;
 
 // Historical 1.5.2 -> 1.6.0 verification harness. For current releases use
@@ -31,7 +30,16 @@ internal static class DeploymentIntegration {
             string source = args[0], output = args[4]; if (Directory.Exists(output)) throw new IOException("Use a new integration directory");
             Directory.CreateDirectory(output); string root = Path.Combine(output, "installed-runtime");
             Luna.Deployment.Install(source, root);
-            string registry = (string)typeof(Luna.Deployment).GetMethod("RegistryName", BindingFlags.NonPublic | BindingFlags.Static).Invoke(null, new object[] { root });
+            string registry;
+            const string uninstall = @"Software\Microsoft\Windows\CurrentVersion\Uninstall";
+            using (var entries = Registry.CurrentUser.OpenSubKey(uninstall)) {
+                Check(entries != null, "Uninstall registration container missing");
+                var matches = entries.GetSubKeyNames().Where(name => {
+                    using (var entry = entries.OpenSubKey(name)) return entry != null && (string)entry.GetValue("InstallLocation") == root;
+                }).ToArray();
+                Check(matches.Length == 1, "Expected one installation registration for the fixture directory");
+                registry = uninstall + @"\" + matches[0];
+            }
             using (var key = Registry.CurrentUser.OpenSubKey(registry)) Check(key != null && (string)key.GetValue("InstallLocation") == root, "Install registration missing");
             const string preferences = "{\"schema\":1,\"language\":\"en\",\"theme\":\"dark\",\"autoUpdate\":false,\"appAutoCheck\":false,\"appAutoDownload\":false,\"closeAction\":\"ask\"}";
             File.WriteAllText(Path.Combine(root, "cache/settings.json"), preferences); File.WriteAllText(Path.Combine(root, "my-notes.txt"), "personal sentinel");

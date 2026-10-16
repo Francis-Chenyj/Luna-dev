@@ -13,10 +13,10 @@ namespace Luna {
         static readonly object DesktopIconSync = new object();
         static string DesktopTag(int port) { return "Luna" + DataFormat.Hash(Root.ToUpperInvariant() + ":" + port).Substring(0, 16); }
         static string DesktopPath { get { return "/" + DesktopTag(Port); } }
-        sealed class FramePalette {
+        internal sealed class FramePalette {
             public int Dark, Caption, Text;
         }
-        static FramePalette FrameColors(string preference, bool systemDark, bool highContrast) {
+        internal static FramePalette FrameColors(string preference, bool systemDark, bool highContrast) {
             // COLORREF is 0x00BBGGRR. In high contrast leave colors to Windows.
             bool dark = preference == "dark" || preference == "system" && systemDark;
             return new FramePalette { Dark = highContrast ? 0 : dark ? 1 : 0,

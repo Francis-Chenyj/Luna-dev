@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Web;
@@ -12,14 +11,11 @@ using System.Web.Script.Serialization;
 // upstream responses so cross-launch downloads can be counted without changing
 // the real service or the user's files. Never included in the Windows runtime.
 internal static class SessionHarness {
-    static readonly TestApplication App = new TestApplication(AppDomain.CurrentDomain.BaseDirectory);
     static readonly string Root = AppDomain.CurrentDomain.BaseDirectory;
     static readonly JavaScriptSerializer Json = new JavaScriptSerializer { MaxJsonLength = 16 * 1024 * 1024 };
     static Dictionary<string, object> Manifest, Catalog;
     static string Session;
     static readonly string Fingerprint = new string('d', 64);
-    static object Call(string name, params object[] args) { return App.Call(name, args); }
-    static void Set(string name, object value) { App.Set(name, value); }
     static Dictionary<string, object> Map(object value) { return (Dictionary<string, object>)value; }
     static Dictionary<string, object> Data(object value) { return Map(Json.DeserializeObject(Json.Serialize(value))); }
     [STAThread] static int Main(string[] args) {

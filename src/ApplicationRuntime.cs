@@ -6,6 +6,21 @@ using System.Net;
 using System.Threading;
 
 namespace Luna {
+    // Scheduling time is an instance dependency. Persisted data timestamps are
+    // still supplied by the data source and publication code.
+    internal interface IRuntimeClock {
+        DateTime UtcNow { get; }
+        void WaitUntil(DateTime due, CancellationToken token);
+    }
+    internal sealed class SystemRuntimeClock : IRuntimeClock {
+        public DateTime UtcNow { get { return DateTime.UtcNow; } }
+        public void WaitUntil(DateTime due, CancellationToken token) {
+            token.ThrowIfCancellationRequested();
+            var delay = due - UtcNow;
+            if (delay > TimeSpan.Zero) token.WaitHandle.WaitOne(delay);
+            token.ThrowIfCancellationRequested();
+        }
+    }
     // Immutable launch policy and paths. This object contains no job or repository state.
     internal sealed class RuntimeOptions {
         internal readonly string Root, CacheDir, LibraryDir, FocusDir, AppUpdateDir, LogDirectory;
@@ -115,16 +130,17 @@ namespace Luna {
         internal ApplicationRuntime(RuntimeOptions options,
             Func<string, CancellationToken, Dictionary<string, object>> data = null,
             Func<string, CancellationToken, string> release = null,
-            Func<string, long, CancellationToken, HttpWebResponse> download = null) {
+            Func<string, long, CancellationToken, HttpWebResponse> download = null, IRuntimeClock clock = null) {
+            clock = clock ?? new SystemRuntimeClock();
             Options = options; Diagnostics = new DiagnosticLog(options); Workers = new BackgroundWork(Diagnostics.Log);
             Activity = new QueryActivity(); Quarantine = new QuarantineStore(options);
             Preferences = new PreferenceStore(options, Diagnostics, Quarantine);
             Library = new LibraryStore(options, Diagnostics, Quarantine, Activity); Queries = new QueryService(Library);
             Source = new DataSourceClient(data); Releases = new ReleaseClient(release, download);
             AppUpdates = new AppUpdateService(options, Workers, Preferences, Releases, Activity, Diagnostics);
-            Storage = new StorageMaintenance(options, Workers, Library, AppUpdates, Quarantine, Activity, Diagnostics);
+            Storage = new StorageMaintenance(options, Workers, Library, AppUpdates, Quarantine, Activity, Diagnostics, clock);
             string warning; var saved = Preferences.ReadPreferences(out warning);
-            Updates = new DataUpdateCoordinator(options, Workers, Library, Storage, Source, Diagnostics, saved.autoUpdate);
+            Updates = new DataUpdateCoordinator(options, Workers, Library, Storage, Source, Diagnostics, saved.autoUpdate, clock);
             Preferences.Changed += PreferenceChanged;
             Workers.WhenDrained(Source.Dispose);
         }

@@ -5,6 +5,20 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '..');
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8').replace(/^\uFEFF/, '');
 
+test('fault regressions use typed services instead of private-member reflection', () => {
+  assert.equal(fs.existsSync(path.join(root, 'tests/TestApplication.cs')), false,
+    'Do not restore the private-state compatibility adapter');
+  for (const file of fs.readdirSync(path.join(root, 'tests'))) {
+    if (file.endsWith('.cs')) {
+      assert.doesNotMatch(read(`tests/${file}`), /\bBindingFlags\s*\.\s*NonPublic|\.\s*Get(?:Field|Property|Method)s?\s*\(/,
+        `${file}: prepare faults through real files, injected dependencies and runtime lifecycle`);
+    } else if (file.endsWith('.ps1')) {
+      assert.doesNotMatch(read(`tests/${file}`), /TestApplication\.cs/,
+        `${file}: must not compile the retired adapter`);
+    }
+  }
+});
+
 test('release, executable source, interface and current documentation use one version and author', () => {
   const assembly = read('src/AssemblyInfo.cs');
   const version = assembly.match(/AssemblyInformationalVersion\("(\d+\.\d+\.\d+)"\)/)?.[1];

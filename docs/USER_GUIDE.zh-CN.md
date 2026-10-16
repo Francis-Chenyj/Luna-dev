@@ -2,13 +2,13 @@
 
 [English](USER_GUIDE.md) · **简体中文** · [项目介绍](../README.zh-CN.md) · [开发指南](DEVELOPER_GUIDE.zh-CN.md) · [更新日志](../CHANGELOG.md)
 
-**适用版本：1.6.5 · 作者：FrancisChen**
+**适用版本：1.6.6 · 作者：FrancisChen**
 
 项目主页：[Luna · GitHub](https://github.com/Francis-Chenyj/Luna-dev)。当前为开发预发布版，[分发状态](../release-status.json)另行记录。
 
 本指南按操作场景介绍当前版本。历史变化见更新日志，构建与测试见开发指南。
 
-1.6.5 的范围恢复、缺少条件下载、空间等待说明与升级恢复见[修复操作补充](AUDIT_REPAIRS.md)。
+1.6.6 的范围恢复、缺少条件下载、空间等待说明与升级恢复见[修复操作补充](AUDIT_REPAIRS.md)。
 
 ## 目录
 
@@ -27,9 +27,9 @@
 
 运行需要 Windows 10 / 11、.NET Framework 4.7.2 或更高版本，以及微软 WebView2 Runtime。Luna 默认使用自有桌面窗口；缺少运行环境时从[微软官网](https://developer.microsoft.com/microsoft-edge/webview2/)安装，或用 `Luna.exe --browser` 启动不含托盘的兼容模式。普通使用无需开发工具、登录、API Key 或管理员权限。
 
-GitHub 已有 [v1.5.0-dev.1 公开预发布](https://github.com/Francis-Chenyj/Luna-dev/releases/tag/v1.5.0-dev.1)。本指南介绍本地 1.6.5 修订；本地有新版不代表线上已经更新。如果你已拿到本地运行包：
+GitHub 已有 [v1.5.0-dev.1 公开预发布](https://github.com/Francis-Chenyj/Luna-dev/releases/tag/v1.5.0-dev.1)。本指南介绍本地 1.6.6 修订；本地有新版不代表线上已经更新。如果你已拿到本地运行包：
 
-1. 将 `Luna-v1.6.5-Windows.zip` **完整解压**到可写目录，例如 `D:\Apps\Luna`。不要直接在压缩包内运行，也不要只复制 EXE。
+1. 将 `Luna-v1.6.6-Windows.zip` **完整解压**到可写目录，例如 `D:\Apps\Luna`。不要直接在压缩包内运行，也不要只复制 EXE。
 2. 保持 `Luna.exe`、`Luna.exe.config`、两个 Microsoft.Web.WebView2 DLL、`runtimes`、`web` 和 `data` 在同一目录。
 3. 双击 `Luna.exe` 或 `启动Luna.cmd`，等待右上角显示本地运行状态。
 4. 搜索英雄并选择分路；默认条件已随包提供，可以直接查询。
@@ -130,7 +130,7 @@ Luna 只监听本机。普通入口默认使用端口 17653，离线脚本使用
 
 数据更新**不会安装新版 Luna**；程序升级在 **设置 → 应用** 中单独管理。自动下载默认关闭，安装需确认；发布源需要提供通过签名校验的正式运行包。
 
-1.6.5 开启自动下载时同时开启自动检查，并立即检查、下载符合要求的新版。关闭自动检查会同时关闭自动下载；只关闭下载则保留版本检查和已下载进度。手动下载仍可使用。离线或仅手动启动会提示设置已保存，但本次不会自动联网。升级成功重启后显示成功提示。完整规则见 [README 程序更新](../README.zh-CN.md#程序更新)。
+1.6.6 开启自动下载时同时开启自动检查，并立即检查、下载符合要求的新版。关闭自动检查会同时关闭自动下载；只关闭下载则保留版本检查和已下载进度。手动下载仍可使用。离线或仅手动启动会提示设置已保存，但本次不会自动联网。升级成功重启后显示成功提示。完整规则见 [README 程序更新](../README.zh-CN.md#程序更新)。
 
 ## 查看数据来源与时间
 

@@ -6,6 +6,8 @@ import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
 const [normal,fixture,output]=process.argv.slice(2),sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const manifest=JSON.parse(fs.readFileSync(path.join(normal,'data/library/1-5/manifest.json'),'utf8').replace(/^\uFEFF/,''));
+const expectedVersion=JSON.parse(fs.readFileSync(path.join(normal,'installed-files.json'),'utf8').replace(/^\uFEFF/,'')).version;
+assert.match(expectedVersion,/^\d+\.\d+\.\d+$/,'Runtime manifest must identify its actual version');
 const keys=Object.keys(manifest.entries),samples=[];
 const hash=file=>crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
 const headers={'X-Luna':'1'};
@@ -18,7 +20,7 @@ async function run(root,round,controlled){
   let serviceMs,windowMs,firstResultMs,queryTimes=[],errors=[];
   const get=async(endpoint,method='GET')=>{const response=await fetch(base+endpoint,{method,headers,signal:AbortSignal.timeout(3000)});if(!response.ok)throw new Error(endpoint+': '+response.status);return response.json();};
   try{
-    while(performance.now()-started<15000){try{const health=await get('/api/health');assert.equal(health.version,'1.6.0');serviceMs=performance.now()-started;break;}catch{await sleep(50);}}
+    while(performance.now()-started<15000){try{const health=await get('/api/health');assert.equal(health.version,expectedVersion);serviceMs=performance.now()-started;break;}catch{await sleep(50);}}
     assert.ok(serviceMs,'Service did not start');
     if(controlled)await get('/api/library/focus?key=detail-103-middle-father-1-5','POST');
     let nextKey=0;

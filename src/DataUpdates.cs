@@ -17,13 +17,15 @@ namespace Luna {
         readonly StorageMaintenance maintenance;
         readonly DataSourceClient source;
         readonly DiagnosticLog diagnostics;
-        internal DataUpdateCoordinator(RuntimeOptions options, BackgroundWork workers, LibraryStore store, StorageMaintenance maintenance, DataSourceClient source, DiagnosticLog diagnostics, bool automaticUpdates) {
+        readonly IRuntimeClock clock;
+        internal DataUpdateCoordinator(RuntimeOptions options, BackgroundWork workers, LibraryStore store, StorageMaintenance maintenance, DataSourceClient source, DiagnosticLog diagnostics, bool automaticUpdates, IRuntimeClock clock) {
             this.options = options;
             this.workers = workers;
             this.store = store;
             this.maintenance = maintenance;
             this.source = source;
             this.diagnostics = diagnostics;
+            this.clock = clock;
             AutomaticUpdatesEnabled = !options.CommandLineDisablesUpdates && automaticUpdates;
         }
         readonly object JobSync = new object(), RateSync = new object();
@@ -62,9 +64,9 @@ namespace Luna {
         internal void CancelLibraryUpdate() { lock (JobSync) { CancelQueuedHeroes(); if (UpdateBusy && UpdateCancellation != null) { UpdateCancellation.Cancel(); UpdateMessage = "正在停止，已完成的下载会保留供下次继续。"; } } }
         void Progress(string message, string state) { lock (JobSync) { UpdateMessage = message; UpdateState = state; } }
         void WaitForSource(CancellationToken token) {
-            TimeSpan delay;
-            lock (RateSync) { var now = DateTime.UtcNow; if (NextRequest < now) NextRequest = now; delay = NextRequest - now; NextRequest = NextRequest.AddMilliseconds(600); }
-            if (token.WaitHandle.WaitOne(delay)) token.ThrowIfCancellationRequested();
+            DateTime due;
+            lock (RateSync) { var now = clock.UtcNow; if (NextRequest < now) NextRequest = now; due = NextRequest; NextRequest = NextRequest.AddMilliseconds(600); }
+            clock.WaitUntil(due, token);
         }
         Dictionary<string, object> FetchLibraryJson(string url, CancellationToken token) {
             for (int attempt = 0; ; attempt++) {

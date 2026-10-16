@@ -13,7 +13,7 @@ try {
 } finally { $rsa.Dispose() }
 $sourceFiles=@(Get-ChildItem -LiteralPath (Join-Path $projectPath 'src') -Filter '*.cs' | Where-Object Name -ne 'UpdateTrust.cs' | ForEach-Object FullName)
 $testExe=Join-Path $testPath 'LifecycleTests.exe'
-& $compiler $desktopReferences "/win32manifest:$projectPath\src\app.manifest" '/nologo' '/target:exe' '/main:LifecycleTests' '/utf8output' '/reference:System.Web.dll' '/reference:System.Web.Extensions.dll' '/reference:System.Windows.Forms.dll' '/reference:System.Core.dll' "/out:$testExe" $sourceFiles (Join-Path $testPath 'TestTrust.cs') (Join-Path $PSScriptRoot 'LifecycleTests.cs') (Join-Path $PSScriptRoot 'TestApplication.cs')
+& $compiler $desktopReferences "/win32manifest:$projectPath\src\app.manifest" '/nologo' '/target:exe' '/main:LifecycleTests' '/utf8output' '/reference:System.Web.dll' '/reference:System.Web.Extensions.dll' '/reference:System.Windows.Forms.dll' '/reference:System.Core.dll' "/out:$testExe" $sourceFiles (Join-Path $testPath 'TestTrust.cs') (Join-Path $PSScriptRoot 'LifecycleTests.cs')
 if($LASTEXITCODE -ne 0){throw 'Lifecycle test build failed'}
 Copy-Item -LiteralPath (Join-Path $projectPath 'Luna.exe.config') -Destination ($testExe+'.config')
 & $testExe

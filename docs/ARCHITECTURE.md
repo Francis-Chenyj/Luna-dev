@@ -1,10 +1,10 @@
 # Runtime ownership / 运行时状态归属
 
-Applies to Luna 1.6.5. The existing .NET Framework build, local API and on-disk formats remain supported.
+Applies to Luna 1.6.6. The existing .NET Framework build, local API and on-disk formats remain supported.
 
 ## 服务边界
 
-`ApplicationRuntime` 是组装入口。每个实例通过构造函数接收独立目录、启动模式和可选网络传输，创建自己的服务。它聚合接口状态，不保存任务队列或数据索引。`RuntimeOptions` 只包含只读启动策略和路径。
+`ApplicationRuntime` 是组装入口。每个实例通过构造函数接收独立目录、启动模式、可选网络传输和调度时钟，创建自己的服务。它聚合接口状态，不保存任务队列或数据索引。`RuntimeOptions` 只包含只读启动策略和路径。
 
 | 服务 / 文件 | 状态与职责 |
 | --- | --- |
@@ -34,7 +34,11 @@ Applies to Luna 1.6.5. The existing .NET Framework build, local API and on-disk 
 
 `tests/run-service-isolation.ps1` 在新目录构造真实服务实例，注入本地样本数据源，不使用反射或 `Program` 单例。覆盖目录副本、独立任务/取消/关闭、同目录写入交接、发布与查询/清理并发、离线重启、退出拒绝新任务、两类更新收尾和工作登记释放。
 
-现有故障回归的普通操作已迁移为直接调用服务；`tests/TestApplication.cs` 集中保留旧夹具所需的私有字段故障注入和少量反射。该适配器只参与测试编译，不进入 Windows 运行包。后续新增测试应优先通过构造函数、正常操作和可控数据源准备场景，不扩展它。
+旧故障测试的私有字段反射适配器已删除。设置、整库/单英雄更新、查询缓存、存储、升级、长路径及短会话夹具直接调用类型明确的服务。离线模式和重新启动通过销毁并重新构造运行时实现；磁盘故障通过隔离目录中的真实文件实现；网络故障和并发交错通过构造参数及事件实现。任务取消后验证公开状态、文件和真实后续请求，不读取信号量、取消源或内部任务字典。
+
+`IRuntimeClock` 仅控制数据请求间隔及存储维护的时间判断。生产默认使用 UTC 和可取消的真实等待，保留 600 毫秒请求间隔；测试的 `TestClock` 可推进时间，无需改写限速或整理截止字段。程序更新冷却、启动延迟和网络重试仍使用现有真实时间；来源时间及数据发布时间保持原规则。不要把这个小接口扩展为全应用的虚拟时间框架。生产时钟限速/取消、等待请求期间取消、一分钟互斥重试、24 小时整理期限及重启恢复均有行为测试。
+
+`tests/repository.test.cjs` 禁止测试重新引入按名称查找字段、属性、方法或私有成员的反射，并检查运行脚本不再编译旧适配器。仅为取得当前测试程序路径而读取程序集元数据的用法保留。覆盖映射和新增测试规则见 [测试维护](TESTING.md)。
 
 `scripts/check.ps1 -Browser` 包括新隔离套件、原有故障回归、完整离线接口、两类压缩包检查和真实浏览器验收。原生窗口、实际历史包升级/回滚及其他系统环境仍按独立验收入口记录。
 
@@ -42,4 +46,4 @@ Applies to Luna 1.6.5. The existing .NET Framework build, local API and on-disk 
 
 Each `ApplicationRuntime` owns its services. Query code has no network dependency; the repository alone owns indexes and damage markers, and returns detached catalogs. One data coordinator retains both full-library and champion scheduling. Storage maintenance consumes repository operations and update cleanup methods rather than shared fields. Application-update state, transports, preferences, diagnostics and activity are per instance.
 
-The original directory mutexes, atomic publication, ownership checks, data formats and rollback rules are retained. `BackgroundWork` registers threads before starting them, stops accepting work before cancellation, and releases network resources only after workers drain. Native/process host state remains in `Program`; domain services never reference it. Legacy private-state fixture injection is centralized in a test-only adapter; new isolation tests use typed services and injected transports.
+The original directory mutexes, atomic publication, ownership checks, data formats and rollback rules are retained. `BackgroundWork` registers threads before starting them, stops accepting work before cancellation, and releases network resources only after workers drain. Native/process host state remains in `Program`; domain services never reference it. The legacy private-state adapter is removed. Regressions now use typed services, actual restarts, injected transports, event barriers and a narrow scheduling clock. Production request pacing is verified with the default real clock.

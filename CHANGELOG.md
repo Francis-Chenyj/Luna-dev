@@ -1,5 +1,12 @@
 # Changelog / 更新日志
 
+## 1.6.6 — 2026-10-17 (local review)
+
+- Remove the private-state reflection adapter from fault regressions; use typed services, actual runtime restarts, injected transports and event barriers.
+- Verify cancellation by subsequent concurrent HTTP requests, downloads and published state; verify bounded hero history through observable results.
+- Add a narrow scheduling clock while retaining production request pacing and existing data formats. Cover real-clock pacing/cancellation, cancellation while waiting, one-minute maintenance retries and persisted daily deadlines.
+- Add a repository guard and a [fault-test maintenance guide](docs/TESTING.md). See [release notes](docs/RELEASE-v1.6.6.md) and [verification scope](docs/QA-1.6.6.md). No GitHub publication is implied.
+
 ## 1.6.5 — 2026-10-16 (local review)
 
 - Give queries, data updates, storage maintenance and application upgrades explicit instance ownership; retain API/disk compatibility and atomic publication.

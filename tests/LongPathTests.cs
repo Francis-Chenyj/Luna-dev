@@ -1,14 +1,7 @@
 using System;
 using System.IO;
-using System.Reflection;
-using System.Runtime.ExceptionServices;
 
 internal static class LongPathTests {
-    static readonly TestApplication App = new TestApplication(AppDomain.CurrentDomain.BaseDirectory);
-    static object Call(string name, params object[] args) {
-        try { return App.Call(name, args); }
-        catch (TargetInvocationException ex) { ExceptionDispatchInfo.Capture(ex.InnerException).Throw(); throw; }
-    }
     static int Main() {
         try {
             string parent = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "cache", "library");

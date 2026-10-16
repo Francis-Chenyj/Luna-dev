@@ -42,8 +42,10 @@ internal static class ServiceIsolationTests {
         internal bool Block, BlockPublication;
         internal int Calls, StatusCalls;
         internal string Value = "updated";
+        internal Action RequestObserved;
         internal Dictionary<string, object> Fetch(string url, CancellationToken token) {
             Interlocked.Increment(ref Calls); token.ThrowIfCancellationRequested();
+            if (RequestObserved != null) RequestObserved();
             if (url.EndsWith("/status")) {
                 if (Interlocked.Increment(ref StatusCalls) == 2 && BlockPublication) { BeforePublish.Set(); Release.Wait(token); }
                 return Map(new { success = true, ready = true, package = new { sha256 = new string('b', 64) }, meta = new { generatedAt = "2026-10-16T00:00:00Z" }, lanes = DataFormat.Lanes.Select(l => new { key = l, championCount = 1 }).ToArray() });
@@ -164,6 +166,50 @@ internal static class ServiceIsolationTests {
             Check(!File.Exists(archive), "Expired download was not cleaned after ownership was released");
         }
     }
+    static void ProductionRequestPacing() {
+        string root = NewRoot(); Baseline(root, "old");
+        var times = new List<long>(); var watch = Stopwatch.StartNew();
+        using (var source = new Source { RequestObserved = () => times.Add(watch.ElapsedMilliseconds) })
+        using (var app = Create(root, source)) {
+            // Deliberately omit a test clock: this checks the production default.
+            app.Updates.StartHeroUpdate(Key); Idle(app);
+            Check(Value(app) == "updated" && times.Count == 4, "Real-clock refresh did not publish one complete pair");
+            for (int i = 1; i < times.Count; i++)
+                Check(times[i] - times[i - 1] >= 500, "Production request spacing fell below the 600 ms policy (100 ms tolerance)");
+        }
+        using (var entered = new ManualResetEventSlim()) using (var cancellation = new CancellationTokenSource()) {
+            bool canceled = false; var clock = new SystemRuntimeClock();
+            var waiting = Task.Run(() => {
+                entered.Set();
+                try { clock.WaitUntil(clock.UtcNow.AddMinutes(1), cancellation.Token); }
+                catch (OperationCanceledException) { canceled = true; }
+            });
+            Check(entered.Wait(3000), "Clock waiter did not start"); cancellation.Cancel();
+            Check(waiting.Wait(3000) && canceled, "Production clock did not interrupt its wait on cancellation");
+        }
+    }
+    sealed class PausedClock : IRuntimeClock, IDisposable {
+        readonly DateTime now = DateTime.UtcNow;
+        internal readonly ManualResetEventSlim Waiting = new ManualResetEventSlim();
+        public DateTime UtcNow { get { return now; } }
+        public void WaitUntil(DateTime due, CancellationToken token) {
+            token.ThrowIfCancellationRequested();
+            if (due > now) { Waiting.Set(); token.WaitHandle.WaitOne(); }
+            token.ThrowIfCancellationRequested();
+        }
+        public void Dispose() { Waiting.Dispose(); }
+    }
+    static void CancellationDuringRateWait() {
+        string root = NewRoot(); Baseline(root, "old");
+        using (var clock = new PausedClock()) using (var source = new Source())
+        using (var app = new ApplicationRuntime(new RuntimeOptions(root), source.Fetch, clock: clock)) {
+            app.Library.InitializeLibrary(); app.Updates.StartHeroUpdate(Key);
+            Check(clock.Waiting.Wait(3000), "Refresh never waited for its next request slot");
+            app.Updates.CancelLibraryUpdate(); Idle(app);
+            Check(source.Calls == 1 && Value(app) == "old", "Cancellation issued a queued request or replaced local data");
+            Check(DataFormat.Str(Map(app.Updates.HeroUpdateInfo(Key)), "state") == "cancelled", "Rate wait left its job active");
+        }
+    }
     static void Run(string name, Action test, string selected) {
         if (selected != "" && selected != name) return;
         try { test(); Console.WriteLine("PASS: " + name); } catch (Exception ex) { failures++; Console.WriteLine("FAIL: " + name + "\n" + ex); }
@@ -178,6 +224,8 @@ internal static class ServiceIsolationTests {
         Run("drain-both-updaters", DrainAllOwnedWorkers, selected);
         Run("worker-registration-and-disposal", WorkerRegistrationRace, selected);
         Run("updater-cache-ownership", UpdateCacheOwnership, selected);
+        Run("production-request-pacing-and-clock-cancellation", ProductionRequestPacing, selected);
+        Run("cancellation-during-rate-wait", CancellationDuringRateWait, selected);
         return failures == 0 ? 0 : 1;
     }
 }
