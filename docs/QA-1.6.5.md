@@ -10,6 +10,8 @@ The eight new instance-service scenarios passed: detached snapshots; independent
 
 The first full run reached automatic-update verification and exposed one legacy fixture still calling the process host's Stop method. The fixture now stops its own service runtime. That failed run is retained; subsequent full verification uses the corrected fixture and the additional updater-cache fix.
 
+Additional Chromium verification exposed a browser-test race: the assertion read the document's loading placeholder immediately before the successful response rendered. The trace and screenshot confirmed that the license loaded normally. A delayed-response case reproduced the failure; the assertion now waits for the visible license content rather than treating a generic page observation as document readiness.
+
 The final clean-checkout suite, exact release packages, browser results, native smoke and historical upgrade/rollback verification are recorded in the delivered report after execution. Source metadata and package hashes identify the verified build. A prepared workflow is not evidence of a hosted GitHub run.
 
 Limits remain: browser CSS widths do not validate Windows DPI/multiple monitors; Windows 10, ARM64 and clean-machine prerequisites require their environments. Signing, third-party evidence, GitHub publication and public-channel historical updater handoff require separate inputs and authorization.

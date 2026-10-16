@@ -62,8 +62,13 @@ try {
   report.browser=browser.version();
   context=await browser.newContext({viewport:{width:1440,height:1000}});
   await context.tracing.start({screenshots:true,snapshots:true,sources:true});
-  await context.route('**/*',route=>{
-    if(new URL(route.request().url()).origin===origin)return route.continue();
+  await context.route('**/*',async route=>{
+    const requestUrl=new URL(route.request().url());
+    if(requestUrl.origin===origin){
+      // Exercise the document's loading state even on a fast local server.
+      if(requestUrl.pathname==='/api/about/document'&&requestUrl.searchParams.get('name')==='license')await delay(250);
+      return route.continue();
+    }
     report.externalRequests.push(route.request().url());return route.abort();
   });
   page=await context.newPage();page.setDefaultTimeout(5000);
@@ -83,6 +88,7 @@ try {
   };
   await ready();report.smoke=await runBrowserSmoke(adapter,origin);
   report.checks.push('fresh launch, search, all scopes, refresh/history, keyboard tabs, local license, Escape/focus and English counts');
+  report.checks.push('local license loads with a delayed response');
   for(const language of ['zh-CN','en'])for(const theme of ['light','dark']) {
     await page.locator('#settings-button').click();await page.locator('#tab-general').click();
     await page.locator('#language-select').selectOption(language);await expect(page.locator('html')).toHaveAttribute('lang',language);

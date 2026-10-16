@@ -29,6 +29,7 @@ export async function runBrowserSmoke(tab, expectedOrigin) {
   await page.locator('#tab-general').press('End');await observe();
   check(await page.locator('#tab-about').getAttribute('aria-selected')==='true','keyboard reaches About tab');
   await page.locator('#about-license').click();await observe();
+  await page.locator('#document-content:has-text("MIT License")').waitFor({state:'visible',timeoutMs:5000});
   check((await page.locator('#document-content').innerText()).includes('MIT License'),'offline license document');
   await page.locator('#close-document').press('Escape');await observe();
   check(await page.evaluate(()=>!document.querySelector('#document-dialog').open&&document.activeElement.id==='about-license'),'Escape closes document and restores focus');
