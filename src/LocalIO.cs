@@ -24,11 +24,13 @@ namespace Luna {
         internal static FileAttributes GetAttributes(string p) { return File.GetAttributes(LocalPaths.Io(p)); }
         internal static DateTime GetLastWriteTimeUtc(string p) { return File.GetLastWriteTimeUtc(LocalPaths.Io(p)); }
         internal static void SetLastWriteTimeUtc(string p, DateTime time) { File.SetLastWriteTimeUtc(LocalPaths.Io(p), time); }
-        internal static FileStream OpenRead(string p) { return File.OpenRead(LocalPaths.Io(p)); }
+        // Writers publish with atomic replacement. Readers must permit that rename
+        // while their open handle continues to expose the previous complete file.
+        internal static FileStream OpenRead(string p) { return new FileStream(LocalPaths.Io(p), FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete); }
         internal static FileStream Create(string p) { return File.Create(LocalPaths.Io(p)); }
-        internal static byte[] ReadAllBytes(string p) { return File.ReadAllBytes(LocalPaths.Io(p)); }
-        internal static string ReadAllText(string p) { return File.ReadAllText(LocalPaths.Io(p)); }
-        internal static string ReadAllText(string p, Encoding encoding) { return File.ReadAllText(LocalPaths.Io(p), encoding); }
+        internal static byte[] ReadAllBytes(string p) { using (var input = OpenRead(p)) using (var output = new MemoryStream()) { input.CopyTo(output); return output.ToArray(); } }
+        internal static string ReadAllText(string p) { return ReadAllText(p, Encoding.UTF8); }
+        internal static string ReadAllText(string p, Encoding encoding) { using (var input = OpenRead(p)) using (var reader = new StreamReader(input, encoding, true)) return reader.ReadToEnd(); }
         internal static void WriteAllText(string p, string text) { File.WriteAllText(LocalPaths.Io(p), text); }
         internal static void WriteAllText(string p, string text, Encoding encoding) { File.WriteAllText(LocalPaths.Io(p), text, encoding); }
         internal static void AppendAllText(string p, string text, Encoding encoding) { File.AppendAllText(LocalPaths.Io(p), text, encoding); }
@@ -41,9 +43,10 @@ namespace Luna {
         internal static bool Exists(string p) { return Directory.Exists(LocalPaths.Io(p)); }
         internal static void CreateDirectory(string p) { Directory.CreateDirectory(LocalPaths.Io(p)); }
         internal static void Delete(string p, bool recursive) { Directory.Delete(LocalPaths.Io(p), recursive); }
+        internal static void Move(string source, string target) { Directory.Move(LocalPaths.Io(source), LocalPaths.Io(target)); }
         internal static DateTime GetLastWriteTimeUtc(string p) { return Directory.GetLastWriteTimeUtc(LocalPaths.Io(p)); }
         internal static IEnumerable<string> EnumerateFiles(string p, string pattern = "*") { return Directory.EnumerateFiles(LocalPaths.Io(p), pattern).Select(LocalPaths.Normal); }
-        internal static IEnumerable<string> EnumerateDirectories(string p) { return Directory.EnumerateDirectories(LocalPaths.Io(p)).Select(LocalPaths.Normal); }
+        internal static IEnumerable<string> EnumerateDirectories(string p, string pattern = "*") { return Directory.EnumerateDirectories(LocalPaths.Io(p), pattern).Select(LocalPaths.Normal); }
         internal static IEnumerable<string> EnumerateFileSystemEntries(string p) { return Directory.EnumerateFileSystemEntries(LocalPaths.Io(p)).Select(LocalPaths.Normal); }
         internal static string[] GetFiles(string p, string pattern = "*") { return EnumerateFiles(p, pattern).ToArray(); }
         internal static string[] GetDirectories(string p) { return EnumerateDirectories(p).ToArray(); }

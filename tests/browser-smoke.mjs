@@ -1,4 +1,4 @@
-import inspectLayout from './layout-probe.js';
+import inspectLayout from './layout-probe.mjs';
 
 // Real-browser regression, intentionally separate from the fake DOM unit suite.
 // Pass a Codex Browser Use tab, or a Playwright adapter exposing the same methods.

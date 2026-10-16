@@ -1,5 +1,13 @@
 # Changelog / 更新日志
 
+## 1.6.4 — 2026-10-16 (local review)
+
+- Fix committed upgrades falsely reporting rollback, interrupted backup retries and corrupted prepared-download recovery. Preserve unrecognized files.
+- Keep the native close fallback available when app JavaScript fails; remove the health probe port-selection race.
+- Extract strict loopback HTTP parsing/cancellation with a total header deadline and regression tests.
+- Add locked browser test dependencies, an isolated real-browser runner and the Windows CI browser step.
+- See [release notes](docs/RELEASE-v1.6.4.md) and [QA scope](docs/QA-1.6.4.md). No GitHub publication is implied.
+
 ## 1.6.3 — 2026-10-16
 
 - 修复损坏升级记录的安全恢复、维护程序与测试夹具的长路径读写、刷新/历史丢失查看范围，以及英文数量和关闭按钮无障碍文案。

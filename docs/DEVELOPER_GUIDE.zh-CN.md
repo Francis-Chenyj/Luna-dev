@@ -2,13 +2,13 @@
 
 [English](DEVELOPER_GUIDE.md) · **简体中文** · [项目介绍](../README.zh-CN.md) · [用户指南](USER_GUIDE.zh-CN.md) · [更新日志](../CHANGELOG.md)
 
-**适用版本：1.6.3 · 作者：FrancisChen**
+**适用版本：1.6.4 · 作者：FrancisChen**
 
 补充入口：[审计修复与测试命令](AUDIT_REPAIRS.md)、[参与开发](CONTRIBUTING.md)、[安全问题](SECURITY.md)。
 
 项目主页：[Luna · GitHub](https://github.com/Francis-Chenyj/Luna-dev)。
 
-本指南说明现有构建、测试与本地打包流程。请使用源码目录或 `Luna-v1.6.3-Source.zip`；Windows 运行包不包含开发源码和测试。以下命令均在源码根目录执行。
+本指南说明现有构建、测试与本地打包流程。请使用源码目录或 `Luna-v1.6.4-Source.zip`；Windows 运行包不包含开发源码和测试。以下命令均在源码根目录执行。
 
 ## 开发环境
 
@@ -31,6 +31,7 @@
 | `src/Settings.cs` | 原子保存设置、固定目录入口、离线文档及精简诊断 |
 | `web/i18n.js`、`web/locales.js`、`web/settings.js` | 双语文案与设置交互；主题使用 CSS 语义颜色变量 |
 | `src/Program.cs` | 本地 HTTP 服务、启动参数、网络读取及请求校验 |
+| `src/LocalHttp.cs` | 严格请求解析、请求头总超时及连接断开取消 |
 | `src/Library.cs` | 本地查询、条件库校验、后台下载、续传与启用 |
 | `src/Focus.cs` | 英雄优先级、已校验双向缓存及目录复用 |
 | `src/HeroUpdates.cs` | 手动单英雄更新队列与任务状态 |
@@ -94,6 +95,12 @@ EXE 默认起始端口为 17653；离线启动脚本另外指定 17683。测试 
 服务会将实际地址写入 `cache/running-url.txt`。在浏览器打开该本地地址查看界面，结束时用程序内 **退出**；只关闭标签页仍会等待闲置超时。
 
 ## 现有测试
+
+真实浏览器回归需要 Node 20+ 和锁定的开发依赖。先运行 `npm ci --ignore-scripts --no-audit --no-fund` 与 `node node_modules/playwright/cli.js install chromium`，再运行 `scripts/check.ps1 -Browser`。本机已有 Edge 时，可直接使用 `-Browser -BrowserChannel msedge`，无需额外下载 Chromium；Windows 工作流使用 Chromium。测试复制并校验独立程序包，创建临时浏览器资料，禁止外部请求，保留 `browser/result.json`、截图及 `trace.zip`，不使用个人浏览器资料或缓存。默认离线检查与构建不需要 npm。测试不会隐式下载依赖。
+
+已有程序包也可单独运行：`node tests/browser-runner.mjs --runtime <解压后的Luna目录> --output <新的输出目录> --channel msedge`。输出目录须为新目录，且在输入程序包以外。
+
+升级事务以 committed 日志为完成边界，之后的清理或结果记录失败不会触发回滚。异常备份、解压目录和压缩包保存在 `cache/app-update/*-preserved-*` 或 `package-rejected-*`；自动清理只删除完整归属的旧备份。原生健康探测直接绑定临时端口，再校验含随机标识、进程号、端口的地址记录和健康响应，避免探测端口被抢占。普通启动仍使用文档所列端口范围。
 
 ### 一次完成本地检查
 
@@ -183,19 +190,19 @@ HTTP 套件核对全部 856 份随包记录、来源日期、合法空列表、�
 
 ## 打包与校验
 
-使用**全新空目录**。`dist/v1.6.3/` 默认目录可能已有本地包，下面示例另选一个目录：
+使用**全新空目录**。`dist/v1.6.4/` 默认目录可能已有本地包，下面示例另选一个目录：
 
 ```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\package.ps1 -OutputDirectory .\dist\v1.6.3-review
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tests\run-package.ps1 -ReleaseDirectory .\dist\v1.6.3-review
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\package.ps1 -OutputDirectory .\dist\v1.6.4-review
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tests\run-package.ps1 -ReleaseDirectory .\dist\v1.6.4-review
 ```
 
 再次打包时换一个未使用的目录，脚本不会与已有文件混装。
 
 | 输出 | 内容 |
 | --- | --- |
-| `Luna-v1.6.3-Windows.zip` | 重新构建的 EXE、运行文件、随包数据、双语 README 与文档 |
-| `Luna-v1.6.3-Source.zip` | 源码、脚本、测试、数据与文档；不含 EXE |
+| `Luna-v1.6.4-Windows.zip` | 重新构建的 EXE、运行文件、随包数据、双语 README 与文档 |
+| `Luna-v1.6.4-Source.zip` | 源码、脚本、测试、数据与文档；不含 EXE |
 | `SHA256SUMS.txt` | 两个 ZIP 和清单的 SHA-256 |
 | `release-files.json` | 包内逐文件路径、大小与哈希 |
 | `_build/` | 本地构建中间目录，不作为下载附件 |
@@ -212,7 +219,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tests\run-package.ps1 
 
 Windows 系统缩放与浏览器网页缩放是两个独立设置。实际切换 Windows 为 125% 和 150%，网页缩放保持 100%，记录观察到的像素比例、语言主题、窗口大小和截图，结束后恢复原设置。只修改浏览器宽度或网页缩放不算 Windows 系统缩放验收。未具备的系统、浏览器或干净机器环境需单独注明。
 
-同一版本号的本地包用逐文件清单和 SHA-256 区分。[验证记录](QA-1.6.3.md)记录实际完成的检查，[发布说明](RELEASE-v1.6.3.md)描述选定构建。代码或包内容变化后重做相关检查，不直接覆盖已验证的 ZIP。
+同一版本号的本地包用逐文件清单和 SHA-256 区分。[验证记录](QA-1.6.4.md)记录实际完成的检查，[发布说明](RELEASE-v1.6.4.md)描述选定构建。代码或包内容变化后重做相关检查，不直接覆盖已验证的 ZIP。
 
 ## 数据与搜索词维护
 
@@ -237,16 +244,16 @@ Windows 系统缩放与浏览器网页缩放是两个独立设置。实际切换
 | [英文开发指南](DEVELOPER_GUIDE.md) / [简体中文开发指南](DEVELOPER_GUIDE.zh-CN.md) | 目录、构建、测试与本地打包 |
 | [CHANGELOG](../CHANGELOG.md) | 按版本记录变化，未发布修改放在 Unreleased |
 | [仓库资料](REPOSITORY_SETUP.md) | About 简介、项目主页与主题标签 |
-| [发布说明草稿](RELEASE-v1.6.3.md) | 后续发布说明与附件清单 |
+| [发布说明草稿](RELEASE-v1.6.4.md) | 后续发布说明与附件清单 |
 | [发布核对清单](RELEASE_CHECKLIST.md) | 仓库与附件范围、运行包验收、尚待完成的发布事项 |
-| [QA 记录](QA-1.6.3.md) | 标明日期的验证结果与范围 |
+| [QA 记录](QA-1.6.4.md) | 标明日期的验证结果与范围 |
 | [第三方核查](THIRD_PARTY_REVIEW.md) | 分发依据和未解决事项 |
 
 更改用户可见行为时，同步维护两种语言。产品名为 **Luna**，作者为 **FrancisChen**，仓库为 **Francis-Chenyj/Luna-dev**；参考项目链接集中在 README 致谢。
 
 以后准备程序新版本时，应同步更新源码、界面中的版本预期及分发资料；接口与包检查从元数据读取预期版本。仅调整工具和文档的改动先记入 **Unreleased**，不擅自提高程序版本。反馈表单与 Windows 工作流已在本地准备，GitHub 上的启用和实际 Release 发布仍需另行授权。
 
-## Desktop host / 桌面窗口 (1.6.3)
+## Desktop host / 桌面窗口 (1.6.4)
 
 `src/DesktopWindow.cs` owns the WinForms/WebView2 window and NotifyIcon. HTTP runs on a dedicated thread; query and update workers are unchanged. Close choices are stored as `closeAction: ask|tray|exit` in schema-1 preferences (missing field defaults to ask). Explicit Exit and Windows session end bypass the preference. `/api/window/close` and `/api/window/show` require the same POST, X-Luna, loopback Host and Origin checks as other mutations. Do not use them from external origins.
 

@@ -139,6 +139,52 @@ namespace Luna {
             }
             File.Delete(IoPath(Path.Combine(root, "installed-files.json"))); RemoveManifestDirectories(root, manifest);
         }
+        static bool MaintenanceIoFailure(Exception ex) {
+            return ex is IOException || ex is UnauthorizedAccessException || ex is ArgumentException || ex is InvalidOperationException;
+        }
+        static bool EntirelyOwnedTree(string root) {
+            try {
+                var manifest = Manifest(root, true);
+                var files = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { Path.Combine(root, "installed-files.json") };
+                var dirs = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { root };
+                foreach (var item in Array(manifest, "files")) {
+                    string path = Under(root, Text(Map(item), "path")); files.Add(path);
+                    for (string parent = Path.GetDirectoryName(path); parent != null && parent != root; parent = Path.GetDirectoryName(parent)) dirs.Add(parent);
+                }
+                var pending = new Stack<string>(); pending.Push(root);
+                while (pending.Count > 0) {
+                    string dir = pending.Pop();
+                    foreach (string path in Directory.EnumerateFileSystemEntries(dir)) {
+                        if (!Plain(path)) return false;
+                        if (Directory.Exists(path)) { if (!dirs.Contains(path)) return false; pending.Push(path); }
+                        else if (!files.Contains(path)) return false;
+                    }
+                }
+                return true;
+            } catch (Exception ex) { if (!MaintenanceIoFailure(ex)) throw; return false; }
+        }
+        internal static string PreserveUpdateDirectory(string area, string name) {
+            if (name != "rollback" && name != "stage") throw new ArgumentException("Unknown update directory");
+            string source = Under(area, name), saved = Under(area, name + "-preserved-" + Guid.NewGuid().ToString("N"));
+            Directory.Move(source, saved);
+            return saved;
+        }
+        internal static void DiscardUpdateStage(string area) {
+            string stage = Under(area, "stage");
+            if (!Directory.Exists(stage)) return;
+            if (EntirelyOwnedTree(stage)) DeleteOwnedTree(stage);
+            else PreserveUpdateDirectory(area, "stage");
+        }
+        internal static void VerifyPreparedUpdate(string stage, string archive, Dictionary<string, object> release) {
+            if (new FileInfo(archive).Length != long.Parse(Text(release, "bytes")) || HashFile(archive) != Text(release, "sha256")) throw new IOException("Prepared archive changed");
+            if (Text(Manifest(stage, true), "version") != Text(release, "version")) throw new IOException("Prepared version changed");
+            using (var zip = ZipFile.OpenRead(IoPath(archive))) {
+                var entry = zip.GetEntry("Luna/installed-files.json");
+                if (entry == null) throw new IOException("Prepared ownership manifest is missing");
+                using (var input = entry.Open()) using (var sha = SHA256.Create())
+                    if (BitConverter.ToString(sha.ComputeHash(input)).Replace("-", "").ToLowerInvariant() != HashFile(Path.Combine(stage, "installed-files.json"))) throw new IOException("Prepared ownership manifest changed");
+            }
+        }
         static void RemoveManifestDirectories(string root, Dictionary<string, object> manifest) {
             var directories = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             string boundary = Path.GetFullPath(root).TrimEnd('\\');
@@ -216,11 +262,13 @@ namespace Luna {
                 }
             }
             string area = Path.Combine(root, "cache", "app-update"), backup = Path.Combine(area, "rollback");
-            if (Directory.Exists(backup)) DeleteOwnedTree(backup);
-            if (Directory.Exists(backup)) throw new IOException("Previous backup contains unrecognized files");
+            // A crash during backup creation must not poison the next attempt. Keep
+            // the previous directory intact until the replacement backup verifies.
+            string previousBackup = Directory.Exists(backup) ? PreserveUpdateDirectory(area, "rollback") : null;
             Directory.CreateDirectory(backup);
-            foreach (var item in Array(old, "files")) { string relative = Text(Map(item), "path"); AtomicCopy(Under(root, relative), Under(backup, relative)); }
             AtomicCopy(Path.Combine(root, "installed-files.json"), Path.Combine(backup, "installed-files.json"));
+            foreach (var item in Array(old, "files")) { string relative = Text(Map(item), "path"); AtomicCopy(Under(root, relative), Under(backup, relative)); }
+            Manifest(backup, true);
             var oldPaths = new HashSet<string>(Array(old, "files").Select(x => Text(Map(x), "path")), StringComparer.OrdinalIgnoreCase);
             var newPaths = new HashSet<string>(Array(incoming, "files").Select(x => Text(Map(x), "path")), StringComparer.OrdinalIgnoreCase);
             var added = newPaths.Where(p => !oldPaths.Contains(p)).ToArray();
@@ -235,10 +283,20 @@ namespace Luna {
                 foreach (string relative in oldPaths.Except(newPaths, StringComparer.OrdinalIgnoreCase)) File.Delete(IoPath(Under(root, relative)));
                 AtomicCopy(Path.Combine(stage, "installed-files.json"), Path.Combine(root, "installed-files.json"));
                 if (!healthCheck(root)) throw new IOException("The new version did not pass its startup query check");
-                Write(journal, new { state = "committed", added = added });
-                Write(Path.Combine(area, "result.json"), new { state = "installed", version = Text(incoming, "version"), at = DateTime.UtcNow.ToString("o") });
-                DeleteOwnedTree(stage); if (File.Exists(IoPath(archive))) File.Delete(IoPath(archive));
+                Write(journal, new { state = "committed", added = added, version = Text(incoming, "version"), at = DateTime.UtcNow.ToString("o") });
             } catch { Restore(root); Write(Path.Combine(area, "result.json"), new { state = "rolledBack", at = DateTime.UtcNow.ToString("o") }); throw; }
+            // Commit is the transaction boundary. A locked cache file or receipt must
+            // never turn an installed version into a false rollback report.
+            bool cleanupPending = false;
+            try {
+                DeleteOwnedTree(stage); if (File.Exists(IoPath(archive))) File.Delete(IoPath(archive));
+                foreach (string saved in Directory.EnumerateDirectories(area, "rollback-preserved-*")) {
+                    if (System.Text.RegularExpressions.Regex.IsMatch(Path.GetFileName(saved), "^rollback-preserved-[a-f0-9]{32}$") && EntirelyOwnedTree(saved)) DeleteOwnedTree(saved);
+                }
+                if (previousBackup != null && !Directory.Exists(previousBackup)) previousBackup = null;
+            } catch (Exception ex) { if (!MaintenanceIoFailure(ex)) throw; cleanupPending = true; }
+            try { Write(Path.Combine(area, "result.json"), new { state = "installed", version = Text(incoming, "version"), cleanupPending = cleanupPending, preservedBackup = previousBackup == null ? "" : Path.GetFileName(previousBackup), at = DateTime.UtcNow.ToString("o") }); }
+            catch (Exception ex) { if (!MaintenanceIoFailure(ex)) throw; } // The committed journal remains the durable receipt.
         }
         static string Quote(string value) { return "\"" + value.Replace("\"", "") + "\""; }
         static string RegistryName(string root) {
@@ -304,15 +362,22 @@ namespace Luna {
             if (!Directory.EnumerateFileSystemEntries(full).Any()) Directory.Delete(full, false);
         }
         internal static bool HealthCheck(string root) {
-            int port;
-            do { var listener = new System.Net.Sockets.TcpListener(IPAddress.Loopback, 0); listener.Start(); port = ((IPEndPoint)listener.LocalEndpoint).Port; listener.Stop(); } while (port > 65000);
+            int port = 0;
             string probeToken = Guid.NewGuid().ToString("N");
-            var process = Process.Start(new ProcessStartInfo(Path.Combine(root, "Luna.exe"), "--offline --maintenance-probe --desktop-probe --probe-token " + probeToken + " --port " + port) { UseShellExecute = false, CreateNoWindow = true, WorkingDirectory = root });
+            string probeFile = Path.Combine(root, "cache", "app-update", "probe-" + probeToken + ".json");
+            // Let the child bind an ephemeral port atomically, then authenticate its
+            // published address. A free-port preflight has a bind/release race.
+            var process = Process.Start(new ProcessStartInfo(Path.Combine(root, "Luna.exe"), "--offline --maintenance-probe --desktop-probe --probe-token " + probeToken + " --port 0") { UseShellExecute = false, CreateNoWindow = true, WorkingDirectory = root });
             bool ownedPort = false;
             try {
                 var watch = Stopwatch.StartNew(); string lastError = "Process exited before readiness";
                 while (!process.HasExited && watch.ElapsedMilliseconds < 30000) {
                     try {
+                        if (port == 0) {
+                            var address = Read(probeFile); int candidate;
+                            if (Text(address, "token") != probeToken || Text(address, "pid") != process.Id.ToString() || !int.TryParse(Text(address, "port"), out candidate) || candidate < 1024 || candidate > 65535) throw new IOException("Unexpected health-check address");
+                            port = candidate;
+                        }
                         string expected = Text(Manifest(root, false), "version");
                         using (var client = new ProbeClient { Proxy = null }) {
                             client.Headers["X-Luna"] = "1";
@@ -334,7 +399,8 @@ namespace Luna {
                 return false;
             } finally {
                 try { if (ownedPort) using (var client = new ProbeClient { Proxy = null }) { client.Headers["X-Luna"] = "1"; client.UploadData("http://127.0.0.1:" + port + "/api/quit", "POST", new byte[0]); } } catch { }
-                if (!process.WaitForExit(3000)) process.Kill(); process.Dispose();
+                if (!process.WaitForExit(3000)) { process.Kill(); process.WaitForExit(3000); } process.Dispose();
+                try { if (File.Exists(probeFile) && Plain(probeFile)) File.Delete(probeFile); } catch (IOException) { } catch (UnauthorizedAccessException) { }
             }
         }
         sealed class ProbeClient : WebClient {

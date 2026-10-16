@@ -6,7 +6,7 @@ Luna 原创代码使用 MIT；提交数据、头像、截图前请提供来源�
 
 1. Start from a branch of the source repository. Read the [developer guide](DEVELOPER_GUIDE.md) / [中文开发指南](DEVELOPER_GUIDE.zh-CN.md).
 2. Keep fixes scoped to a reproducible problem. Add a regression that fails before the fix and passes afterwards. UI mocks do not establish browser layout, keyboard focus or native-window behavior: use the [manual acceptance scenarios](UI_ACCEPTANCE.md) too.
-3. Run `scripts/check.ps1` with a fresh output folder under `dist`. Native WebView2 checks additionally require an interactive Windows desktop and the installed Runtime; run `tests/run-runtime-smoke.ps1 -Desktop` against a fresh packaged runtime.
+3. Run `scripts/check.ps1` with a fresh output folder under `dist`. For the browser checks used in CI, run `npm ci --ignore-scripts --no-audit --no-fund`, `node node_modules/playwright/cli.js install chromium`, then `scripts/check.ps1 -Browser`. An installed Edge can be used locally with `-Browser -BrowserChannel msedge`. Native WebView2 checks additionally require an interactive Windows desktop and the installed Runtime; run `tests/run-runtime-smoke.ps1 -Desktop` against a fresh packaged runtime.
 4. Include what changed, reproduction steps, tests and remaining limits in the pull request. Update both user guides for user-visible changes. Do not edit historical QA claims to imply tests were repeated.
 5. Never commit `cache`, local download folders, test outputs, credentials, signing keys or private logs. Packages use explicit file lists and contain a source identity manifest.
 

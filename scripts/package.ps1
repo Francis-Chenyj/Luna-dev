@@ -106,6 +106,7 @@ $desktopEntries = @($desktopFiles | ForEach-Object { Entry $_ (Join-Path $buildP
 $sourceEntries = $common + @(Folder-Entries 'vendor') + @(Entry 'build.ps1') + @(Entry '.gitignore') + @(Entry '.gitattributes') + @(Entry 'CONTRIBUTING.md') + @(Entry 'SECURITY.md') + @(Folder-Entries '.github') + @(Folder-Entries 'src') + @(Folder-Entries 'scripts') + @(Folder-Entries 'tests')
 # Identify every shipped source file, including previously untracked modules. Do not
 # imply that compiler timestamps or signed artifacts are bit-for-bit reproducible.
+$sourceEntries += @(Entry 'package.json') + @(Entry 'package-lock.json')
 $sourceRecords = @($sourceEntries | Where-Object Path -ne 'Luna/docs/build-provenance.json' | Sort-Object Path | ForEach-Object { [ordered]@{path=$_.Path.Substring(5);sha256=(Get-LunaFileHash $_.Source)} })
 $canonical = ($sourceRecords | ForEach-Object { $_.sha256 + '  ' + $_.path }) -join "`n"
 $sourceHasher = [Security.Cryptography.SHA256]::Create()

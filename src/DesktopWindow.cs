@@ -20,6 +20,9 @@ namespace Luna {
         internal static string ResolveCloseAction(string saved, bool explicitExit, bool endingSession) {
             return explicitExit || endingSession ? "exit" : saved == "tray" || saved == "exit" ? saved : "ask";
         }
+        internal static bool CanAskPageToClose(bool navigationReady, bool applicationReady) {
+            return navigationReady && applicationReady;
+        }
         static bool RestoreExistingWindow(string address) {
             try {
                 Uri uri;
@@ -166,7 +169,10 @@ namespace Luna {
                 if (action == "exit") { quitting = true; return; }
                 e.Cancel = true;
                 if (action == "tray") { HideToTray(); return; }
-                if (ready) { view.CoreWebView2.PostWebMessageAsString("luna-close-request"); return; }
+                if (CanAskPageToClose(ready, uiReady)) {
+                    try { view.CoreWebView2.PostWebMessageAsString("luna-close-request"); return; }
+                    catch (InvalidOperationException ex) { RecordDiagnostic(ex); }
+                }
                 // Startup/render failures must never trap users in an unclosable window.
                 var reply = MessageBox.Show(this, Chinese ? "Luna 正在加载或页面不可用。\n是：最小化到托盘\n否：退出应用" : "Luna is loading or the page is unavailable.\nYes: minimize to tray\nNo: exit the app", "Luna", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
                 if (reply == DialogResult.Yes) HideToTray(); else if (reply == DialogResult.No) Stop();

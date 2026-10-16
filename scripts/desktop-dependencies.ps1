@@ -15,4 +15,4 @@ foreach ($assembly in @('Microsoft.Web.WebView2.Core.dll','Microsoft.Web.WebView
     Copy-Item -LiteralPath $source -Destination (Join-Path $OutputPath $assembly) -Force
 }
 Copy-Item -LiteralPath (Join-Path $vendorPath 'runtimes') -Destination $OutputPath -Recurse -Force
-$desktopSource = @('LocalIO.cs','DesktopWindow.cs','Space.cs','AppUpdate.cs','Deployment.cs','UpdateTrust.cs' | ForEach-Object { Join-Path $ProjectPath ('src\' + $_) })
+$desktopSource = @('LocalIO.cs','LocalHttp.cs','DesktopWindow.cs','Space.cs','AppUpdate.cs','Deployment.cs','UpdateTrust.cs' | ForEach-Object { Join-Path $ProjectPath ('src\' + $_) })

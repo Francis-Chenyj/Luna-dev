@@ -2,13 +2,13 @@
 
 **English** · [简体中文](DEVELOPER_GUIDE.zh-CN.md) · [Project overview](../README.md) · [User guide](USER_GUIDE.md) · [Changelog](../CHANGELOG.md)
 
-**Applies to version 1.6.3 · Author: FrancisChen**
+**Applies to version 1.6.4 · Author: FrancisChen**
 
 See [audit repairs and test commands](AUDIT_REPAIRS.md), [contributing](CONTRIBUTING.md) and [security reporting](SECURITY.md).
 
 Project home: [Luna on GitHub](https://github.com/Francis-Chenyj/Luna-dev).
 
-This guide covers the existing build, tests and local packaging workflow. Start with a source checkout or `Luna-v1.6.3-Source.zip`; the Windows package does not contain the development source or tests. Run commands from the source root.
+This guide covers the existing build, tests and local packaging workflow. Start with a source checkout or `Luna-v1.6.4-Source.zip`; the Windows package does not contain the development source or tests. Run commands from the source root.
 
 ## Environment
 
@@ -30,7 +30,8 @@ There is no npm install, frontend bundler or external C# package restore in the 
 | --- | --- |
 | `src/Settings.cs` | Atomic preferences, fixed local folders/documents and limited diagnostics |
 | `web/i18n.js`, `web/locales.js`, `web/settings.js` | Bilingual messages and settings; themes use semantic CSS colors |
-| `src/Program.cs` | Loopback HTTP service, launch options, transport and request validation |
+| `src/Program.cs` | Application launch, loopback listener and allowlisted routes |
+| `src/LocalHttp.cs` | Strict body-free request parser, total header deadline and per-connection cancellation |
 | `src/Library.cs` | Local queries, profile validation, background downloads, resumption and activation |
 | `src/Focus.cs` | Champion priorities, validated two-direction caching and catalog reuse |
 | `src/HeroUpdates.cs` | Manual champion-update queue and task state |
@@ -95,6 +96,12 @@ The service writes its actual URL to `cache/running-url.txt`. Open that local UR
 
 ## Existing tests
 
+The optional browser suite needs Node 20+ and the exact development dependency lockfile. Install with `npm ci --ignore-scripts --no-audit --no-fund`, then `node node_modules/playwright/cli.js install chromium`. Run `scripts/check.ps1 -Browser`; for an already installed Edge, add `-BrowserChannel msedge` instead of downloading Chromium. The Windows workflow uses Chromium. Browser checks create a verified package copy and temporary browser profile, block external origins, and retain `browser/result.json`, screenshots and `trace.zip`. They never use a personal browser profile or cache. The default offline suite/build does not need npm. Installation and execution are separate so a test never silently downloads tools.
+
+For a packaged runtime alone: `node tests/browser-runner.mjs --runtime <unpacked-Luna> --output <new-output-directory> --channel msedge`. The output directory must be new and outside the input package.
+
+Maintenance recovery has a durable boundary at the committed journal. Cleanup/receipt failures after that boundary do not trigger rollback. Abnormal backup/stage/archive contents are retained under `cache/app-update/*-preserved-*` or `package-rejected-*`; only completely owned backups are automatically reclaimed. Application readiness probes request port zero, read the per-token child PID/port record and check the same token in the health response. Normal launches still use the documented port range.
+
 ### Complete local verification
 
 Run the same entry point used by the prepared Windows workflow:
@@ -105,13 +112,13 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\check.ps1
 
 This creates a fresh `dist/checks/<unique-id>/` directory with an isolated source snapshot, a `report.json`, a readable `summary.md`, per-step logs, packages and extracted test copies. It preserves the working executable, icons and personal cache. Node.js must be on PATH, or pass `-NodePath <absolute-node.exe-path>`. To choose the output directory, use `-OutputDirectory .\dist\my-check`; it must be new and under this source tree's `dist` directory. Existing results are never overwritten.
 
-The sequence is JavaScript and repository consistency checks → runner failure/timeout checks → build → all nine C# suites → offline HTTP → packaging and inventory/hash checks → full offline HTTP against the extracted Windows ZIP → rebuild from the extracted Source ZIP. Each HTTP pass compares all bundled default-profile records and verifies request boundaries, settings, documents and assets. The runner stops on failure, uses bounded waits, stops only the processes it starts, and preserves logs for inspection. Temporary fixture files remain under the check directory's `temp` folder.
+The sequence is JavaScript and repository consistency checks → runner failure/timeout checks → build → all ten C# suites → offline HTTP → packaging and inventory/hash checks → full offline HTTP against the extracted Windows ZIP → rebuild from the extracted Source ZIP. Each HTTP pass compares all bundled default-profile records and verifies request boundaries, settings, documents and assets. The runner stops on failure, uses bounded waits, stops only the processes it starts, and preserves logs for inspection. Temporary fixture files remain under the check directory's `temp` folder.
 
-The source package's `.github/workflows/windows-checks.yml` uses `windows-2022`, Windows PowerShell and Node.js 24. It is prepared for branch pushes, pull requests and manual runs, with read-only repository permissions, pinned official actions and no artifact upload or Release step. Its setup can download Node.js/actions; Luna tests use local fixtures and offline services, without contacting data providers or using personal credentials. Development configuration is excluded from the Windows package. [GitHub workflow syntax](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax), [runner image](https://github.com/actions/runner-images/blob/main/images/windows/Windows2022-Readme.md).
+The source package's `.github/workflows/windows-checks.yml` uses `windows-2022`, Windows PowerShell and Node.js 24. It is prepared for branch pushes, pull requests and manual runs, with read-only repository permissions, pinned official actions and no artifact upload or Release step. Its setup can download Node.js/actions and the locked Playwright/Chromium test tools; Luna tests use local fixtures and offline services, without contacting data providers or using personal credentials. Development configuration is excluded from the Windows package. [GitHub workflow syntax](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax), [runner image](https://github.com/actions/runner-images/blob/main/images/windows/Windows2022-Readme.md).
 
 Check the repository Actions page for the result of each GitHub-hosted run. Local results are recorded separately. Checksums confirm content integrity; human review of language, themes and layout remains part of release review. Successful technical checks do not resolve third-party distribution conditions.
 
-For layout changes, also open an isolated offline query in a real browser and check English/Simplified Chinese, light/dark themes, and widths 360, 640, 720, 721, 800, 900, 1000, 1001 and 1440 CSS pixels. Keep all rank groups open to include conjugate labels and long champion titles. Import `inspectLayout` from `tests/browser-smoke.mjs` into the browser automation session and evaluate it in the page after each change to measure overlap and card boundaries, then inspect screenshots. This browser check complements the automated workflow and is not run by the Node UI simulation. In particular, 721–1000 pixels must not be skipped: an old negative metric margin caused overlapping text there.
+For layout changes, also open an isolated offline query in a real browser and check English/Simplified Chinese, light/dark themes, and widths 360, 640, 720, 721, 800, 900, 1000, 1001 and 1440 CSS pixels. Keep all rank groups open to include conjugate labels and long champion titles. Import `inspectLayout` from `tests/browser-smoke.mjs` into the browser automation session and evaluate it in the page after each change to measure overlap and card boundaries, then inspect screenshots. The same layout probe runs in the optional browser suite and Windows CI; screenshots still need human review. The Node UI simulation alone does not exercise a rendering engine. In particular, 721–1000 pixels must not be skipped: an old negative metric margin caused overlapping text there.
 
 ### Individual suites
 
@@ -183,19 +190,19 @@ For deterministic checks of a normal service, change the launch arguments to `--
 
 ## Package and verify
 
-Use a **new empty output directory**. The default `dist/v1.6.3/` may already contain local artifacts; the following example chooses a separate directory:
+Use a **new empty output directory**. The default `dist/v1.6.4/` may already contain local artifacts; the following example chooses a separate directory:
 
 ```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\package.ps1 -OutputDirectory .\dist\v1.6.3-review
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tests\run-package.ps1 -ReleaseDirectory .\dist\v1.6.3-review
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\package.ps1 -OutputDirectory .\dist\v1.6.4-review
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tests\run-package.ps1 -ReleaseDirectory .\dist\v1.6.4-review
 ```
 
 Choose another unused directory for a repeat run. Packaging refuses to mix with existing files.
 
 | Output | Contents |
 | --- | --- |
-| `Luna-v1.6.3-Windows.zip` | Rebuilt EXE, runtime files, bundled data, both READMEs and documentation |
-| `Luna-v1.6.3-Source.zip` | Source, scripts, tests, data and documentation; no EXE |
+| `Luna-v1.6.4-Windows.zip` | Rebuilt EXE, runtime files, bundled data, both READMEs and documentation |
+| `Luna-v1.6.4-Source.zip` | Source, scripts, tests, data and documentation; no EXE |
 | `SHA256SUMS.txt` | SHA-256 values for both ZIPs and the manifest |
 | `release-files.json` | Every archive entry's path, size and hash |
 | `_build/` | Intermediate local build, not a download attachment |
@@ -212,7 +219,7 @@ Before handing a package to users, follow the [release checklist](RELEASE_CHECKL
 
 Windows display scaling and browser zoom are separate controls. Check real Windows scaling at 125% and 150% with browser zoom at 100%; record the observed pixel ratio, language/theme, viewport and screenshots. Restore the original display setting afterwards. Changing only the browser width or zoom does not count as a Windows scaling check. Document separately any OS/browser combination or clean-machine environment that was not available.
 
-Use the release inventory and SHA-256 to distinguish local builds sharing a version number. The [QA record](QA-1.6.3.md) records completed checks; the [release draft](RELEASE-v1.6.3.md) describes the selected build. Run relevant checks again when the code or package contents change; do not silently replace an already verified ZIP.
+Use the release inventory and SHA-256 to distinguish local builds sharing a version number. The [QA record](QA-1.6.4.md) records completed checks; the [release draft](RELEASE-v1.6.4.md) describes the selected build. Run relevant checks again when the code or package contents change; do not silently replace an already verified ZIP.
 
 ## Data and search maintenance
 
@@ -237,16 +244,16 @@ Use matching official catalog coverage for a search rebuild, record source/versi
 | [Developer guide](DEVELOPER_GUIDE.md) / [简体中文开发指南](DEVELOPER_GUIDE.zh-CN.md) | Layout, build, testing and local packaging |
 | [Changelog](../CHANGELOG.md) | Versioned changes, including an Unreleased section |
 | [Repository details](REPOSITORY_SETUP.md) | About description, project URL and topics |
-| [Release draft](RELEASE-v1.6.3.md) | Future release description and attachment list |
+| [Release draft](RELEASE-v1.6.4.md) | Future release description and attachment list |
 | [Release checklist](RELEASE_CHECKLIST.md) | Source/upload boundaries, runtime acceptance and outstanding publication items |
-| [QA record](QA-1.6.3.md) | Dated validation results and their limits |
+| [QA record](QA-1.6.4.md) | Dated validation results and their limits |
 | [Third-party review](THIRD_PARTY_REVIEW.md) | Distribution evidence and unresolved items |
 
 Keep the two language editions in step when changing user-visible behavior. The product is **Luna**, author **FrancisChen**, repository **Francis-Chenyj/Luna-dev**; reference-project links belong in README acknowledgements.
 
 For a future application version, update versioned source/UI expectations and release metadata together; the HTTP and package checks derive the expected release version from metadata. Tooling/documentation-only work stays under **Unreleased** unless a new version is intentionally prepared. Issue forms and the Windows workflow are locally prepared; GitHub activation and actual Release publication remain separate authorized actions.
 
-## Desktop host / 桌面窗口 (1.6.3)
+## Desktop host / 桌面窗口 (1.6.4)
 
 `src/DesktopWindow.cs` owns the WinForms/WebView2 window and NotifyIcon. HTTP runs on a dedicated thread; query and update workers are unchanged. Close choices are stored as `closeAction: ask|tray|exit` in schema-1 preferences (missing field defaults to ask). Explicit Exit and Windows session end bypass the preference. `/api/window/close` and `/api/window/show` require the same POST, X-Luna, loopback Host and Origin checks as other mutations. Do not use them from external origins.
 

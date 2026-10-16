@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import http from 'node:http';
 import zlib from 'node:zlib';
 import crypto from 'node:crypto';
+import {checkHttpProtocol} from './http-protocol.mjs';
 const base=process.argv[2]||'http://127.0.0.1:17653';
 const offline=process.argv.includes('--offline');
 const expectedVersion=fs.readFileSync(new URL('../src/AssemblyInfo.cs',import.meta.url),'utf8').match(/AssemblyInformationalVersion\("(\d+\.\d+\.\d+)"\)/)?.[1];
@@ -146,4 +147,5 @@ if(offline) assert.equal((await get('/api/library/update',{method:'POST'})).stat
 const page=await get('/',{raw:true});assert.equal(page.status,200);assert.ok(page.headers['content-security-policy'].includes("frame-ancestors 'none'"));assert.ok(page.data.toString('utf8').includes(expectedVersion));
 const icon=await get('/app.ico',{raw:true});assert.equal(icon.status,200);assert.ok(icon.data.byteLength>1000);
 durations.sort((a,b)=>a-b);
+await checkHttpProtocol(base);
 console.log(JSON.stringify({passed:true,mode:offline?'offline':'normal-manual-only',queries:keys.length,medianMs:+durations[Math.floor(keys.length*.5)].toFixed(2),p95Ms:+durations[Math.floor(keys.length*.95)].toFixed(2),maxMs:+durations.at(-1).toFixed(2),checks:'exact full-library source equality, updates disabled for deterministic snapshot comparison, valid empty results, filter isolation, local-only HTTP boundaries'},null,2));

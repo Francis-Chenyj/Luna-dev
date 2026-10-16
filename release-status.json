@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "version": "1.6.3",
+  "version": "1.6.4",
   "author": "FrancisChen",
   "reviewDate": "2026-10-16",
   "intendedRepository": "Francis-Chenyj/Luna-dev",
@@ -15,6 +15,6 @@
     "Resolve the documented scope of third-party screenshots and curated source material before redistribution."
   ],
   "releaseTag": null,
-  "statusExplanation": "Local 1.6.3 audit repair build. No new GitHub publication. The latest verified public release remains v1.5.0-dev.1. Third-party distribution evidence and publisher signing remain open; see docs/THIRD_PARTY_EVIDENCE.json.",
+  "statusExplanation": "Local 1.6.4 follow-up repair build; no GitHub publication. latestPublicRelease records the 2026-10-15 audit baseline and was not refreshed during this local repair. Third-party evidence and publisher signing remain open; see docs/THIRD_PARTY_EVIDENCE.json.",
   "latestPublicRelease": "v1.5.0-dev.1"
 }

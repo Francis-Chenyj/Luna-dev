@@ -31,6 +31,7 @@
     'appUpdate.installed':['已成功更新到当前版本，设置与离线数据已保留。','Successfully updated to this version. Settings and offline data were retained.'],
     'appUpdate.paused':['下载已暂停；下次可以接着下载。','Download paused. It can resume next time.'],
     'appUpdate.error':['检查或下载未完成；当前程序和离线数据仍可使用。','Check or download did not complete. The current app and offline data remain usable.'],
+    'appUpdate.failed':['升级文件未通过校验，程序仍保持打开。请关闭此对话框，然后重新下载并校验更新。','Update files failed verification. The app stays open. Close this dialog, then download and verify the update again.'],
     'appUpdate.current':['已检查，没有高于当前版本的已验证更新。','Checked: no authenticated release is newer than this version.'],
     'appUpdate.noRelease':['发布源暂未提供可验证的正式更新；可继续使用当前版本。','The release source has no authenticated stable update yet. Keep using this version.'],
     'appUpdate.offline':['离线模式下不检查或下载程序更新。','Offline mode does not check or download app updates.'],

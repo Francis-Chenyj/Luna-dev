@@ -32,7 +32,12 @@ jobs:
           node-version: '24'
           package-manager-cache: false
       - name: Run the local verification entry point
-        run: .\scripts\check.ps1 -OutputDirectory .\dist\ci
+        run: |
+          npm ci --ignore-scripts --no-audit --no-fund
+          if ($LASTEXITCODE -ne 0) { throw 'Browser test dependency installation failed' }
+          node node_modules/playwright/cli.js install chromium
+          if ($LASTEXITCODE -ne 0) { throw 'Chromium installation failed' }
+          .\scripts\check.ps1 -OutputDirectory .\dist\ci -Browser
       - name: Show verification summary
         if: always()
         run: |

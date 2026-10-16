@@ -57,6 +57,7 @@ namespace Luna {
                 DesktopProbe = maintenanceProbe && args.Contains("--desktop-probe");
                 int tokenPosition = Array.IndexOf(args, "--probe-token");
                 if (maintenanceProbe && tokenPosition >= 0 && tokenPosition + 1 < args.Length) ProbeToken = args[tokenPosition + 1];
+                if (ProbeToken != "" && !System.Text.RegularExpressions.Regex.IsMatch(ProbeToken, "^[a-f0-9]{32}$")) throw new ArgumentException("Invalid probe identity");
                 if (!maintenanceProbe && Deployment.NeedsRecovery(Root)) { Deployment.StartWorker(Root, "recover", false, Process.GetCurrentProcess().Id); return; }
                 Offline = args.Contains("--offline");
                 CommandLineDisablesUpdates = args.Contains("--no-auto-update");
@@ -66,8 +67,8 @@ namespace Luna {
                 int wanted = 17653;
                 int position = Array.IndexOf(args, "--port");
                 if (position >= 0 && position + 1 < args.Length) wanted = int.Parse(args[position + 1]);
-                if (wanted < 1024 || wanted > 65000) throw new Exception("端口必须在 1024–65000 之间。");
-                string instance = Hash(Root + (Offline ? "offline" : "online") + wanted).Substring(0, 20);
+                if ((wanted < 1024 || wanted > 65000) && !(maintenanceProbe && ProbeToken != "" && wanted == 0)) throw new Exception("端口必须在 1024–65000 之间。");
+                string instance = Hash(Root + (Offline ? "offline" : "online") + wanted + ProbeToken).Substring(0, 20);
                 using (var mutex = new Mutex(false, "Local\\Luna_" + instance)) {
                     bool acquired;
                     try { acquired = mutex.WaitOne(0); } catch (AbandonedMutexException) { acquired = true; }
@@ -82,12 +83,13 @@ namespace Luna {
                         ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
                         ServicePointManager.DefaultConnectionLimit = 8;
                         for (int i = 0; i < 30; i++) {
-                            try { Listener = new TcpListener(IPAddress.Loopback, wanted + i); Listener.Start(64); Port = wanted + i; break; }
+                            try { Listener = new TcpListener(IPAddress.Loopback, wanted == 0 ? 0 : wanted + i); Listener.Start(64); Port = ((IPEndPoint)Listener.LocalEndpoint).Port; break; }
                             catch (SocketException) { if (i == 29) throw; }
                         }
                         Address = "http://127.0.0.1:" + Port;
                         File.WriteAllText(addressFile, Address, Encoding.ASCII);
                         File.WriteAllText(Path.Combine(CacheDir, "running-url.txt"), Address, Encoding.ASCII);
+                        if (maintenanceProbe && ProbeToken != "" && wanted == 0) Deployment.Write(Path.Combine(CacheDir, "app-update", "probe-" + ProbeToken + ".json"), new { token = ProbeToken, pid = Process.GetCurrentProcess().Id, port = Port });
                         InitializeLibrary();
                         if (!maintenanceProbe) { ScheduleStartupUpdate(); StartHousekeeping(); ScheduleAppUpdate(); }
                         bool native = !noBrowser && !args.Contains("--browser");
@@ -134,23 +136,6 @@ namespace Luna {
             try { Shutdown.Cancel(); } catch (Exception ex) { Log(ex); }
         }
 
-        // Browser cancellation closes this HTTP connection. Propagate that cancellation to
-        // queued work and the upstream request, rather than finishing an abandoned query.
-        sealed class ClientRequest : IDisposable {
-            readonly CancellationTokenSource source = CancellationTokenSource.CreateLinkedTokenSource(Shutdown.Token);
-            readonly System.Threading.Timer monitor;
-            public CancellationToken Token { get { return source.Token; } }
-            public ClientRequest(TcpClient client) {
-                monitor = new System.Threading.Timer(delegate {
-                    try {
-                        if (client.Client.Poll(0, SelectMode.SelectRead) && client.Client.Available == 0) source.Cancel();
-                    } catch (SocketException) { Cancel(); }
-                    catch (ObjectDisposedException) { Cancel(); }
-                }, null, 100, 100);
-            }
-            void Cancel() { try { source.Cancel(); } catch (ObjectDisposedException) { } }
-            public void Dispose() { monitor.Dispose(); source.Dispose(); }
-        }
         static string[] EdgePaths() {
             return new[] {
                 Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Microsoft", "Edge", "Application", "msedge.exe"),
@@ -170,37 +155,26 @@ namespace Luna {
                 client.ReceiveTimeout = 10000; client.SendTimeout = 15000;
                 try {
                     using (var stream = client.GetStream()) {
-                        // Bound header size, reject request bodies and never resolve arbitrary file paths.
-                        var header = new List<byte>();
-                        while (header.Count < 16384) {
-                            int next = stream.ReadByte(); if (next < 0) return;
-                            header.Add((byte)next);
-                            int n = header.Count;
-                            if (n >= 4 && header[n - 4] == 13 && header[n - 3] == 10 && header[n - 2] == 13 && header[n - 1] == 10) break;
-                        }
-                        if (header.Count >= 16384) { RejectRequest(client, stream, 400, "请求过长"); return; }
-                        string[] lines = Encoding.ASCII.GetString(header.ToArray()).Split(new[] { "\r\n" }, StringSplitOptions.None);
-                        string[] request = lines[0].Split(' ');
-                        if (request.Length != 3 || !request[1].StartsWith("/") || request[1].StartsWith("//")) { RejectRequest(client, stream, 400, "无效请求"); return; }
-                        var headers = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-                        foreach (string line in lines.Skip(1)) {
-                            int p = line.IndexOf(':'); if (p > 0) headers[line.Substring(0, p).Trim()] = line.Substring(p + 1).Trim();
-                        }
+                        LocalHttpRequest request;
+                        try { request = LocalHttpRequest.Read(stream); }
+                        catch (LocalHttpException ex) { RejectRequest(client, stream, ex.Status, ex.Message); return; }
+                        if (request == null) return;
+                        var headers = request.Headers;
                         string host, origin;
                         if (!headers.TryGetValue("Host", out host) || host != "127.0.0.1:" + Port) { RejectRequest(client, stream, 403, "仅支持本机访问"); return; }
                         if (headers.TryGetValue("Origin", out origin) && origin != Address) { RejectRequest(client, stream, 403, "不允许跨站请求"); return; }
-                        Uri url = new Uri(Address + request[1]);
+                        Uri url = new Uri(Address + request.Target);
                         string path = url.AbsolutePath;
                         if (path.StartsWith("/api/") && path != "/api/health") {
                             string marker;
                             if (!headers.TryGetValue("X-Luna", out marker) || marker != "1") { RejectRequest(client, stream, 403, "请从本地程序打开"); return; }
                         }
                         bool mutation = path == "/api/quit" || path == "/api/library/update" || path == "/api/library/cancel" || path == "/api/library/focus" || path == "/api/hero/update" || path == "/api/settings/save" || path == "/api/folders/open" || path == "/api/window/show" || path == "/api/window/close" || path == "/api/space/clean" || path == "/api/app-update/check" || path == "/api/app-update/download" || path == "/api/app-update/cancel" || path == "/api/maintenance/run";
-                        if (request[0] != (mutation ? "POST" : "GET")) { RejectRequest(client, stream, 405, "不支持此请求方式"); return; }
+                        if (request.Method != (mutation ? "POST" : "GET")) { RejectRequest(client, stream, 405, "不支持此请求方式"); return; }
                         string length;
                         if (headers.ContainsKey("Transfer-Encoding") || (headers.TryGetValue("Content-Length", out length) && length != "0")) { RejectRequest(client, stream, 400, "此接口不接收请求正文"); return; }
                         Interlocked.Exchange(ref LastActivity, DateTime.UtcNow.Ticks);
-                        using (var pending = new ClientRequest(client)) try {
+                        using (var pending = new LocalHttpCancellation(client, Shutdown.Token)) try {
                             CancellationToken token = pending.Token;
                             var q = HttpUtility.ParseQueryString(url.Query);
 
@@ -341,7 +315,7 @@ namespace Luna {
         static void SendText(NetworkStream stream, int status, string message) { Send(stream, status, "application/json; charset=utf-8", Encoding.UTF8.GetBytes(Json().Serialize(new { success = false, message = message }))); }
         static void SendJson(NetworkStream stream, object data) { Send(stream, 200, "application/json; charset=utf-8", Encoding.UTF8.GetBytes(Json().Serialize(data))); }
         static void Send(NetworkStream stream, int status, string type, byte[] body) {
-            string reason = status == 200 ? "OK" : status == 400 ? "Bad Request" : status == 403 ? "Forbidden" : status == 404 ? "Not Found" : status == 405 ? "Method Not Allowed" : "Bad Gateway";
+            string reason = status == 200 ? "OK" : status == 400 ? "Bad Request" : status == 403 ? "Forbidden" : status == 404 ? "Not Found" : status == 405 ? "Method Not Allowed" : status == 408 ? "Request Timeout" : "Bad Gateway";
             string header = "HTTP/1.1 " + status + " " + reason + "\r\nContent-Type: " + type + "\r\nContent-Length: " + body.Length +
                 "\r\nConnection: close\r\nCache-Control: no-store\r\nX-Content-Type-Options: nosniff\r\nReferrer-Policy: no-referrer\r\n" +
                 "Content-Security-Policy: default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'\r\n\r\n";

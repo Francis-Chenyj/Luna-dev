@@ -4,9 +4,9 @@
 
 **English** · [简体中文](USER_GUIDE.zh-CN.md) · [Project overview](../README.md) · [Developer guide](DEVELOPER_GUIDE.md) · [Changelog](../CHANGELOG.md)
 
-**Applies to version 1.6.3 · Author: FrancisChen**
+**Applies to version 1.6.4 · Author: FrancisChen**
 
-See the [1.6.3 repair guide](AUDIT_REPAIRS.md) for scope restoration, missing-profile downloads, storage waiting messages and damaged-update recovery.
+See the [1.6.4 repair guide](AUDIT_REPAIRS.md) for scope restoration, missing-profile downloads, storage waiting messages and damaged-update recovery.
 
 Project home: [Luna on GitHub](https://github.com/Francis-Chenyj/Luna-dev). Luna is in development and distributed as a pre-release; [distribution status](../release-status.json) is tracked separately.
 
@@ -29,9 +29,9 @@ This guide describes current operation by task. Version history belongs in the c
 
 Luna requires Windows 10 / 11, .NET Framework 4.7.2+ and Microsoft Edge WebView2 Runtime. It uses a native desktop window; install the [Evergreen Runtime](https://developer.microsoft.com/microsoft-edge/webview2/) if needed. Browser compatibility mode (`Luna.exe --browser`) does not support tray controls. Normal use needs no developer tools, login, API key or administrator privileges.
 
-Version 1.6.3 is a local revision. The public release is listed separately on GitHub. With the local Windows package:
+Version 1.6.4 is a local revision. The public release is listed separately on GitHub. With the local Windows package:
 
-1. **Fully extract** `Luna-v1.6.3-Windows.zip` to a writable folder, such as `D:\Apps\Luna`. Do not run from inside the ZIP or copy only the EXE.
+1. **Fully extract** `Luna-v1.6.4-Windows.zip` to a writable folder, such as `D:\Apps\Luna`. Do not run from inside the ZIP or copy only the EXE.
 2. Keep `Luna.exe`, `Luna.exe.config`, both Microsoft.Web.WebView2 DLLs, `runtimes`, `web` and `data` together.
 3. Run `Luna.exe` or `启动Luna.cmd`, then wait for the local-service status at the top right.
 4. Search for a champion and choose a lane. The default profile is bundled and ready to query.
@@ -132,7 +132,7 @@ The offline launcher prohibits external updates while retaining access to all sa
 
 Data updates **do not install a newer Luna application**. Manage application updates separately in **Settings → Application**. Automatic download is initially off; installation requires confirmation and a compatible signed stable release.
 
-In 1.6.3, enabling automatic downloads enables checks too and immediately checks/downloads an eligible update. Turning checks off turns automatic downloads off; turning only downloads off retains checks and saved progress. Manual downloads remain available. Offline or manual-only launches explain that choices are saved without automatic networking this session. After a successful restart, the app reports success. See [Application updates in the README](../README.md#application-updates) for the complete rules.
+In 1.6.4, enabling automatic downloads enables checks too and immediately checks/downloads an eligible update. Turning checks off turns automatic downloads off; turning only downloads off retains checks and saved progress. Manual downloads remain available. Offline or manual-only launches explain that choices are saved without automatic networking this session. After a successful restart, the app reports success. See [Application updates in the README](../README.md#application-updates) for the complete rules.
 
 ## Sources and timestamps
 

@@ -1,5 +1,11 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs');
 const I=require('../web/i18n.js').create();
+test('user-facing service error codes resolve to both languages',()=>{
+  const path=require('node:path'),dir=path.join(__dirname,'../src');
+  const codes=new Set(fs.readdirSync(dir).filter(file=>file.endsWith('.cs')).flatMap(file=>[...fs.readFileSync(path.join(dir,file),'utf8').matchAll(/new SettingsException\("([^"]+)"\)/g)].map(match=>match[1])));
+  assert.ok(codes.size>0);
+  for(const code of codes)for(const language of ['zh-CN','en']){I.setLanguage(language);assert.notEqual(I.message(code),code,`${code} is untranslated in ${language}`);}
+});
 test('champion counts use English singular and all translated accessibility attributes are recognized',()=>{
   I.setLanguage('en');assert.equal(I.t('{0} 位',0),'0 champions');assert.equal(I.t('{0} 位',1),'1 champion');assert.equal(I.t('{0} 位',2),'2 champions');
   I.setLanguage('zh-CN');assert.equal(I.t('{0} 位',1),'1 位');

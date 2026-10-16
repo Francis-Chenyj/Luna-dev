@@ -51,6 +51,9 @@ internal static class SettingsTests {
                 Check(Luna.Program.ResolveCloseAction(saved, true, false) == "exit" && Luna.Program.ResolveCloseAction(saved, false, true) == "exit", "Explicit/session exit must bypass tray preferences");
                 Check(Luna.Program.ResolveCloseAction(saved, false, false) == (saved == "tray" || saved == "exit" ? saved : "ask"), "Close preference resolution failed");
             }
+            Check(!Luna.Program.CanAskPageToClose(true, false), "Loaded HTML with failed JavaScript must use the native close fallback");
+            Check(!Luna.Program.CanAskPageToClose(false, true), "A lost renderer must use the native close fallback");
+            Check(Luna.Program.CanAskPageToClose(true, true), "A ready application must keep the accessible close dialog");
             Check((string)Prefs()["closeAction"] == "ask", "First launch must ask");
             Call("SavePreference", "closeAction", "tray"); Call("SavePreference", "theme", "dark");
             Check((string)Prefs()["closeAction"] == "tray", "Unrelated preference lost remembered tray choice");

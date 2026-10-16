@@ -1,0 +1,13 @@
+{
+  "name": "luna-local-verification",
+  "version": "1.6.4",
+  "private": true,
+  "description": "Development-only browser regression runner; not needed by the Windows application",
+  "scripts": {
+    "test": "node --test tests/core.test.cjs tests/ui.test.cjs tests/i18n.test.cjs tests/repository.test.cjs",
+    "test:browser": "node tests/browser-runner.mjs"
+  },
+  "devDependencies": {
+    "playwright": "1.62.1"
+  }
+}

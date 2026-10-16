@@ -68,7 +68,7 @@ foreach ($package in $manifest.packages) {
             try { $sourceId = [BitConverter]::ToString($sha.ComputeHash([Text.Encoding]::UTF8.GetBytes($canonical))).Replace('-','').ToLowerInvariant() } finally { $sha.Dispose() }
             if ($provenance.sourceId -ne $sourceId) { throw 'Source identity mismatch.' }
             if ($seen.ContainsKey('Luna/Luna.exe') -or -not $seen.ContainsKey('Luna/build.ps1') -or -not $seen.ContainsKey('Luna/src/Program.cs') -or -not $seen.ContainsKey('Luna/tests/run-package.ps1')) { throw 'Source package has the wrong build/test contents.' }
-            foreach ($required in @('.gitattributes','.github/ISSUE_TEMPLATE/bug-report.yml','.github/ISSUE_TEMPLATE/feature-request.yml','.github/ISSUE_TEMPLATE/config.yml','.github/workflows/windows-checks.yml','scripts/check.ps1','scripts/check-tools.ps1','tests/run-check-tools.ps1','tests/run-http.ps1','tests/repository.test.cjs','tests/layout-probe.js')) {
+            foreach ($required in @('.gitattributes','.github/ISSUE_TEMPLATE/bug-report.yml','.github/ISSUE_TEMPLATE/feature-request.yml','.github/ISSUE_TEMPLATE/config.yml','.github/workflows/windows-checks.yml','scripts/check.ps1','scripts/check-tools.ps1','tests/run-check-tools.ps1','tests/run-http.ps1','tests/repository.test.cjs','tests/layout-probe.mjs','package.json','package-lock.json','tests/browser-runner.mjs','src/LocalHttp.cs')) {
                 if (-not $seen.ContainsKey('Luna/' + $required)) { throw "Source package is missing verification files: $required" }
             }
         }

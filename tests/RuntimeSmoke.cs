@@ -76,6 +76,7 @@ internal static class RuntimeSmoke {
                 Check(Luna.Deployment.HealthCheck(native), "Native WebView2 + app JavaScript + query probe failed");
                 File.WriteAllText(Path.Combine(native, "web/app.js"), "throw new Error('intentional isolated smoke failure');");
                 Check(!Luna.Deployment.HealthCheck(native), "A broken JavaScript application passed upgrade health checking");
+                Check(Directory.GetFiles(Path.Combine(native, "cache/app-update"), "probe-*.json").Length == 0, "Health probes left per-process address records behind");
                 Console.WriteLine("PASS: actual native readiness and rejection of broken application JavaScript");
             }
             Luna.Deployment.Write(Path.Combine(output, "result.json"), new { passed = true, corruptJournalRealQuery = true, maintenanceLongPath = longest.Length, keepDataUninstall = true, nativeReadiness = desktop, rejectsBrokenJavaScript = desktop });

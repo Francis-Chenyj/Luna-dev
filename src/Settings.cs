@@ -13,7 +13,7 @@ using System.Threading;
 
 namespace Luna {
     internal static partial class Program {
-        const string AppVersion = "1.6.3";
+        const string AppVersion = "1.6.4";
         static string SettingsFile { get { return Path.Combine(CacheDir, "settings.json"); } }
         static string LogDirectory { get { return Path.Combine(CacheDir, "logs"); } }
         static bool CommandLineDisablesUpdates;

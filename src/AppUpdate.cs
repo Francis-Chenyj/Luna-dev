@@ -44,6 +44,9 @@ namespace Luna {
         static object AppUpdateInfo() {
             lock (AppUpdateSync) {
                 LoadSavedAppRelease(); var status = ReadRecord(UpdateFile("check.json")); var result = ReadRecord(UpdateFile("result.json"));
+                var committed = ReadRecord(UpdateFile("transaction.json"));
+                if (Str(committed, "state") == "committed" && Str(committed, "version") == AppVersion && DateValue(Str(committed, "at")) > DateValue(Str(result, "at")))
+                    result = new Dictionary<string, object> { { "state", "installed" }, { "version", AppVersion }, { "at", Str(committed, "at") } };
                 string state = AppUpdateState;
                 if (!AppUpdateBusy && state == "idle") {
                     if (AppRelease != null) state = File.Exists(UpdateFile("stage/installed-files.json")) ? "ready" : File.Exists(UpdateFile("package.part")) ? "paused" : "available";
@@ -116,31 +119,8 @@ namespace Luna {
             WriteRecord(UpdateFile("check.json"), new { state = state, checkedAt = Stamp() });
         }
         static void DiscardDownload() {
-            string stage = UpdateFile("stage");
-            if (Directory.Exists(stage)) {
-                if (File.Exists(Path.Combine(stage, "installed-files.json"))) Deployment.DeleteOwnedTree(stage);
-                else DiscardInterruptedStage();
-                if (Directory.Exists(stage)) throw new IOException("Staging area contains unrecognized files");
-            }
+            Deployment.DiscardUpdateStage(AppUpdateDir);
             foreach (string name in new[] { "package.part", "package.zip" }) { string path = UpdateFile(name); if (File.Exists(path) && SafeLocalPath(path)) File.Delete(path); }
-        }
-        static void DiscardInterruptedStage() {
-            string stage = UpdateFile("stage"), archive = UpdateFile("package.zip");
-            if (!Directory.Exists(stage) || !PlainPath(stage) || !File.Exists(archive)) return;
-            using (var zip = System.IO.Compression.ZipFile.OpenRead(LocalPaths.Io(archive))) {
-                foreach (var entry in zip.Entries) {
-                    if (!entry.FullName.StartsWith("Luna/")) throw new IOException("Invalid staged archive");
-                    string relative = entry.FullName.Substring(5);
-                    if (!(Deployment.PayloadPath(relative) || relative == "installed-files.json")) throw new IOException("Invalid staged path");
-                    string path = Deployment.Under(stage, relative); if (File.Exists(path)) File.Delete(path);
-                }
-            }
-            RemoveEmptyStaging(stage);
-        }
-        static void RemoveEmptyStaging(string path) {
-            if (!PlainPath(path)) return;
-            foreach (string directory in Directory.EnumerateDirectories(path)) RemoveEmptyStaging(directory);
-            if (!Directory.EnumerateFileSystemEntries(path).Any()) Directory.Delete(path, false);
         }
         static void DownloadAppRelease(CancellationToken token) {
             Dictionary<string, object> release;
@@ -150,6 +130,8 @@ namespace Luna {
             string part = UpdateFile("package.part"), archive = UpdateFile("package.zip"), stage = UpdateFile("stage");
             long length = long.Parse(Deployment.Text(release, "bytes"));
             if (!SafeLocalPath(part) || !SafeLocalPath(archive)) throw new IOException("Unsafe update path");
+            if (File.Exists(archive) && (new FileInfo(archive).Length != length || Deployment.HashFile(archive) != Deployment.Text(release, "sha256")))
+                File.Move(archive, UpdateFile("package-rejected-" + Guid.NewGuid().ToString("N") + ".zip"));
             if (!File.Exists(archive)) {
                 long offset = File.Exists(part) ? new FileInfo(part).Length : 0;
                 if (offset > length) { File.Delete(part); offset = 0; }
@@ -178,10 +160,15 @@ namespace Luna {
             token.ThrowIfCancellationRequested();
             lock (AppUpdateSync) AppUpdateState = "verifying";
             if (Directory.Exists(stage)) {
-                if (File.Exists(Path.Combine(stage, "installed-files.json"))) {
-                    if (Deployment.Text(Deployment.Manifest(stage, true), "version") == Deployment.Text(release, "version")) { lock (AppUpdateSync) AppUpdateState = "ready"; return; }
-                    Deployment.DeleteOwnedTree(stage);
-                } else DiscardInterruptedStage();
+                bool verified = false;
+                try {
+                    Deployment.VerifyPreparedUpdate(stage, archive, release); verified = true;
+                } catch (Exception ex) {
+                    if (!(ex is IOException || ex is UnauthorizedAccessException || ex is ArgumentException || ex is InvalidOperationException)) throw;
+                    verified = false;
+                }
+                if (verified) { lock (AppUpdateSync) AppUpdateState = "ready"; return; }
+                Deployment.PreserveUpdateDirectory(AppUpdateDir, "stage");
             }
             Deployment.ExtractVerified(archive, stage, release);
             lock (AppUpdateSync) AppUpdateState = "ready";
@@ -295,7 +282,12 @@ namespace Luna {
                 lock (AppUpdateSync) {
                     if (AppUpdateBusy) throw new SettingsException("settings.busy");
                     LoadSavedAppRelease(); if (AppRelease == null) throw new SettingsException("appUpdate.noRelease");
-                    Deployment.Manifest(UpdateFile("stage"), true);
+                    try { Deployment.VerifyPreparedUpdate(UpdateFile("stage"), UpdateFile("package.zip"), AppRelease); }
+                    catch (Exception ex) {
+                        if (!(ex is IOException || ex is UnauthorizedAccessException || ex is ArgumentException || ex is InvalidOperationException)) throw;
+                        AppUpdateState = "error"; AppUpdateError = "failed";
+                        throw new SettingsException("appUpdate.failed");
+                    }
                 }
             }
             CancelAppUpdate(); CancelLibraryUpdate();
