@@ -149,6 +149,21 @@ internal static class ServiceIsolationTests {
         }
         Check(cleanups == 1, "Dispose repeated lifecycle cleanup");
     }
+    static void UpdateCacheOwnership() {
+        string root = NewRoot(); Baseline(root, "old");
+        string cache = Path.Combine(root, "cache/app-update"); Directory.CreateDirectory(cache);
+        string archive = Path.Combine(cache, "package.zip"); File.WriteAllText(archive, "old download"); File.SetLastWriteTimeUtc(archive, DateTime.UtcNow.AddDays(-8));
+        using (var entered = new ManualResetEventSlim())
+        using (var a = new ApplicationRuntime(new RuntimeOptions(root), null, (url, token) => { entered.Set(); token.WaitHandle.WaitOne(); token.ThrowIfCancellationRequested(); return "[]"; }))
+        using (var b = new ApplicationRuntime(new RuntimeOptions(root))) {
+            a.AppUpdates.StartAppUpdate("check"); Check(entered.Wait(5000), "Updater did not acquire its directory");
+            b.AppUpdates.MaintainAppDownloads();
+            Check(File.Exists(archive), "Another instance cleaned an active updater's download");
+            a.AppUpdates.CancelAppUpdate(); Idle(a);
+            b.AppUpdates.MaintainAppDownloads();
+            Check(!File.Exists(archive), "Expired download was not cleaned after ownership was released");
+        }
+    }
     static void Run(string name, Action test, string selected) {
         if (selected != "" && selected != name) return;
         try { test(); Console.WriteLine("PASS: " + name); } catch (Exception ex) { failures++; Console.WriteLine("FAIL: " + name + "\n" + ex); }
@@ -162,6 +177,7 @@ internal static class ServiceIsolationTests {
         Run("shutdown-rejects-new-jobs", StopRejectsNewJobs, selected);
         Run("drain-both-updaters", DrainAllOwnedWorkers, selected);
         Run("worker-registration-and-disposal", WorkerRegistrationRace, selected);
+        Run("updater-cache-ownership", UpdateCacheOwnership, selected);
         return failures == 0 ? 0 : 1;
     }
 }

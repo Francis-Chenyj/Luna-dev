@@ -39,7 +39,7 @@ internal sealed class TestApplication : IDisposable {
         }
         var helper = typeof(Luna.DataFormat).GetMethod(name, BindingFlags.Static | BindingFlags.NonPublic);
         if (helper != null) return Invoke(helper, null, args);
-        var native = typeof(Luna.Program).GetMethod(name, BindingFlags.Static | BindingFlags.NonPublic);
+        var native = name == "FrameColors" ? typeof(Luna.Program).GetMethod(name, BindingFlags.Static | BindingFlags.NonPublic) : null;
         if (native != null) return Invoke(native, null, args);
         throw new MissingMethodException(name);
     }

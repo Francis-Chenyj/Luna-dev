@@ -4,7 +4,7 @@
 
 - Give queries, data updates, storage maintenance and application upgrades explicit instance ownership; retain API/disk compatibility and atomic publication.
 - Track background work through shutdown, reject late hero jobs, and detach returned catalogs from the repository index.
-- Add seven service-isolation/concurrency scenarios and migrate ordinary regression operations to typed service calls.
+- Add eight service-isolation/concurrency scenarios and migrate ordinary regression operations to typed service calls. Protect an active updater's cache from cleanup by another instance.
 - See [architecture](docs/ARCHITECTURE.md), [release notes](docs/RELEASE-v1.6.5.md) and [verification scope](docs/QA-1.6.5.md). No GitHub publication is implied.
 
 ## 1.6.4 — 2026-10-16 (local review)

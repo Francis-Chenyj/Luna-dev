@@ -36,6 +36,7 @@ namespace Luna {
         bool AppUpdateAutomatic, AppUpdateDownloadAutomatic;
         bool AppUpdatePendingCheck, AppUpdatePausedThisRun;
         int AppUpdateScheduled;
+        Mutex UpdateMutex() { return new Mutex(false, "Local\\LunaAppUpdate_" + DataFormat.Hash(options.Root.ToLowerInvariant()).Substring(0, 20)); }
         string UpdateFile(string name) {
             if (!DataFormat.PlainPath(options.AppUpdateDir)) throw new IOException("Unsafe update folder");
             return Path.Combine(options.AppUpdateDir, name);
@@ -180,7 +181,7 @@ namespace Luna {
                 AppUpdateCancellation = cancellation = CancellationTokenSource.CreateLinkedTokenSource(workers.Token);
             }
             if (!workers.TryStart(() => {
-                using (var mutex = new Mutex(false, "Local\\LunaAppUpdate_" + DataFormat.Hash(options.Root.ToLowerInvariant()).Substring(0, 20))) {
+                using (var mutex = UpdateMutex()) {
                     bool held = false;
                     try {
                         try { held = mutex.WaitOne(0); } catch (AbandonedMutexException) { held = true; }
@@ -235,9 +236,18 @@ namespace Luna {
         internal void MaintainAppDownloads() {
             lock (AppUpdateSync) {
                 if (AppUpdateBusy || !Directory.Exists(options.AppUpdateDir)) return;
-                var files = new[] { UpdateFile("package.part"), UpdateFile("package.zip") }.Where(File.Exists).ToArray();
-                if (files.Length > 0 && files.All(p => DataFormat.SafeLocalPath(p) && File.GetLastWriteTimeUtc(p) < DateTime.UtcNow.AddDays(-7)) && !Deployment.NeedsRecovery(options.Root))
-                    try { DiscardDownload(); AppUpdateState = AppRelease == null ? "idle" : "available"; } catch (IOException) { }
+                // Another process or runtime may own this same directory. Never wait
+                // under AppUpdateSync: an active worker needs that lock to finish.
+                using (var mutex = UpdateMutex()) {
+                    bool held = false;
+                    try {
+                        try { held = mutex.WaitOne(0); } catch (AbandonedMutexException) { held = true; }
+                        if (!held) return;
+                        var files = new[] { UpdateFile("package.part"), UpdateFile("package.zip") }.Where(File.Exists).ToArray();
+                        if (files.Length > 0 && files.All(p => DataFormat.SafeLocalPath(p) && File.GetLastWriteTimeUtc(p) < DateTime.UtcNow.AddDays(-7)) && !Deployment.NeedsRecovery(options.Root))
+                            try { DiscardDownload(); AppUpdateState = AppRelease == null ? "idle" : "available"; } catch (IOException) { }
+                    } finally { if (held) mutex.ReleaseMutex(); }
+                }
             }
         }
         internal void ScheduleAppUpdate() {

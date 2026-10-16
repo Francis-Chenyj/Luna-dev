@@ -133,7 +133,7 @@ internal static class AutoUpdateTests {
             string savedAt = Map(Query(Keys[0])["cache"])["localUpdatedAt"].ToString();
             source.Reset(); NewLaunch(); WaitJob();
             Check(source.Calls == 1 && source.Details == 0 && Map(Query(Keys[0])["cache"])["localUpdatedAt"].ToString() == savedAt, "Unchanged startup re-downloaded data or changed local update time");
-            source.Reset(); NewLaunch(); Call("Stop"); WaitJob(); Check(source.Calls == 0, "Application exit did not cancel the startup timer");
+            source.Reset(); NewLaunch(); App.Runtime.Workers.Stop(); WaitJob(); Check(source.Calls == 0, "Application exit did not cancel the startup timer");
             Pass("unchanged data requires one status check; exit cancels scheduled networking");
             Console.WriteLine("All automatic-update checks passed in an isolated fixture; no real external network was used."); return 0;
         } catch (Exception ex) { Console.Error.WriteLine(ex); return 1; }
