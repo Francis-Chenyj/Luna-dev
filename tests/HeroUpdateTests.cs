@@ -10,22 +10,22 @@ using System.Web;
 using System.Web.Script.Serialization;
 
 internal static class HeroUpdateTests {
-    static readonly Type App = typeof(Luna.Program);
+    static readonly TestApplication App = new TestApplication(AppDomain.CurrentDomain.BaseDirectory);
     static readonly string Root = AppDomain.CurrentDomain.BaseDirectory;
     static readonly string Key = "detail-6-top-father-1-5", Son = "detail-6-top-son-1-5";
     static Dictionary<string, object> Manifest, Catalog;
     static Dictionary<string, Dictionary<string, object>> Records;
     static object Call(string name, params object[] args) {
-        try { return App.GetMethod(name, BindingFlags.Static | BindingFlags.NonPublic).Invoke(null, args); }
+        try { return App.Call(name, args); }
         catch (TargetInvocationException ex) { ExceptionDispatchInfo.Capture(ex.InnerException).Throw(); throw; }
     }
-    static void Set(string name, object value) { App.GetField(name, BindingFlags.Static | BindingFlags.NonPublic).SetValue(null, value); }
+    static void Set(string name, object value) { App.Set(name, value); }
     static Dictionary<string, object> Map(object x) { return (Dictionary<string, object>)x; }
     static string Text(object x) { return new JavaScriptSerializer { MaxJsonLength = 16 * 1024 * 1024 }.Serialize(x); }
     static Dictionary<string, object> Copy(object x) { return Map(new JavaScriptSerializer { MaxJsonLength = 16 * 1024 * 1024 }.DeserializeObject(Text(x))); }
-    static Dictionary<string, object> Query(string key) { return Copy(Call("LocalDetail", key)); }
-    static Dictionary<string, object> Hero(string key) { return Copy(Call("HeroUpdateInfo", key)); }
-    static Dictionary<string, object> Job() { return Map(Copy(Call("LibraryInfo", "1-5"))["job"]); }
+    static Dictionary<string, object> Query(string key) { return Copy(App.Runtime.Queries.LocalDetail(key)); }
+    static Dictionary<string, object> Hero(string key) { return Copy(App.Runtime.Updates.HeroUpdateInfo(key)); }
+    static Dictionary<string, object> Job() { return Map(Copy(App.Runtime.LibraryInfo("1-5"))["job"]); }
     static void Check(bool ok, string message) { if (!ok) throw new Exception(message); }
     static void Wait(Func<bool> ready, string message) { var timer = Stopwatch.StartNew(); while (!ready()) { if (timer.ElapsedMilliseconds > 30000) throw new Exception(message); Thread.Sleep(10); } }
     static void Done() { Wait(() => !(bool)Job()["busy"], "Job did not end"); }
@@ -34,14 +34,14 @@ internal static class HeroUpdateTests {
     static int Main() {
         try {
             string bundled = Path.Combine(Root, "data", "library", "1-5");
-            Manifest = Map(Call("ReadRecord", Path.Combine(bundled, "manifest.json"))); Catalog = Map(Manifest["catalog"]);
-            Records = Map(Manifest["entries"]).Keys.ToDictionary(k => k, k => Map(Call("ReadCompressed", Path.Combine(bundled, k + ".json.gz"))));
-            Directory.CreateDirectory(Path.Combine(Root, "cache", "library")); Call("InitializeLibrary");
+            Manifest = Map(Luna.DataFormat.ReadRecord(Path.Combine(bundled, "manifest.json"))); Catalog = Map(Manifest["catalog"]);
+            Records = Map(Manifest["entries"]).Keys.ToDictionary(k => k, k => Map(Luna.DataFormat.ReadCompressed(Path.Combine(bundled, k + ".json.gz"))));
+            Directory.CreateDirectory(Path.Combine(Root, "cache", "library")); App.Runtime.Library.InitializeLibrary();
             var fixture = new Fixture { Fingerprint = Manifest["fingerprint"].ToString(), Generated = Manifest["sourceGeneratedAt"].ToString() };
             Set("LibraryTransport", new Func<string, CancellationToken, Dictionary<string, object>>(fixture.Fetch));
             fixture.BlockKey = Son;
-            Call("StartHeroUpdate", Key); Check(fixture.Started.Wait(10000), "Manual request did not reach both directions");
-            Call("StartHeroUpdate", Key);
+            App.Runtime.Updates.StartHeroUpdate(Key); Check(fixture.Started.Wait(10000), "Manual request did not reach both directions");
+            App.Runtime.Updates.StartHeroUpdate(Key);
             Check(Map(Query(Key)["cache"])["source"].ToString() == "bundled", "One side became active before the other side finished");
             fixture.Release.Set(); Done();
             Check(Hero(Key)["state"].ToString() == "complete", "Manual update failed");
@@ -54,43 +54,43 @@ internal static class HeroUpdateTests {
             string committed = Path.Combine(Root, "cache", "library", fixture.Fingerprint, "1-5");
             Directory.CreateDirectory(committed);
             foreach (string file in Directory.GetFiles(bundled)) File.Copy(file, Path.Combine(committed, Path.GetFileName(file)), true);
-            Call("WriteRecord", Path.Combine(Root, "cache", "library", "active-1-5.json"), new { current = fixture.Fingerprint, previous = "" });
-            var originalHashes = Directory.GetFiles(committed).ToDictionary(p => p, p => Call("FileHash", File.ReadAllBytes(p)).ToString());
-            Call("InitializeLibrary"); fixture.Reset(); Call("StartHeroUpdate", Key); Done();
-            Check(originalHashes.All(p => Call("FileHash", File.ReadAllBytes(p.Key)).ToString() == p.Value), "Explicit refresh rewrote immutable manifest or detail files");
+            Luna.DataFormat.WriteRecord(Path.Combine(Root, "cache", "library", "active-1-5.json"), new { current = fixture.Fingerprint, previous = "" });
+            var originalHashes = Directory.GetFiles(committed).ToDictionary(p => p, p => Luna.DataFormat.FileHash(File.ReadAllBytes(p)).ToString());
+            App.Runtime.Library.InitializeLibrary(); fixture.Reset(); App.Runtime.Updates.StartHeroUpdate(Key); Done();
+            Check(originalHashes.All(p => Luna.DataFormat.FileHash(File.ReadAllBytes(p.Key)).ToString() == p.Value), "Explicit refresh rewrote immutable manifest or detail files");
             Check(Map(Query(Key)["cache"])["source"].ToString() == "focused", "Manual data was hidden behind an unchanged full profile");
             saved = File.ReadAllBytes(FocusFile()); savedAt = Map(Query(Key)["cache"])["localUpdatedAt"].ToString();
             Pass("committed complete-profile hashes stay untouched by a fresh same-edition hero request");
 
-            fixture.Reset(); fixture.FailSon = true; Call("StartHeroUpdate", Key); Done();
+            fixture.Reset(); fixture.FailSon = true; App.Runtime.Updates.StartHeroUpdate(Key); Done();
             Check(Hero(Key)["state"].ToString() == "error" && fixture.SonCalls == 3, "Failure was not bounded");
             Check(File.ReadAllBytes(FocusFile()).SequenceEqual(saved) && Map(Query(Key)["cache"])["localUpdatedAt"].ToString() == savedAt, "Failed refresh lost previous pair/date");
-            fixture.Reset(); fixture.ChangeOnSecondStatus = true; Call("StartHeroUpdate", Key); Done();
+            fixture.Reset(); fixture.ChangeOnSecondStatus = true; App.Runtime.Updates.StartHeroUpdate(Key); Done();
             Check(Hero(Key)["state"].ToString() == "error" && File.ReadAllBytes(FocusFile()).SequenceEqual(saved), "Changed upstream edition published a mixed pair");
             Pass("failed second response and changing source version both preserve old pair and dates");
 
-            fixture.Reset(); string other = "detail-6-top-father-4-2"; Call("StartHeroUpdate", other); Done();
+            fixture.Reset(); string other = "detail-6-top-father-4-2"; App.Runtime.Updates.StartHeroUpdate(other); Done();
             Check(Map(Query(other)["cache"])["source"].ToString() == "focused", "Exact requested filter profile was not saved");
             Check(File.ReadAllBytes(FocusFile()).SequenceEqual(saved), "Different filter profile overwrote default pair");
-            Set("FocusRecent", null); Call("InitializeLibrary"); Set("Offline", true);
+            Set("FocusRecent", null); App.Runtime.Library.InitializeLibrary(); Set("Offline", true);
             Check(Query(Key)["data"] != null && Query(other)["data"] != null, "Offline reload lost saved pairs");
-            try { Call("StartHeroUpdate", Key); throw new Exception("Offline update accepted"); } catch (ArgumentException) { }
+            try { App.Runtime.Updates.StartHeroUpdate(Key); throw new Exception("Offline update accepted"); } catch (ArgumentException) { }
             Set("Offline", false); Pass("nondefault filters stay isolated; restart/offline lookup keeps validated results");
 
             // A single-hero request interrupts neither the full job nor its local readers.
             fixture.Reset(); fixture.Fingerprint = new string('b', 64); fixture.Generated = "2026-10-12T00:00:00Z";
             Set("FocusRecent", new List<string>());
             fixture.BlockKey = Records.Keys.OrderBy(k => k, StringComparer.Ordinal).First();
-            Call("StartLibraryUpdate", "1-5", false); Check(fixture.Started.Wait(10000), "Full-library fixture did not block");
-            Call("StartHeroUpdate", "detail-266-top-father-1-5");
+            App.Runtime.Updates.StartLibraryUpdate("1-5", false); Check(fixture.Started.Wait(10000), "Full-library fixture did not block");
+            App.Runtime.Updates.StartHeroUpdate("detail-266-top-father-1-5");
             Wait(() => Hero("detail-266-top-father-1-5")["state"].ToString() == "complete", "Priority hero request was starved by full-library download");
             Check((bool)Job()["busy"] && Query("detail-266-top-father-1-5")["data"] != null, "Priority hero waited for full library or damaged results");
-            Call("CancelLibraryUpdate"); fixture.Release.Set(); Done();
+            App.Runtime.Updates.CancelLibraryUpdate(); fixture.Release.Set(); Done();
             Pass("manual hero refresh is serviced during a whole-library update without restarting the collection");
 
             fixture.Reset();
-            foreach (string key in Records.Keys.Where(k => k.Contains("-father-")).Take(28)) { Call("StartHeroUpdate", key); Done(); }
-            var jobs = (System.Collections.IDictionary)App.GetField("HeroJobs", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);
+            foreach (string key in Records.Keys.Where(k => k.Contains("-father-")).Take(28)) { App.Runtime.Updates.StartHeroUpdate(key); Done(); }
+            var jobs = (System.Collections.IDictionary)App.Field("HeroJobs");
             Check(jobs.Count <= 24, "Completed manual job states grew without bound");
             var samples = new List<double>();
             foreach (string key in Records.Keys) { var t = Stopwatch.StartNew(); Check(Query(key)["data"] != null, "Local record missing"); samples.Add(t.Elapsed.TotalMilliseconds); }

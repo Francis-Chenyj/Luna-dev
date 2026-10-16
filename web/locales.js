@@ -230,7 +230,7 @@
   "双击 Luna.exe 或“启动Luna.cmd”。只监听本机地址，无需管理员权限。点右上角“退出”停止本地服务；只关闭窗口时，服务将在约 10 分钟无访问后自动退出。": "Run Luna.exe or 启动Luna.cmd. Luna listens only on the local computer and requires no administrator rights. Exit at the top stops the local service. Closing only the window leaves the service running until about 10 minutes without access.",
   "右上角显示本地运行、连接中断或已退出。连接中断时，请重新启动程序，再点击“重新连接”或在新打开的窗口继续使用。可运行“创建Luna桌面快捷方式.cmd”创建绿色 L 图标的桌面入口。": "The top badge indicates running, disconnected or stopped. If disconnected, restart Luna and choose Reconnect, or continue in the newly opened window. Run 创建Luna桌面快捷方式.cmd to create a desktop shortcut with the green L icon.",
   "本地程序作者：": "App author:",
-  "· 版本 1.6.4。": "· Version 1.6.4.",
+  "· 版本 1.6.5。": "· Version 1.6.5.",
   "项目主页": "Project homepage",
   "Luna · GitHub 项目主页 ↗": "Luna · GitHub project homepage ↗",
   "开发中，欢迎反馈。": "In development. Feedback is welcome.",

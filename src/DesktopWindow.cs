@@ -30,15 +30,15 @@ namespace Luna {
                 var request = (System.Net.HttpWebRequest)System.Net.WebRequest.Create(uri.GetLeftPart(UriPartial.Authority) + "/api/window/show");
                 request.Proxy = null; request.Method = "POST"; request.ContentLength = 0; request.Headers["X-Luna"] = "1"; request.Timeout = 3500;
                 using (var response = request.GetResponse()) using (var reader = new StreamReader(response.GetResponseStream()))
-                    return Get(Obj(Json().DeserializeObject(reader.ReadToEnd())), "available", false).Equals(true);
+                    return DataFormat.Get(DataFormat.Obj(DataFormat.Json().DeserializeObject(reader.ReadToEnd())), "available", false).Equals(true);
             } catch { return false; }
         }
         static object WindowInfo() { return Desktop == null ? (object)new { available = false } : Desktop.Status; }
         static void ValidateWindowChoice(string choice, string remember) {
-            if ((choice != "tray" && choice != "exit") || (remember != "true" && remember != "false")) throw new SettingsException("settings.invalid");
-            if (Desktop == null) throw new SettingsException("window.unavailable");
+            if ((choice != "tray" && choice != "exit") || (remember != "true" && remember != "false")) throw new PreferenceStore.SettingsException("settings.invalid");
+            if (Desktop == null) throw new PreferenceStore.SettingsException("window.unavailable");
             // A failed save must not hide/exit the window or claim the choice was remembered.
-            if (remember == "true") SavePreference("closeAction", choice);
+            if (remember == "true") Runtime.SavePreference("closeAction", choice);
         }
 
         sealed class DesktopWindow : Form {
@@ -90,7 +90,7 @@ namespace Luna {
                 starting = true;
                 try {
                     var profile = Path.Combine(CacheDir, "webview2");
-                    if (!PlainPath(profile)) throw new IOException("Unsafe WebView profile path");
+                    if (!DataFormat.PlainPath(profile)) throw new IOException("Unsafe WebView profile path");
                     Directory.CreateDirectory(profile);
                     // Official AnyCPU SDK layout selects the matching x86/x64/ARM64 loader.
                     var env = await CoreWebView2Environment.CreateAsync(null, profile);
@@ -128,7 +128,7 @@ namespace Luna {
                     // Only disposable browser caches: never localStorage (recent queries),
                     // preferences or matchup data. Cleanup is async and cannot block queries.
                     core.Navigate(Address + "/");
-                } catch (Exception ex) { if (!quitting) { RecordDiagnostic(ex); Log(ex); ShowLoadError(); } }
+                } catch (Exception ex) { if (!quitting) { Runtime.Diagnostics.RecordDiagnostic(ex); Runtime.Diagnostics.Log(ex); ShowLoadError(); } }
                 finally { starting = false; }
             }
             async void ClearBrowserCache() {
@@ -136,15 +136,15 @@ namespace Luna {
                 try {
                     await view.CoreWebView2.Profile.ClearBrowsingDataAsync(CoreWebView2BrowsingDataKinds.DiskCache | CoreWebView2BrowsingDataKinds.CacheStorage);
                     string path = Path.Combine(CacheDir, "browser-cleaned.json");
-                    if (SafeLocalPath(path)) WriteRecord(path, new { checkedAt = Stamp() });
+                    if (DataFormat.SafeLocalPath(path)) DataFormat.WriteRecord(path, new { checkedAt = DataFormat.Stamp() });
                 }
-                catch (Exception ex) { RecordDiagnostic(ex); }
+                catch (Exception ex) { Runtime.Diagnostics.RecordDiagnostic(ex); }
                 finally { cacheCleaning = false; }
             }
             void CheckBrowserCache() {
-                if (!ready || quitting || cacheCleaning || DateTime.UtcNow < nextCacheCheck || DateTime.UtcNow.Ticks - Interlocked.Read(ref LastQueryTicks) < TimeSpan.FromSeconds(3).Ticks) return;
+                if (!ready || quitting || cacheCleaning || DateTime.UtcNow < nextCacheCheck || DateTime.UtcNow.Ticks - Runtime.Activity.LastQuery < TimeSpan.FromSeconds(3).Ticks) return;
                 nextCacheCheck = DateTime.UtcNow.AddHours(1);
-                if (cacheCleanupRequested || DateValue(Str(ReadRecord(Path.Combine(CacheDir, "browser-cleaned.json")), "checkedAt")) < DateTime.UtcNow.AddDays(-1)) ClearBrowserCache();
+                if (cacheCleanupRequested || DataFormat.DateValue(DataFormat.Str(DataFormat.ReadRecord(Path.Combine(CacheDir, "browser-cleaned.json")), "checkedAt")) < DateTime.UtcNow.AddDays(-1)) ClearBrowserCache();
             }
             internal void RequestCacheCleanup() {
                 if (IsDisposed || !IsHandleCreated) return;
@@ -161,17 +161,17 @@ namespace Luna {
             static void OpenExternal(string url) {
                 Uri uri;
                 if (!Uri.TryCreate(url, UriKind.Absolute, out uri) || (uri.Scheme != "https" && uri.Scheme != "http")) return;
-                try { Process.Start(new ProcessStartInfo(uri.AbsoluteUri) { UseShellExecute = true }); } catch (Exception ex) { RecordDiagnostic(ex); }
+                try { Process.Start(new ProcessStartInfo(uri.AbsoluteUri) { UseShellExecute = true }); } catch (Exception ex) { Runtime.Diagnostics.RecordDiagnostic(ex); }
             }
             void ClosingWindow(object sender, FormClosingEventArgs e) {
-                string warning; var pref = ReadPreferences(out warning);
+                string warning; var pref = Runtime.Preferences.ReadPreferences(out warning);
                 string action = ResolveCloseAction(pref.closeAction, quitting, e.CloseReason == CloseReason.WindowsShutDown || e.CloseReason == CloseReason.TaskManagerClosing);
                 if (action == "exit") { quitting = true; return; }
                 e.Cancel = true;
                 if (action == "tray") { HideToTray(); return; }
                 if (CanAskPageToClose(ready, uiReady)) {
                     try { view.CoreWebView2.PostWebMessageAsString("luna-close-request"); return; }
-                    catch (InvalidOperationException ex) { RecordDiagnostic(ex); }
+                    catch (InvalidOperationException ex) { Runtime.Diagnostics.RecordDiagnostic(ex); }
                 }
                 // Startup/render failures must never trap users in an unclosable window.
                 var reply = MessageBox.Show(this, Chinese ? "Luna 正在加载或页面不可用。\n是：最小化到托盘\n否：退出应用" : "Luna is loading or the page is unavailable.\nYes: minimize to tray\nNo: exit the app", "Luna", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
@@ -188,7 +188,7 @@ namespace Luna {
             void HideToTray() {
                 if (quitting) return;
                 // Do not hide the only window unless the notification icon was registered.
-                try { tray.Visible = true; } catch (Exception ex) { RecordDiagnostic(ex); return; }
+                try { tray.Visible = true; } catch (Exception ex) { Runtime.Diagnostics.RecordDiagnostic(ex); return; }
                 Hide(); UpdateAppearance();
                 if (!trayNoticeShown) {
                     trayNoticeShown = true;
@@ -202,8 +202,8 @@ namespace Luna {
             }
             void UpdateAppearance() {
                 if (IsDisposed || !IsHandleCreated) return;
-                string warning; var pref = ReadPreferences(out warning);
-                language = pref.language == "system" ? SystemLanguage() : pref.language;
+                string warning; var pref = Runtime.Preferences.ReadPreferences(out warning);
+                language = pref.language == "system" ? DataFormat.SystemLanguage() : pref.language;
                 menu.Items[0].Text = Chinese ? "打开 Luna" : "Open Luna"; menu.Items[1].Text = Chinese ? "退出" : "Exit";
                 if (!ready) Text = Chinese ? "Luna · 英雄联盟对局助手" : "Luna · League of Legends Matchup Explorer";
                 var palette = ReadFrameColors();

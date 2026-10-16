@@ -2,13 +2,13 @@
 
 [English](DEVELOPER_GUIDE.md) · **简体中文** · [项目介绍](../README.zh-CN.md) · [用户指南](USER_GUIDE.zh-CN.md) · [更新日志](../CHANGELOG.md)
 
-**适用版本：1.6.4 · 作者：FrancisChen**
+**适用版本：1.6.5 · 作者：FrancisChen**
 
 补充入口：[审计修复与测试命令](AUDIT_REPAIRS.md)、[参与开发](CONTRIBUTING.md)、[安全问题](SECURITY.md)。
 
 项目主页：[Luna · GitHub](https://github.com/Francis-Chenyj/Luna-dev)。
 
-本指南说明现有构建、测试与本地打包流程。请使用源码目录或 `Luna-v1.6.4-Source.zip`；Windows 运行包不包含开发源码和测试。以下命令均在源码根目录执行。
+本指南说明现有构建、测试与本地打包流程。请使用源码目录或 `Luna-v1.6.5-Source.zip`；Windows 运行包不包含开发源码和测试。以下命令均在源码根目录执行。
 
 ## 开发环境
 
@@ -22,25 +22,24 @@
 
 构建使用已有的 .NET Framework `csc.exe`，优先寻找 `Framework64/v4.0.30319`，其次寻找 `Framework/v4.0.30319`。单英雄更新和长路径测试脚本目前直接使用 Framework64 编译器，因此完整测试建议在 64 位 Windows 环境中运行。
 
-当前流程无需安装 npm 依赖、运行前端打包器或还原外部 C# 包。普通用户运行 Luna 不需要 Node.js 或 Python。
+构建和基础检查无需 npm；可选真实浏览器检查需要锁定的 Playwright 开发依赖。无需前端打包或外部 C# 包还原。普通用户运行 Luna 不需要 Node.js 或 Python。
 
 ## 目录与模块
 
 | 路径 | 职责 |
 | --- | --- |
-| `src/Settings.cs` | 原子保存设置、固定目录入口、离线文档及精简诊断 |
+| `src/ApplicationRuntime.cs` | 服务组装、启动策略与后台工作生命周期 |
+| `src/Program.cs` | HTTP 和桌面进程宿主；调用服务接口 |
+| `src/Library.cs`、`src/QueryService.cs` | 索引、校验、原子发布及本地查询 |
+| `src/DataUpdates.cs` | 整库和单英雄共同调度、进度、取消及优先级 |
+| `src/Storage.cs`、`src/QuarantineStore.cs` | 保守清理、空间统计和隔离区 |
+| `src/Settings.cs`、`src/DiagnosticLog.cs` | 设置持久化及独立诊断状态 |
 | `web/i18n.js`、`web/locales.js`、`web/settings.js` | 双语文案与设置交互；主题使用 CSS 语义颜色变量 |
-| `src/Program.cs` | 本地 HTTP 服务、启动参数、网络读取及请求校验 |
 | `src/LocalHttp.cs` | 严格请求解析、请求头总超时及连接断开取消 |
-| `src/Library.cs` | 本地查询、条件库校验、后台下载、续传与启用 |
-| `src/Focus.cs` | 英雄优先级、已校验双向缓存及目录复用 |
-| `src/HeroUpdates.cs` | 手动单英雄更新队列与任务状态 |
-| `src/Storage.cs` | 版本保留、未完成下载过期清理和空间统计 |
 | `src/LocalIO.cs` | 文件读写长路径适配；路径归属和联接检查仍由调用处执行 |
 | `src/DesktopWindow.cs` | WinForms/WebView2 窗口、托盘、关闭策略与界面就绪确认 |
 | `src/AppUpdate.cs`、`src/UpdateTrust.cs` | 应用更新、断点下载、发布者公钥 |
 | `src/Deployment.cs` | 独立维护程序、清单、事务恢复、升级与卸载 |
-| `src/Space.cs` | 后台校验、隔离区和分类空间统计 |
 | `src/DesktopIcons.cs` | Luna 自身 Edge 应用窗口的图标 |
 | `src/AssemblyInfo.cs` | 产品名称、作者与版本信息 |
 | `web/` | 原生 HTML、CSS、JavaScript、搜索索引和 Luna 图标 |
@@ -112,7 +111,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\check.ps1
 
 每次会创建新的 `dist/checks/<唯一编号>/`，保存独立源码副本、`report.json`、可阅读的 `summary.md`、各步骤日志、程序包与解压测试副本。检查不会改动正在使用的可执行程序、图标和个人缓存。Node.js 需在 PATH 中，也可以传入 `-NodePath <node.exe绝对路径>`。如需指定位置，使用 `-OutputDirectory .\dist\my-check`，必须是当前源码目录下 `dist` 内尚不存在的新目录；不会覆盖以前的检查结果。
 
-检查顺序为：JavaScript 与项目一致性检查 → 检查工具的失败和超时处理 → 构建 → 9 组 C# 测试 → 离线接口 → 打包及文件清单、哈希校验 → 解压 Windows 包后再次完整检查离线接口 → 解压源码包重新构建。每轮接口检查核对默认条件的全部随包记录，同时检查请求边界、设置、文档和界面资源。任一步失败即停止，等待设有超时，只清理检查自身启动的进程，并保留日志。测试临时文件集中在检查目录的 `temp` 中。
+检查顺序为：JavaScript 与项目一致性检查 → 检查工具的失败和超时处理 → 构建 → 11 组 C# 测试 → 离线接口 → 打包及文件清单、哈希校验 → 解压 Windows 包后再次完整检查离线接口 → 解压源码包重新构建。每轮接口检查核对默认条件的全部随包记录，同时检查请求边界、设置、文档和界面资源。任一步失败即停止，等待设有超时，只清理检查自身启动的进程，并保留日志。测试临时文件集中在检查目录的 `temp` 中。
 
 源码包中的 `.github/workflows/windows-checks.yml` 选择 `windows-2022`、Windows PowerShell 和 Node.js 24，准备在分支推送、拉取请求或手动触发时运行。只配置仓库读取权限，官方 Actions 固定到明确版本的提交，不上传程序包、不创建 Release。环境准备可能下载 Node.js 和 Actions；Luna 测试使用本地样本和离线服务，不连接数据提供方，也不使用个人凭据。Windows 运行包不包含这些开发配置。参见 [GitHub 工作流语法](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax)与 [Windows 环境清单](https://github.com/actions/runner-images/blob/main/images/windows/Windows2022-Readme.md)。
 
@@ -190,19 +189,19 @@ HTTP 套件核对全部 856 份随包记录、来源日期、合法空列表、�
 
 ## 打包与校验
 
-使用**全新空目录**。`dist/v1.6.4/` 默认目录可能已有本地包，下面示例另选一个目录：
+使用**全新空目录**。`dist/v1.6.5/` 默认目录可能已有本地包，下面示例另选一个目录：
 
 ```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\package.ps1 -OutputDirectory .\dist\v1.6.4-review
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tests\run-package.ps1 -ReleaseDirectory .\dist\v1.6.4-review
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\package.ps1 -OutputDirectory .\dist\v1.6.5-review
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tests\run-package.ps1 -ReleaseDirectory .\dist\v1.6.5-review
 ```
 
 再次打包时换一个未使用的目录，脚本不会与已有文件混装。
 
 | 输出 | 内容 |
 | --- | --- |
-| `Luna-v1.6.4-Windows.zip` | 重新构建的 EXE、运行文件、随包数据、双语 README 与文档 |
-| `Luna-v1.6.4-Source.zip` | 源码、脚本、测试、数据与文档；不含 EXE |
+| `Luna-v1.6.5-Windows.zip` | 重新构建的 EXE、运行文件、随包数据、双语 README 与文档 |
+| `Luna-v1.6.5-Source.zip` | 源码、脚本、测试、数据与文档；不含 EXE |
 | `SHA256SUMS.txt` | 两个 ZIP 和清单的 SHA-256 |
 | `release-files.json` | 包内逐文件路径、大小与哈希 |
 | `_build/` | 本地构建中间目录，不作为下载附件 |
@@ -219,7 +218,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tests\run-package.ps1 
 
 Windows 系统缩放与浏览器网页缩放是两个独立设置。实际切换 Windows 为 125% 和 150%，网页缩放保持 100%，记录观察到的像素比例、语言主题、窗口大小和截图，结束后恢复原设置。只修改浏览器宽度或网页缩放不算 Windows 系统缩放验收。未具备的系统、浏览器或干净机器环境需单独注明。
 
-同一版本号的本地包用逐文件清单和 SHA-256 区分。[验证记录](QA-1.6.4.md)记录实际完成的检查，[发布说明](RELEASE-v1.6.4.md)描述选定构建。代码或包内容变化后重做相关检查，不直接覆盖已验证的 ZIP。
+同一版本号的本地包用逐文件清单和 SHA-256 区分。[验证记录](QA-1.6.5.md)记录实际完成的检查，[发布说明](RELEASE-v1.6.5.md)描述选定构建。代码或包内容变化后重做相关检查，不直接覆盖已验证的 ZIP。
 
 ## 数据与搜索词维护
 
@@ -244,16 +243,16 @@ Windows 系统缩放与浏览器网页缩放是两个独立设置。实际切换
 | [英文开发指南](DEVELOPER_GUIDE.md) / [简体中文开发指南](DEVELOPER_GUIDE.zh-CN.md) | 目录、构建、测试与本地打包 |
 | [CHANGELOG](../CHANGELOG.md) | 按版本记录变化，未发布修改放在 Unreleased |
 | [仓库资料](REPOSITORY_SETUP.md) | About 简介、项目主页与主题标签 |
-| [发布说明草稿](RELEASE-v1.6.4.md) | 后续发布说明与附件清单 |
+| [发布说明草稿](RELEASE-v1.6.5.md) | 后续发布说明与附件清单 |
 | [发布核对清单](RELEASE_CHECKLIST.md) | 仓库与附件范围、运行包验收、尚待完成的发布事项 |
-| [QA 记录](QA-1.6.4.md) | 标明日期的验证结果与范围 |
+| [QA 记录](QA-1.6.5.md) | 标明日期的验证结果与范围 |
 | [第三方核查](THIRD_PARTY_REVIEW.md) | 分发依据和未解决事项 |
 
 更改用户可见行为时，同步维护两种语言。产品名为 **Luna**，作者为 **FrancisChen**，仓库为 **Francis-Chenyj/Luna-dev**；参考项目链接集中在 README 致谢。
 
 以后准备程序新版本时，应同步更新源码、界面中的版本预期及分发资料；接口与包检查从元数据读取预期版本。仅调整工具和文档的改动先记入 **Unreleased**，不擅自提高程序版本。反馈表单与 Windows 工作流已在本地准备，GitHub 上的启用和实际 Release 发布仍需另行授权。
 
-## Desktop host / 桌面窗口 (1.6.4)
+## Desktop host / 桌面窗口 (1.6.5)
 
 `src/DesktopWindow.cs` owns the WinForms/WebView2 window and NotifyIcon. HTTP runs on a dedicated thread; query and update workers are unchanged. Close choices are stored as `closeAction: ask|tray|exit` in schema-1 preferences (missing field defaults to ask). Explicit Exit and Windows session end bypass the preference. `/api/window/close` and `/api/window/show` require the same POST, X-Luna, loopback Host and Origin checks as other mutations. Do not use them from external origins.
 
@@ -265,3 +264,5 @@ WebView2 uses `cache/webview2` and clears only DiskCache/CacheStorage asynchrono
 
 
 See [Application lifecycle / 程序维护](APPLICATION_LIFECYCLE.md) for signing, installation, updates, rollback and uninstall.
+
+服务归属、并发规则和测试迁移见[运行时架构](ARCHITECTURE.md)。独立运行新增套件：`tests/run-service-isolation.ps1`。

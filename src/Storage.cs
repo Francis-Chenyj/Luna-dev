@@ -1,20 +1,35 @@
 using File = Luna.LocalFile;
 using Directory = Luna.LocalDirectory;
 using FileInfo = Luna.LocalFileInfo;
-using DirectoryInfo = Luna.LocalDirectoryInfo;
 using System;
-using System.Collections.Generic;
 using System.IO;
+using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading;
+using System.Text.RegularExpressions;
 
 namespace Luna {
-    internal static partial class Program {
+    internal sealed class StorageMaintenance {
+        readonly RuntimeOptions options;
+        readonly BackgroundWork workers;
+        readonly LibraryStore store;
+        readonly AppUpdateService appUpdates;
+        readonly QuarantineStore quarantine;
+        readonly QueryActivity activity;
+        readonly DiagnosticLog diagnostics;
+        internal StorageMaintenance(RuntimeOptions options, BackgroundWork workers, LibraryStore store, AppUpdateService appUpdates, QuarantineStore quarantine, QueryActivity activity, DiagnosticLog diagnostics) {
+            this.options = options;
+            this.workers = workers;
+            this.store = store;
+            this.appUpdates = appUpdates;
+            this.quarantine = quarantine;
+            this.activity = activity;
+            this.diagnostics = diagnostics;
+        }
         const int ResumeRetentionDays = 7;
-        static int StorageWorker;
-        static long StorageNextCheck;
-        static volatile bool StorageWaiting;
+        int StorageWorker;
+        long StorageNextCheck;
+        volatile bool StorageWaiting;
         sealed class StorageReport {
             public bool ready, busy, deferred;
             public long downloadedBytes, freedBytes;
@@ -22,7 +37,7 @@ namespace Luna {
             public string checkedAt = "", message = "正在检查本地空间…";
             public int resumeDays = ResumeRetentionDays;
         }
-        static volatile StorageReport Storage = new StorageReport();
+        volatile StorageReport Storage = new StorageReport();
         sealed class StoredProfile {
             public string Path, Fingerprint, Profile;
             public bool Complete;
@@ -30,34 +45,24 @@ namespace Luna {
             public string[] Files;
         }
 
-        // Automatic deletion is limited to Luna-owned files inside this exact library.
-        // Never traverse junctions/symlinks, unknown subdirectories or user-added files.
-        static bool PlainPath(string path) {
+        internal bool LibraryPath(string path) {
             try {
-                var full = Path.GetFullPath(path);
-                for (var item = new DirectoryInfo(full); item != null; item = item.Parent)
-                    if (item.Exists && (item.Attributes & FileAttributes.ReparsePoint) != 0) return false;
-                return true;
-            } catch { return false; }
-        }
-        static bool LibraryPath(string path) {
-            try {
-                string full = Path.GetFullPath(path), root = Path.GetFullPath(LibraryDir).TrimEnd(Path.DirectorySeparatorChar);
-                if (!full.StartsWith(root + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase) || !PlainPath(full)) return false;
+                string full = Path.GetFullPath(path), root = Path.GetFullPath(options.LibraryDir).TrimEnd(Path.DirectorySeparatorChar);
+                if (!full.StartsWith(root + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase) || !DataFormat.PlainPath(full)) return false;
                 return !File.Exists(full) || (File.GetAttributes(full) & FileAttributes.ReparsePoint) == 0;
             } catch { return false; }
         }
-        static bool OwnedRecordName(string name, string profile) {
+        bool OwnedRecordName(string name, string profile) {
             if (!name.EndsWith(".json.gz", StringComparison.Ordinal)) return false;
             string key = name.Substring(0, name.Length - 8);
-            return ValidKey(key) && ProfileOf(key) == profile;
+            return DataFormat.ValidKey(key) && DataFormat.ProfileOf(key) == profile;
         }
-        static bool OwnedTempName(string name, string profile) {
-            if (ShortTempName(name)) return true;
+        bool OwnedTempName(string name, string profile) {
+            if (DataFormat.ShortTempName(name)) return true;
             var match = Regex.Match(name, @"^(.*)\.[a-f0-9]{32}\.tmp$");
             return match.Success && (match.Groups[1].Value == "manifest.json" || OwnedRecordName(match.Groups[1].Value, profile));
         }
-        static StoredProfile InspectStoredProfile(string path, string fingerprint, string profile) {
+        StoredProfile InspectStoredProfile(string path, string fingerprint, string profile) {
             try {
                 if (!LibraryPath(path) || Directory.GetDirectories(path).Length != 0) return null;
                 string[] files = Directory.GetFiles(path);
@@ -67,8 +72,8 @@ namespace Luna {
                     if (!LibraryPath(file)) return null;
                     string name = Path.GetFileName(file);
                     if (name == "manifest.json") {
-                        var manifest = ReadRecord(file);
-                        if (manifest == null || Str(manifest, "schema") != "1" || Str(manifest, "profile") != profile || Str(manifest, "fingerprint") != fingerprint) return null;
+                        var manifest = DataFormat.ReadRecord(file);
+                        if (manifest == null || DataFormat.Str(manifest, "schema") != "1" || DataFormat.Str(manifest, "profile") != profile || DataFormat.Str(manifest, "fingerprint") != fingerprint) return null;
                         complete = true;
                     } else if (OwnedRecordName(name, profile)) written.Add(File.GetLastWriteTimeUtc(file));
                     else if (!OwnedTempName(name, profile)) return null;
@@ -77,7 +82,7 @@ namespace Luna {
                 return new StoredProfile { Path = path, Fingerprint = fingerprint, Profile = profile, Complete = complete, ProgressAt = progress, Files = files };
             } catch { return null; }
         }
-        static bool DeleteOwnedFile(string path, ref long freed) {
+        bool DeleteOwnedFile(string path, ref long freed) {
             try {
                 if (!LibraryPath(path)) return false;
                 if (!File.Exists(path)) return true;
@@ -85,7 +90,7 @@ namespace Luna {
                 File.Delete(path); freed += bytes; return true;
             } catch { return false; }
         }
-        static bool DeleteOwnedProfile(StoredProfile profile, ref long freed, CancellationToken token) {
+        bool DeleteOwnedProfile(StoredProfile profile, ref long freed, CancellationToken token) {
             // Recheck immediately before deleting; never use a recursive directory delete.
             var current = InspectStoredProfile(profile.Path, profile.Fingerprint, profile.Profile);
             if (current == null) return false;
@@ -102,10 +107,10 @@ namespace Luna {
             } catch { complete = false; }
             return complete;
         }
-        static long DownloadedLibraryBytes() {
-            long bytes = FocusBytes();
-            if (!Directory.Exists(LibraryDir) || !PlainPath(LibraryDir)) return bytes;
-            var pending = new Stack<string>(); pending.Push(LibraryDir);
+        long DownloadedLibraryBytes() {
+            long bytes = store.FocusBytes();
+            if (!Directory.Exists(options.LibraryDir) || !DataFormat.PlainPath(options.LibraryDir)) return bytes;
+            var pending = new Stack<string>(); pending.Push(options.LibraryDir);
             while (pending.Count > 0) {
                 string directory = pending.Pop();
                 try {
@@ -115,37 +120,30 @@ namespace Luna {
             }
             return bytes;
         }
-        static string KnownSourceFingerprint(DateTime now) {
-            var source = ReadRecord(Path.Combine(LibraryDir, "source-state.json"));
-            string fingerprint = Str(source, "fingerprint");
-            DateTime checkedAt = DateValue(Str(source, "checkedAt"));
-            return Fingerprint(fingerprint) && checkedAt <= now.AddMinutes(5) && checkedAt >= now.AddDays(-ResumeRetentionDays) ? fingerprint : "";
+        string KnownSourceFingerprint(DateTime now) {
+            var source = DataFormat.ReadRecord(Path.Combine(options.LibraryDir, "source-state.json"));
+            string fingerprint = DataFormat.Str(source, "fingerprint");
+            DateTime checkedAt = DataFormat.DateValue(DataFormat.Str(source, "checkedAt"));
+            return DataFormat.Fingerprint(fingerprint) && checkedAt <= now.AddMinutes(5) && checkedAt >= now.AddDays(-ResumeRetentionDays) ? fingerprint : "";
         }
-        static void RecordSourceFingerprint(string fingerprint) {
-            if (!Fingerprint(fingerprint)) return;
-            Directory.CreateDirectory(LibraryDir);
-            WriteRecord(Path.Combine(LibraryDir, "source-state.json"), new { fingerprint = fingerprint, checkedAt = Stamp() });
-        }
-
-        // Caller holds the same cross-process mutex as the updater. No external requests.
-        static void MaintainStorage(string latestFingerprint, CancellationToken token) {
+        internal void MaintainStorage(string latestFingerprint, CancellationToken token) {
             StorageWaiting = false;
             var prior = Storage;
             Storage = new StorageReport { busy = true, ready = prior.ready, downloadedBytes = prior.downloadedBytes, freedBytes = prior.freedBytes, checkedAt = prior.checkedAt, message = "正在自动整理离线数据…" };
             long freed = 0; int removed = 0; bool deferred = false;
             try {
                 DateTime now = DateTime.UtcNow;
-                MaintainExceptionalFiles();
-                MaintainAppDownloads();
-                MaintainFocused();
-                if (!Directory.Exists(LibraryDir)) return;
-                if (!PlainPath(LibraryDir)) { deferred = true; return; }
-                if (!Fingerprint(latestFingerprint)) latestFingerprint = KnownSourceFingerprint(now);
+                quarantine.MaintainExceptionalFiles();
+                appUpdates.MaintainAppDownloads();
+                store.MaintainFocused();
+                if (!Directory.Exists(options.LibraryDir)) return;
+                if (!DataFormat.PlainPath(options.LibraryDir)) { deferred = true; return; }
+                if (!DataFormat.Fingerprint(latestFingerprint)) latestFingerprint = KnownSourceFingerprint(now);
                 var candidates = new List<StoredProfile>();
-                foreach (string directory in Directory.GetDirectories(LibraryDir)) {
+                foreach (string directory in Directory.GetDirectories(options.LibraryDir)) {
                     token.ThrowIfCancellationRequested();
                     string fingerprint = Path.GetFileName(directory);
-                    if (!Fingerprint(fingerprint)) continue;
+                    if (!DataFormat.Fingerprint(fingerprint)) continue;
                     if (!LibraryPath(directory)) { deferred = true; continue; }
                     foreach (string child in Directory.GetDirectories(directory)) {
                         string profile = Path.GetFileName(child);
@@ -156,26 +154,25 @@ namespace Luna {
                 }
                 foreach (var group in candidates.GroupBy(p => p.Profile)) {
                     token.ThrowIfCancellationRequested();
-                    string profile = group.Key, pointerPath = Path.Combine(LibraryDir, "active-" + profile + ".json");
-                    var pointer = ReadRecord(pointerPath);
+                    string profile = group.Key, pointerPath = Path.Combine(options.LibraryDir, "active-" + profile + ".json");
+                    var pointer = DataFormat.ReadRecord(pointerPath);
                     var keep = new HashSet<string>(StringComparer.Ordinal);
                     bool uncertain = false;
                     if (File.Exists(pointerPath)) {
-                        if (!LibraryPath(pointerPath) || pointer == null || !Fingerprint(Str(pointer, "current")) || (Str(pointer, "previous") != "" && !Fingerprint(Str(pointer, "previous")))) uncertain = true;
+                        if (!LibraryPath(pointerPath) || pointer == null || !DataFormat.Fingerprint(DataFormat.Str(pointer, "current")) || (DataFormat.Str(pointer, "previous") != "" && !DataFormat.Fingerprint(DataFormat.Str(pointer, "previous")))) uncertain = true;
                         else {
-                            keep.Add(Str(pointer, "current"));
-                            if (Fingerprint(Str(pointer, "previous"))) keep.Add(Str(pointer, "previous"));
+                            keep.Add(DataFormat.Str(pointer, "current"));
+                            if (DataFormat.Fingerprint(DataFormat.Str(pointer, "previous"))) keep.Add(DataFormat.Str(pointer, "previous"));
                             // A broken active edition must never cause the removal of potentially useful complete data.
-                            string activePath = Path.Combine(LibraryDir, Str(pointer, "current"), profile);
-                            var active = LibraryPath(activePath) ? OpenProfile(activePath, profile, "library") : null;
-                            if (active == null || !ProfileFilesIntact(active)) uncertain = true;
+                            string activePath = Path.Combine(options.LibraryDir, DataFormat.Str(pointer, "current"), profile);
+                            if (!LibraryPath(activePath) || !store.IsIntactProfile(activePath, profile)) uncertain = true;
                         }
                     }
                     if (uncertain) { deferred = true; continue; }
                     // Preserve complete, unpublished data if an activation pointer is missing.
                     // This is an abnormal state; keeping it is safer than guessing which edition to delete.
                     if (pointer == null && group.Any(p => p.Complete)) { deferred = true; foreach (var item in group.Where(p => p.Complete)) keep.Add(item.Fingerprint); }
-                    var resume = group.Where(p => !p.Complete && !keep.Contains(p.Fingerprint) && p.ProgressAt >= now.AddDays(-ResumeRetentionDays) && (!Fingerprint(latestFingerprint) || p.Fingerprint == latestFingerprint))
+                    var resume = group.Where(p => !p.Complete && !keep.Contains(p.Fingerprint) && p.ProgressAt >= now.AddDays(-ResumeRetentionDays) && (!DataFormat.Fingerprint(latestFingerprint) || p.Fingerprint == latestFingerprint))
                         .OrderByDescending(p => p.ProgressAt).ThenBy(p => p.Fingerprint, StringComparer.Ordinal).FirstOrDefault();
                     if (resume != null) keep.Add(resume.Fingerprint);
                     foreach (var item in group) {
@@ -190,45 +187,104 @@ namespace Luna {
                     }
                 }
                 // Interrupted atomic pointer/state writes may leave tiny temporary files.
-                foreach (string file in Directory.GetFiles(LibraryDir)) {
-                    if ((ShortTempName(Path.GetFileName(file)) || Regex.IsMatch(Path.GetFileName(file), @"^(active-[1-5]-[1-5]|source-state|catalog-cache)\.json\.[a-f0-9]{32}\.tmp$")) && File.GetLastWriteTimeUtc(file) < now.AddDays(-1))
+                foreach (string file in Directory.GetFiles(options.LibraryDir)) {
+                    if ((DataFormat.ShortTempName(Path.GetFileName(file)) || Regex.IsMatch(Path.GetFileName(file), @"^(active-[1-5]-[1-5]|source-state|catalog-cache)\.json\.[a-f0-9]{32}\.tmp$")) && File.GetLastWriteTimeUtc(file) < now.AddDays(-1))
                         if (!DeleteOwnedFile(file, ref freed)) deferred = true;
                 }
-                foreach (string directory in Directory.GetDirectories(LibraryDir)) {
-                    if (!Fingerprint(Path.GetFileName(directory)) || !LibraryPath(directory)) continue;
+                foreach (string directory in Directory.GetDirectories(options.LibraryDir)) {
+                    if (!DataFormat.Fingerprint(Path.GetFileName(directory)) || !LibraryPath(directory)) continue;
                     try { if (Directory.GetFileSystemEntries(directory).Length == 0) Directory.Delete(directory, false); } catch { deferred = true; }
                 }
             } catch (OperationCanceledException) { deferred = true; }
-            catch (Exception ex) { deferred = true; Log(ex); }
+            catch (Exception ex) { deferred = true; diagnostics.Log(ex); }
             finally {
-                freed += Interlocked.Exchange(ref FocusFreedBytes, 0);
-                Storage = new StorageReport { ready = true, busy = false, deferred = deferred, downloadedBytes = DownloadedLibraryBytes(), freedBytes = prior.freedBytes + freed, removedProfiles = prior.removedProfiles + removed, checkedAt = Stamp(),
+                freed += store.TakeFreedBytes();
+                Storage = new StorageReport { ready = true, busy = false, deferred = deferred, downloadedBytes = DownloadedLibraryBytes(), freedBytes = prior.freedBytes + freed, removedProfiles = prior.removedProfiles + removed, checkedAt = DataFormat.Stamp(),
                     message = deferred ? "部分文件暂未清理；为保护数据已保留，下次检查再处理。" : "自动空间管理已开启。" };
                 Interlocked.Exchange(ref StorageNextCheck, DateTime.UtcNow.AddHours(24).Ticks);
                 RefreshSpaceReport(token);
-                if (!token.IsCancellationRequested && !deferred && SafeLocalPath(Path.Combine(CacheDir, "maintenance-state.json")))
-                    WriteRecord(Path.Combine(CacheDir, "maintenance-state.json"), new { checkedAt = Stamp() });
+                if (!token.IsCancellationRequested && !deferred && DataFormat.SafeLocalPath(Path.Combine(options.CacheDir, "maintenance-state.json")))
+                    DataFormat.WriteRecord(Path.Combine(options.CacheDir, "maintenance-state.json"), new { checkedAt = DataFormat.Stamp() });
             }
         }
-        static void ScheduleStorageMaintenance() {
-            if (Shutdown.IsCancellationRequested || DateTime.UtcNow.Ticks < Interlocked.Read(ref StorageNextCheck) || Interlocked.CompareExchange(ref StorageWorker, 1, 0) != 0) return;
-            var thread = new Thread(() => {
+        internal void ScheduleStorageMaintenance() {
+            if (workers.IsCancellationRequested || DateTime.UtcNow.Ticks < Interlocked.Read(ref StorageNextCheck) || Interlocked.CompareExchange(ref StorageWorker, 1, 0) != 0) return;
+            if (!workers.TryStart(() => {
                 bool acquired = false;
-                using (var mutex = new Mutex(false, "Local\\LunaData_" + Hash(Root).Substring(0, 20))) try {
+                using (var mutex = new Mutex(false, "Local\\LunaData_" + DataFormat.Hash(options.Root).Substring(0, 20))) try {
                     try { acquired = mutex.WaitOne(0); } catch (AbandonedMutexException) { acquired = true; }
                     StorageWaiting = !acquired;
-                    if (acquired) MaintainStorage("", Shutdown.Token);
+                    if (acquired) MaintainStorage("", workers.Token);
                     else Interlocked.Exchange(ref StorageNextCheck, DateTime.UtcNow.AddMinutes(1).Ticks);
-                } catch (Exception ex) { Log(ex); }
+                } catch (Exception ex) { diagnostics.Log(ex); }
                 finally { if (acquired) mutex.ReleaseMutex(); Interlocked.Exchange(ref StorageWorker, 0); }
-            });
-            thread.IsBackground = true; thread.Start();
+            }, "Luna storage maintenance")) Interlocked.Exchange(ref StorageWorker, 0);
         }
-        static string PreviousUsableFingerprint(string profile, string incoming) {
-            List<LibraryProfile> list;
-            if (Profiles.TryGetValue(profile, out list)) foreach (var item in list)
-                if (item.Source != "bundled" && Str(item.Manifest, "fingerprint") != incoming && ProfileFilesIntact(item)) return Str(item.Manifest, "fingerprint");
-            return "";
+        int HousekeepingStarted, SpaceWorker;
+        readonly object SpaceSync = new object();
+        object SpaceSnapshot;
+        internal void StartHousekeeping() {
+            if (Interlocked.Exchange(ref HousekeepingStarted, 1) != 0) return;
+            var last = DataFormat.ReadRecord(Path.Combine(options.CacheDir, "maintenance-state.json"));
+            var checkedAt = DataFormat.DateValue(DataFormat.Str(last, "checkedAt"));
+            if (checkedAt <= DateTime.UtcNow && checkedAt > DateTime.UtcNow.AddDays(-1)) Interlocked.Exchange(ref StorageNextCheck, checkedAt.AddDays(1).Ticks);
+            if (!workers.TryStart(() => {
+                try {
+                    if (workers.Token.WaitHandle.WaitOne(5000)) return;
+                    ScheduleStorageMaintenance();
+                    store.AuditLibrary(workers.Token);
+                } catch (OperationCanceledException) { } catch (Exception ex) { diagnostics.Log(ex); }
+            }, "Luna integrity audit")) Interlocked.Exchange(ref HousekeepingStarted, 0);
+        }
+        internal object SpaceInfo() {
+            lock (SpaceSync) {
+                if (SpaceSnapshot == null) SpaceSnapshot = DataFormat.ReadRecord(Path.Combine(options.CacheDir, "space-report.json"));
+                return new { success = true, busy = Volatile.Read(ref SpaceWorker) != 0 || StorageWorker != 0, waiting = StorageWaiting, report = SpaceSnapshot };
+            }
+        }
+        internal void RequestSpaceMaintenance() {
+            if (RequestBrowserCleanup != null) RequestBrowserCleanup();
+            Interlocked.Exchange(ref StorageNextCheck, 0); ScheduleStorageMaintenance();
+        }
+        internal void RefreshSpaceReport(CancellationToken token) {
+            if (Interlocked.CompareExchange(ref SpaceWorker, 1, 0) != 0) return;
+            try {
+                var sizes = new Dictionary<string, long> { { "program", 0 }, { "library", 0 }, { "heroes", 0 }, { "browser", 0 }, { "updates", 0 }, { "diagnostics", 0 }, { "settings", 0 }, { "other", 0 } };
+                bool incomplete = false; int count = 0;
+                var roots = new List<string>();
+                foreach (string name in new[] { "cache", "data", "web", "runtimes" }) {
+                    string path = Path.Combine(options.Root, name); if (Directory.Exists(path) && DataFormat.PlainPath(path)) roots.Add(path);
+                }
+                foreach (string name in new[] { "Luna.exe", "Luna.Maintenance.exe", "Luna.exe.config", "Microsoft.Web.WebView2.Core.dll", "Microsoft.Web.WebView2.WinForms.dll", "installed-files.json" }) {
+                    string path = Path.Combine(options.Root, name); if (File.Exists(path) && DataFormat.SafeLocalPath(path)) sizes["program"] += new FileInfo(path).Length;
+                }
+                var pending = new Stack<string>(roots);
+                while (pending.Count > 0) {
+                    token.ThrowIfCancellationRequested(); string dir = pending.Pop();
+                    try {
+                        foreach (string path in Directory.EnumerateFiles(dir)) {
+                            token.ThrowIfCancellationRequested();
+                            if (!DataFormat.SafeLocalPath(path)) { incomplete = true; continue; }
+                            string relative = path.Substring(options.Root.Length).Replace('\\', '/');
+                            string kind = !relative.StartsWith("cache/") ? "program" : relative.StartsWith("cache/library/") ? "library" : relative.StartsWith("cache/focus/") ? "heroes" :
+                                relative.StartsWith("cache/webview2/") ? "browser" : relative.StartsWith("cache/app-update/") ? "updates" : relative.StartsWith("cache/quarantine/") || relative.StartsWith("cache/logs/") || relative == "cache/error.log" ? "diagnostics" :
+                                relative == "cache/settings.json" ? "settings" : "other";
+                            sizes[kind] += new FileInfo(path).Length; count++;
+                            if (count % 64 == 0) activity.YieldMaintenance(token);
+                        }
+                        foreach (string child in Directory.EnumerateDirectories(dir)) { if (DataFormat.PlainPath(child)) pending.Push(child); else incomplete = true; }
+                    } catch (IOException) { incomplete = true; } catch (UnauthorizedAccessException) { incomplete = true; }
+                }
+                var report = new { checkedAt = DataFormat.Stamp(), bytes = sizes, totalBytes = sizes.Values.Sum(), fileCount = count, partial = incomplete, freedBytes = Storage.freedBytes + quarantine.FreedBytes };
+                lock (SpaceSync) { SpaceSnapshot = report; if (DataFormat.SafeLocalPath(Path.Combine(options.CacheDir, "space-report.json"))) DataFormat.WriteRecord(Path.Combine(options.CacheDir, "space-report.json"), report); }
+            } catch (OperationCanceledException) { } catch (Exception ex) { diagnostics.Log(ex); }
+            finally { Interlocked.Exchange(ref SpaceWorker, 0); }
+        }
+
+        internal Action RequestBrowserCleanup;
+        internal object Status { get { return Storage; } }
+        internal void AfterUpdate(int changed, CancellationToken token) {
+            if (changed > 0 || DateTime.UtcNow.Ticks >= Interlocked.Read(ref StorageNextCheck)) MaintainStorage("", token);
         }
     }
 }

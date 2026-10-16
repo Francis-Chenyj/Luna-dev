@@ -2,13 +2,13 @@
 
 **English** · [简体中文](DEVELOPER_GUIDE.zh-CN.md) · [Project overview](../README.md) · [User guide](USER_GUIDE.md) · [Changelog](../CHANGELOG.md)
 
-**Applies to version 1.6.4 · Author: FrancisChen**
+**Applies to version 1.6.5 · Author: FrancisChen**
 
 See [audit repairs and test commands](AUDIT_REPAIRS.md), [contributing](CONTRIBUTING.md) and [security reporting](SECURITY.md).
 
 Project home: [Luna on GitHub](https://github.com/Francis-Chenyj/Luna-dev).
 
-This guide covers the existing build, tests and local packaging workflow. Start with a source checkout or `Luna-v1.6.4-Source.zip`; the Windows package does not contain the development source or tests. Run commands from the source root.
+This guide covers the existing build, tests and local packaging workflow. Start with a source checkout or `Luna-v1.6.5-Source.zip`; the Windows package does not contain the development source or tests. Run commands from the source root.
 
 ## Environment
 
@@ -22,25 +22,24 @@ This guide covers the existing build, tests and local packaging workflow. Start 
 
 The build uses the installed .NET Framework `csc.exe`, looking in `Framework64/v4.0.30319` before `Framework/v4.0.30319`. The hero-update and long-path test wrappers currently use the Framework64 compiler directly. A 64-bit Windows development environment is therefore recommended for the complete suite.
 
-There is no npm install, frontend bundler or external C# package restore in the current workflow. Node.js and Python are not runtime dependencies for end users.
+The build and baseline checks need no npm installation; optional browser verification uses locked Playwright development dependencies. No frontend bundler or external C# restore is required. Node.js and Python are not runtime dependencies for end users.
 
 ## Repository layout
 
 | Path | Responsibility |
 | --- | --- |
-| `src/Settings.cs` | Atomic preferences, fixed local folders/documents and limited diagnostics |
+| `src/ApplicationRuntime.cs` | Service composition, launch options and worker lifetime |
+| `src/Program.cs` | HTTP/native process host calling explicit services |
+| `src/Library.cs`, `src/QueryService.cs` | Indexes, validation, atomic publication and local queries |
+| `src/DataUpdates.cs` | Shared full-library/champion scheduling, progress and cancellation |
+| `src/Storage.cs`, `src/QuarantineStore.cs` | Conservative retention, space reports and quarantine |
+| `src/Settings.cs`, `src/DiagnosticLog.cs` | Preferences and independently owned diagnostics |
 | `web/i18n.js`, `web/locales.js`, `web/settings.js` | Bilingual messages and settings; themes use semantic CSS colors |
-| `src/Program.cs` | Application launch, loopback listener and allowlisted routes |
 | `src/LocalHttp.cs` | Strict body-free request parser, total header deadline and per-connection cancellation |
-| `src/Library.cs` | Local queries, profile validation, background downloads, resumption and activation |
-| `src/Focus.cs` | Champion priorities, validated two-direction caching and catalog reuse |
-| `src/HeroUpdates.cs` | Manual champion-update queue and task state |
-| `src/Storage.cs` | Retention, expired staged downloads and storage reporting |
 | `src/LocalIO.cs` | Long-path file I/O; callers retain ownership and reparse-point validation |
 | `src/DesktopWindow.cs` | WinForms/WebView2, tray, close policy and application readiness |
 | `src/AppUpdate.cs`, `src/UpdateTrust.cs` | Application updates, resumable downloads and publisher public key |
 | `src/Deployment.cs` | Independent maintenance, manifests, transaction recovery and uninstall |
-| `src/Space.cs` | Background audit, quarantine and categorized storage measurement |
 | `src/DesktopIcons.cs` | Icons for Luna's own Edge app windows |
 | `src/AssemblyInfo.cs` | Product name, author and version metadata |
 | `web/` | Plain HTML, CSS and JavaScript, search index and Luna icons |
@@ -190,19 +189,19 @@ For deterministic checks of a normal service, change the launch arguments to `--
 
 ## Package and verify
 
-Use a **new empty output directory**. The default `dist/v1.6.4/` may already contain local artifacts; the following example chooses a separate directory:
+Use a **new empty output directory**. The default `dist/v1.6.5/` may already contain local artifacts; the following example chooses a separate directory:
 
 ```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\package.ps1 -OutputDirectory .\dist\v1.6.4-review
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tests\run-package.ps1 -ReleaseDirectory .\dist\v1.6.4-review
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\package.ps1 -OutputDirectory .\dist\v1.6.5-review
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tests\run-package.ps1 -ReleaseDirectory .\dist\v1.6.5-review
 ```
 
 Choose another unused directory for a repeat run. Packaging refuses to mix with existing files.
 
 | Output | Contents |
 | --- | --- |
-| `Luna-v1.6.4-Windows.zip` | Rebuilt EXE, runtime files, bundled data, both READMEs and documentation |
-| `Luna-v1.6.4-Source.zip` | Source, scripts, tests, data and documentation; no EXE |
+| `Luna-v1.6.5-Windows.zip` | Rebuilt EXE, runtime files, bundled data, both READMEs and documentation |
+| `Luna-v1.6.5-Source.zip` | Source, scripts, tests, data and documentation; no EXE |
 | `SHA256SUMS.txt` | SHA-256 values for both ZIPs and the manifest |
 | `release-files.json` | Every archive entry's path, size and hash |
 | `_build/` | Intermediate local build, not a download attachment |
@@ -219,7 +218,7 @@ Before handing a package to users, follow the [release checklist](RELEASE_CHECKL
 
 Windows display scaling and browser zoom are separate controls. Check real Windows scaling at 125% and 150% with browser zoom at 100%; record the observed pixel ratio, language/theme, viewport and screenshots. Restore the original display setting afterwards. Changing only the browser width or zoom does not count as a Windows scaling check. Document separately any OS/browser combination or clean-machine environment that was not available.
 
-Use the release inventory and SHA-256 to distinguish local builds sharing a version number. The [QA record](QA-1.6.4.md) records completed checks; the [release draft](RELEASE-v1.6.4.md) describes the selected build. Run relevant checks again when the code or package contents change; do not silently replace an already verified ZIP.
+Use the release inventory and SHA-256 to distinguish local builds sharing a version number. The [QA record](QA-1.6.5.md) records completed checks; the [release draft](RELEASE-v1.6.5.md) describes the selected build. Run relevant checks again when the code or package contents change; do not silently replace an already verified ZIP.
 
 ## Data and search maintenance
 
@@ -244,16 +243,16 @@ Use matching official catalog coverage for a search rebuild, record source/versi
 | [Developer guide](DEVELOPER_GUIDE.md) / [简体中文开发指南](DEVELOPER_GUIDE.zh-CN.md) | Layout, build, testing and local packaging |
 | [Changelog](../CHANGELOG.md) | Versioned changes, including an Unreleased section |
 | [Repository details](REPOSITORY_SETUP.md) | About description, project URL and topics |
-| [Release draft](RELEASE-v1.6.4.md) | Future release description and attachment list |
+| [Release draft](RELEASE-v1.6.5.md) | Future release description and attachment list |
 | [Release checklist](RELEASE_CHECKLIST.md) | Source/upload boundaries, runtime acceptance and outstanding publication items |
-| [QA record](QA-1.6.4.md) | Dated validation results and their limits |
+| [QA record](QA-1.6.5.md) | Dated validation results and their limits |
 | [Third-party review](THIRD_PARTY_REVIEW.md) | Distribution evidence and unresolved items |
 
 Keep the two language editions in step when changing user-visible behavior. The product is **Luna**, author **FrancisChen**, repository **Francis-Chenyj/Luna-dev**; reference-project links belong in README acknowledgements.
 
 For a future application version, update versioned source/UI expectations and release metadata together; the HTTP and package checks derive the expected release version from metadata. Tooling/documentation-only work stays under **Unreleased** unless a new version is intentionally prepared. Issue forms and the Windows workflow are locally prepared; GitHub activation and actual Release publication remain separate authorized actions.
 
-## Desktop host / 桌面窗口 (1.6.4)
+## Desktop host / 桌面窗口 (1.6.5)
 
 `src/DesktopWindow.cs` owns the WinForms/WebView2 window and NotifyIcon. HTTP runs on a dedicated thread; query and update workers are unchanged. Close choices are stored as `closeAction: ask|tray|exit` in schema-1 preferences (missing field defaults to ask). Explicit Exit and Windows session end bypass the preference. `/api/window/close` and `/api/window/show` require the same POST, X-Luna, loopback Host and Origin checks as other mutations. Do not use them from external origins.
 
@@ -265,3 +264,5 @@ WebView2 uses `cache/webview2` and clears only DiskCache/CacheStorage asynchrono
 
 
 See [Application lifecycle / 程序维护](APPLICATION_LIFECYCLE.md) for signing, installation, updates, rollback and uninstall.
+
+See [runtime ownership](ARCHITECTURE.md) for service boundaries, concurrency rules and fixture migration. Run the new suite with `tests/run-service-isolation.ps1`.

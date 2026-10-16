@@ -1,6 +1,6 @@
 {
   "name": "luna-local-verification",
-  "version": "1.6.4",
+  "version": "1.6.5",
   "private": true,
   "description": "Development-only browser regression runner; not needed by the Windows application",
   "scripts": {

@@ -60,7 +60,7 @@ try {
     Run-Check 'javascript' $node @('--test','tests\core.test.cjs','tests\ui.test.cjs','tests\i18n.test.cjs','tests\repository.test.cjs')
     Run-Check 'check-tools' $windowsPowerShell (PowerShell-Arguments (Join-Path $sourcePath 'tests\run-check-tools.ps1') @('-NodePath',$node))
     Run-Check 'build' $windowsPowerShell (PowerShell-Arguments (Join-Path $sourcePath 'build.ps1'))
-    foreach ($suite in @('settings','stability','storage','auto-update','focus','hero-update','icons','longpath','lifecycle','http-transport')) {
+    foreach ($suite in @('settings','stability','storage','auto-update','focus','hero-update','icons','longpath','lifecycle','http-transport','service-isolation')) {
         Run-Check ('csharp-' + $suite) $windowsPowerShell (PowerShell-Arguments (Join-Path $sourcePath ('tests\run-' + $suite + '.ps1')))
     }
     Run-Check 'offline-http' $windowsPowerShell (PowerShell-Arguments (Join-Path $sourcePath 'tests\run-http.ps1') @('-RuntimeDirectory',$sourcePath,'-LogDirectory',(Join-Path $logPath 'offline'),'-NodePath',$node))

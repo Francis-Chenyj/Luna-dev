@@ -10,7 +10,8 @@ using System.Threading;
 namespace Luna {
     internal static partial class Program {
         static DesktopIconService DesktopIcons;
-        static string DesktopTag(int port) { return "Luna" + Hash(Root.ToUpperInvariant() + ":" + port).Substring(0, 16); }
+        static readonly object DesktopIconSync = new object();
+        static string DesktopTag(int port) { return "Luna" + DataFormat.Hash(Root.ToUpperInvariant() + ":" + port).Substring(0, 16); }
         static string DesktopPath { get { return "/" + DesktopTag(Port); } }
         sealed class FramePalette {
             public int Dark, Caption, Text;
@@ -23,7 +24,7 @@ namespace Luna {
                 Text = highContrast ? -1 : dark ? 0xeff4f0 : 0x222d1d };
         }
         static FramePalette ReadFrameColors() {
-            string warning; var preferences = ReadPreferences(out warning);
+            string warning; var preferences = Runtime.Preferences.ReadPreferences(out warning);
             bool dark = false, highContrast = false;
             try { highContrast = System.Windows.Forms.SystemInformation.HighContrast; } catch { }
             try {
@@ -33,9 +34,9 @@ namespace Luna {
             return FrameColors(preferences.theme, dark, highContrast);
         }
         static void StartDesktopIcons() {
-            lock (LogSync) {
+            lock (DesktopIconSync) {
                 if (DesktopIcons != null) return;
-                DesktopIcons = new DesktopIconService(DesktopTag(Port), Root, Offline, Port);
+                DesktopIcons = new DesktopIconService(DesktopTag(Port), Root, Runtime.Options.Offline, Port);
                 DesktopIcons.Start();
             }
         }
@@ -49,7 +50,6 @@ namespace Luna {
             readonly Dictionary<IntPtr, WindowIcons> windows = new Dictionary<IntPtr, WindowIcons>();
             readonly object sync = new object();
             string error = "";
-            Thread worker;
             sealed class WindowIcons {
                 public uint ProcessId, Dpi;
                 public IntPtr Small, Large;
@@ -62,10 +62,9 @@ namespace Luna {
                 command = "\"" + Path.Combine(root, "Luna.exe") + "\" --port " + port + (offline ? " --offline" : "");
             }
             public void Start() {
-                worker = new Thread(Run) { IsBackground = true, Name = "Luna window icons" };
-                worker.SetApartmentState(ApartmentState.STA); worker.Start();
+                Runtime.Workers.TryStart(Run, "Luna window icons", ApartmentState.STA);
             }
-            public void Close() { Shutdown.Cancel(); if (worker != null) worker.Join(2000); }
+            public void Close() { Runtime.Workers.Stop(); }
             public object Status() {
                 lock (sync) return new { supported = true, error = error, windows = windows.Select(pair => new {
                     dpi = pair.Value.Dpi, smallPixels = pair.Value.SmallSize, largePixels = pair.Value.LargeSize,
@@ -85,9 +84,9 @@ namespace Luna {
             }
             void Run() {
                 try {
-                    while (!Shutdown.IsCancellationRequested) {
+                    while (!Runtime.Workers.IsCancellationRequested) {
                         lock (sync) Sweep();
-                        if (Shutdown.Token.WaitHandle.WaitOne(1500)) break;
+                        if (Runtime.Workers.Token.WaitHandle.WaitOne(1500)) break;
                     }
                 } catch (Exception ex) { lock (sync) error = ex.GetType().Name; }
                 finally {

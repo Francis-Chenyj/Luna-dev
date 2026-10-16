@@ -10,7 +10,7 @@ using System.Web;
 using System.Web.Script.Serialization;
 
 internal static class AutoUpdateTests {
-    static readonly Type App = typeof(Luna.Program);
+    static readonly TestApplication App = new TestApplication(AppDomain.CurrentDomain.BaseDirectory);
     static readonly JavaScriptSerializer Json = new JavaScriptSerializer { MaxJsonLength = 16 * 1024 * 1024 };
     static readonly string Root = AppDomain.CurrentDomain.BaseDirectory;
     static readonly string Library = Path.Combine(Root, "cache", "library");
@@ -20,16 +20,16 @@ internal static class AutoUpdateTests {
     static Dictionary<string, Dictionary<string, object>> Records;
     static string[] Keys;
     static object Call(string name, params object[] args) {
-        try { return App.GetMethod(name, BindingFlags.NonPublic | BindingFlags.Static).Invoke(null, args); }
+        try { return App.Call(name, args); }
         catch (TargetInvocationException ex) { ExceptionDispatchInfo.Capture(ex.InnerException).Throw(); throw; }
     }
-    static void Set(string name, object value) { App.GetField(name, BindingFlags.NonPublic | BindingFlags.Static).SetValue(null, value); }
+    static void Set(string name, object value) { App.Set(name, value); }
     static Dictionary<string, object> Map(object value) { return (Dictionary<string, object>)value; }
     static Dictionary<string, object> ConvertObject(object value) { lock (Json) return Map(Json.DeserializeObject(Json.Serialize(value))); }
     static string Serialize(object value) { lock (Json) return Json.Serialize(value); }
-    static Dictionary<string, object> Info() { return ConvertObject(Call("LibraryInfo", "1-5")); }
+    static Dictionary<string, object> Info() { return ConvertObject(App.Runtime.LibraryInfo("1-5")); }
     static Dictionary<string, object> Job() { return Map(Info()["job"]); }
-    static Dictionary<string, object> Query(string key) { return ConvertObject(Call("LocalDetail", key)); }
+    static Dictionary<string, object> Query(string key) { return ConvertObject(App.Runtime.Queries.LocalDetail(key)); }
     static void Check(bool value, string message) { if (!value) throw new Exception(message); }
     static void Pass(string message) { Console.WriteLine("PASS: " + message); }
     static void WaitUntil(Func<bool> ready, int timeout, string message) {
@@ -37,7 +37,7 @@ internal static class AutoUpdateTests {
         while (!ready()) { if (watch.ElapsedMilliseconds > timeout) throw new Exception(message); Thread.Sleep(10); }
     }
     static void WaitJob() { WaitUntil(() => !(bool)Job()["busy"], 45000, "Background job timed out"); }
-    static void NewLaunch() { Set("StartupUpdateScheduled", 0); Call("ScheduleStartupUpdate"); }
+    static void NewLaunch() { Set("StartupUpdateScheduled", 0); App.Runtime.Updates.ScheduleStartupUpdate(); }
     static void VerifyDefault(string source, bool measure) {
         var samples = new List<double>();
         foreach (string key in Keys) {
@@ -54,37 +54,37 @@ internal static class AutoUpdateTests {
         Directory.CreateDirectory(directory); var entries = new Dictionary<string, object>();
         foreach (string key in Keys) {
             string nextKey = key.Substring(0, key.Length - 3) + "2-4", path = Path.Combine(directory, nextKey + ".json.gz");
-            Call("WriteCompressed", path, new { key = nextKey, fingerprint = fingerprint, fetchedAt = Manifest["builtAt"], data = Records[key]["data"] });
-            entries[nextKey] = Call("FileHash", File.ReadAllBytes(path));
+            Luna.DataFormat.WriteCompressed(path, new { key = nextKey, fingerprint = fingerprint, fetchedAt = Manifest["builtAt"], data = Records[key]["data"] });
+            entries[nextKey] = Luna.DataFormat.FileHash(File.ReadAllBytes(path));
         }
         // Synthetic second profile reuses the real payloads only to exercise update scope.
-        Call("WriteRecord", Path.Combine(directory, "manifest.json"), new { schema = 1, profile = "2-4", fingerprint = fingerprint, sourceGeneratedAt = Manifest["sourceGeneratedAt"], builtAt = Manifest["builtAt"], expected = Keys.Length, entries = entries, catalog = Catalog });
-        Call("WriteRecord", Path.Combine(Library, "active-2-4.json"), new { current = fingerprint, previous = "" });
-        Call("InitializeLibrary");
+        Luna.DataFormat.WriteRecord(Path.Combine(directory, "manifest.json"), new { schema = 1, profile = "2-4", fingerprint = fingerprint, sourceGeneratedAt = Manifest["sourceGeneratedAt"], builtAt = Manifest["builtAt"], expected = Keys.Length, entries = entries, catalog = Catalog });
+        Luna.DataFormat.WriteRecord(Path.Combine(Library, "active-2-4.json"), new { current = fingerprint, previous = "" });
+        App.Runtime.Library.InitializeLibrary();
     }
     static int Main() {
         try {
             Directory.CreateDirectory(Library);
             string bundled = Path.Combine(Root, "data", "library", "1-5");
-            Manifest = Map(Call("ReadRecord", Path.Combine(bundled, "manifest.json"))); Catalog = Map(Manifest["catalog"]);
+            Manifest = Map(Luna.DataFormat.ReadRecord(Path.Combine(bundled, "manifest.json"))); Catalog = Map(Manifest["catalog"]);
             Keys = Map(Manifest["entries"]).Keys.OrderBy(k => k, StringComparer.Ordinal).ToArray();
-            Records = Keys.ToDictionary(k => k, k => Map(Call("ReadCompressed", Path.Combine(bundled, k + ".json.gz"))));
-            Call("InitializeLibrary"); AddSavedProfile();
+            Records = Keys.ToDictionary(k => k, k => Map(Luna.DataFormat.ReadCompressed(Path.Combine(bundled, k + ".json.gz"))));
+            App.Runtime.Library.InitializeLibrary(); AddSavedProfile();
             var source = new FixtureSource { Fingerprint = Manifest["fingerprint"].ToString() };
             Set("LibraryTransport", new Func<string, CancellationToken, Dictionary<string, object>>(source.Fetch));
 
-            Set("Offline", true); Call("ScheduleStartupUpdate");
+            Set("Offline", true); App.Runtime.Updates.ScheduleStartupUpdate();
             Check(!(bool)Job()["busy"] && source.Calls == 0, "Offline launch scheduled networking"); Set("Offline", false);
-            Set("AutomaticUpdatesEnabled", false); Call("ScheduleStartupUpdate");
+            Set("AutomaticUpdatesEnabled", false); App.Runtime.Updates.ScheduleStartupUpdate();
             Check(!(bool)Job()["busy"] && source.Calls == 0, "Disabled automatic updates scheduled networking"); Set("AutomaticUpdatesEnabled", true);
-            Call("ScheduleStartupUpdate"); Call("ScheduleStartupUpdate");
+            App.Runtime.Updates.ScheduleStartupUpdate(); App.Runtime.Updates.ScheduleStartupUpdate();
             Check((bool)Job()["automatic"] && Job()["state"].ToString() == "scheduled", "Startup did not schedule one delayed job");
             Thread.Sleep(100); Check(source.Calls == 0, "Startup delay was skipped");
             Check(Query(Keys[0])["data"] != null, "Startup timer blocked the first local query");
-            Call("CancelLibraryUpdate"); WaitJob(); VerifyDefault("bundled", true);
+            App.Runtime.Updates.CancelLibraryUpdate(); WaitJob(); VerifyDefault("bundled", true);
             Check(source.Calls == 0 && Job()["state"].ToString() == "cancelled", "Cancelling pending startup made network requests");
-            Call("ScheduleStartupUpdate"); Check(!(bool)Job()["busy"], "Cancelled automatic task requeued itself");
-            Call("StartLibraryUpdate", "1-5", false); WaitJob();
+            App.Runtime.Updates.ScheduleStartupUpdate(); Check(!(bool)Job()["busy"], "Cancelled automatic task requeued itself");
+            App.Runtime.Updates.StartLibraryUpdate("1-5", false); WaitJob();
             Check(!(bool)Job()["automatic"] && Job()["state"].ToString() == "complete" && source.Details == 0, "Manual update no longer works after cancelling automatic task");
             Pass("offline/manual-only modes, startup delay, one job per launch, cancellation and manual override");
 
@@ -94,12 +94,12 @@ internal static class AutoUpdateTests {
             source.FailStatus = false;
             Pass("automatic source failure stops with original complete data and provenance intact");
 
-            string mutexName = "Local\\LunaData_" + ((string)Call("Hash", Root)).Substring(0, 20);
+            string mutexName = "Local\\LunaData_" + ((string)Luna.DataFormat.Hash(Root)).Substring(0, 20);
             using (var mutex = new Mutex(false, mutexName)) {
                 Check(mutex.WaitOne(0), "Fixture mutex unexpectedly occupied");
                 try {
                     source.Reset(); NewLaunch(); WaitUntil(() => Job()["state"].ToString() == "waiting", 9000, "Automatic updater failed to wait for maintenance");
-                    VerifyDefault("bundled", true); Call("CancelLibraryUpdate"); WaitJob();
+                    VerifyDefault("bundled", true); App.Runtime.Updates.CancelLibraryUpdate(); WaitJob();
                     Check(source.Calls == 0, "Waiting updater bypassed mutex or did not cancel");
                 } finally { mutex.ReleaseMutex(); }
             }

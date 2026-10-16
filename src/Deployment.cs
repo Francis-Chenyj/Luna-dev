@@ -20,7 +20,7 @@ namespace Luna {
     // Independent maintenance executable: no browser SDK or running app required.
     internal static class Deployment {
         internal const string Owner = "Luna.Runtime.1";
-        internal static readonly JavaScriptSerializer Json = new JavaScriptSerializer { MaxJsonLength = 4 * 1024 * 1024 };
+        internal static JavaScriptSerializer Json { get { return new JavaScriptSerializer { MaxJsonLength = 4 * 1024 * 1024 }; } }
         internal static Dictionary<string, object> Map(object value) { return value as Dictionary<string, object> ?? new Dictionary<string, object>(); }
         internal static string Text(Dictionary<string, object> map, string key) { object value; return map.TryGetValue(key, out value) ? Convert.ToString(value) : ""; }
         internal static object[] Array(Dictionary<string, object> map, string key) { object value; return map.TryGetValue(key, out value) ? value as object[] ?? new object[0] : new object[0]; }

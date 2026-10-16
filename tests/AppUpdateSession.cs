@@ -40,8 +40,7 @@ internal static class AppUpdateSession {
                     }
                 }
             }) { IsBackground = true }; server.Start();
-            var app = typeof(Luna.Program); var flags = BindingFlags.Static | BindingFlags.NonPublic;
-            app.GetField("ReleaseTransport", flags).SetValue(null, new Func<string, CancellationToken, string>((url, token) => {
+            Func<string, CancellationToken, string> release = (url, token) => {
                 token.ThrowIfCancellationRequested();
                 if (url.StartsWith("https://api.github.com/")) {
                     Log(new { kind = "check", at = DateTime.UtcNow.ToString("o") });
@@ -49,13 +48,14 @@ internal static class AppUpdateSession {
                 }
                 if (url != Config["metadataUrl"].ToString()) throw new IOException("Unexpected metadata request in test");
                 return File.ReadAllText(Config["metadata"].ToString());
-            }));
-            app.GetField("AppDownloadTransport", flags).SetValue(null, new Func<string, long, CancellationToken, HttpWebResponse>((url, offset, token) => {
+            };
+            Func<string, long, CancellationToken, HttpWebResponse> download = (url, offset, token) => {
                 var request = (HttpWebRequest)WebRequest.Create(endpoint); request.Proxy = null; request.Timeout = 5000;
                 if (offset > 0) request.AddRange(offset);
                 using (token.Register(request.Abort)) { token.ThrowIfCancellationRequested(); return (HttpWebResponse)request.GetResponse(); }
-            }));
-            app.GetMethod("Main", flags).Invoke(null, new object[] { args }); return 0;
+            };
+            Luna.Program.InitializeRuntime(args, null, release, download);
+            Luna.Program.Main(args); return 0;
         } catch (Exception ex) { File.WriteAllText(Path.Combine(Root, "fixture-error.txt"), ex.ToString()); return 1; }
     }
 }

@@ -14,15 +14,15 @@ using System.Web.Script.Serialization;
 
 internal static class LifecycleTests {
     static readonly string Root = AppDomain.CurrentDomain.BaseDirectory;
-    static readonly Type App = typeof(Luna.Program);
+    static readonly TestApplication App = new TestApplication(AppDomain.CurrentDomain.BaseDirectory);
     static readonly JavaScriptSerializer Json = new JavaScriptSerializer { MaxJsonLength = 16 * 1024 * 1024 };
-    static object Call(string name, params object[] args) { try { return App.GetMethod(name, BindingFlags.Static | BindingFlags.NonPublic).Invoke(null, args); } catch (TargetInvocationException ex) { ExceptionDispatchInfo.Capture(ex.InnerException).Throw(); throw; } }
-    static void Set(string name, object value) { App.GetField(name, BindingFlags.Static | BindingFlags.NonPublic).SetValue(null, value); }
+    static object Call(string name, params object[] args) { try { return App.Call(name, args); } catch (TargetInvocationException ex) { ExceptionDispatchInfo.Capture(ex.InnerException).Throw(); throw; } }
+    static void Set(string name, object value) { App.Set(name, value); }
     static Dictionary<string, object> Map(object value) { return (Dictionary<string, object>)value; }
     static void Check(bool value, string message) { if (!value) throw new Exception(message); }
     static void Reject(Action action, string message) { try { action(); } catch (IOException) { return; } catch (ArgumentException) { return; } catch (CryptographicException) { return; } throw new Exception(message); }
     static void Pass(string message) { Console.WriteLine("PASS: " + message); }
-    static object Field(string name) { return App.GetField(name, BindingFlags.Static | BindingFlags.NonPublic).GetValue(null); }
+    static object Field(string name) { return App.Field(name); }
     static Dictionary<string, object> Snapshot(string name) { return Map(Json.DeserializeObject(Json.Serialize(Call(name)))); }
     static void Until(Func<bool> condition, string message) { var timer = Stopwatch.StartNew(); while (!condition() && timer.ElapsedMilliseconds < 5000) Thread.Sleep(10); Check(condition(), message); }
     static void Idle() { Until(() => !(bool)Snapshot("AppUpdateInfo")["busy"], "Updater did not become idle"); }
@@ -31,9 +31,9 @@ internal static class LifecycleTests {
         Put(Root, "cache/settings.json", "{\"schema\":1,\"language\":\"en\",\"theme\":\"dark\",\"autoUpdate\":false,\"appAutoCheck\":false,\"appAutoDownload\":true}");
         var preferences = Map(Snapshot("SettingsInfo")["preferences"]);
         Check(!(bool)preferences["appAutoCheck"] && !(bool)preferences["appAutoDownload"], "Legacy download-only preference enabled networking");
-        Call("SavePreference", "theme", "light");
+        App.Runtime.SavePreference("theme", "light");
         Check(!(bool)Map(Json.DeserializeObject(File.ReadAllText(settings)))["appAutoDownload"], "Legacy preference not normalized on save");
-        Call("DiscardDownload");
+        App.Runtime.AppUpdates.DiscardDownload();
         string feed = Json.Serialize(new[] { new { draft = false, prerelease = false, assets = new[] { new { name = "luna-update.json", browser_download_url = "https://github.com/Francis-Chenyj/Luna-dev/releases/download/v1.7.0/luna-update.json" } } } });
         int checks = 0; var entered = new ManualResetEventSlim(); var releaseCheck = new ManualResetEventSlim(); var finishCancellation = new ManualResetEventSlim();
         bool delayCancellation = true;
@@ -45,69 +45,69 @@ internal static class LifecycleTests {
         }));
         using (var server = new DownloadServer(File.ReadAllBytes(archive))) {
             Set("AppDownloadTransport", new Func<string, long, CancellationToken, HttpWebResponse>((url, offset, token) => server.Get(offset)));
-            Call("WriteRecord", Path.Combine(Root, "cache/app-update/check.json"), new { state = "current", checkedAt = DateTime.UtcNow.ToString("o") });
-            var timer = Stopwatch.StartNew(); Call("SavePreference", "appAutoDownload", "true");
+            Luna.DataFormat.WriteRecord(Path.Combine(Root, "cache/app-update/check.json"), new { state = "current", checkedAt = DateTime.UtcNow.ToString("o") });
+            var timer = Stopwatch.StartNew(); App.Runtime.SavePreference("appAutoDownload", "true");
             Check(timer.ElapsedMilliseconds < 1000, "Saving waited for network");
             Check(entered.Wait(2000), "Enabling download did not immediately check");
             preferences = Map(Snapshot("SettingsInfo")["preferences"]);
             Check((bool)preferences["appAutoCheck"] && (bool)preferences["appAutoDownload"], "Download did not atomically enable checking");
             Check((bool)Map(Json.DeserializeObject(File.ReadAllText(settings)))["appAutoCheck"], "Coupled check setting was not persisted");
-            Call("SavePreference", "appAutoDownload", "true"); Call("CheckScheduledAppUpdate");
+            App.Runtime.SavePreference("appAutoDownload", "true"); App.Runtime.AppUpdates.CheckScheduledAppUpdate();
             Check(checks == 1, "An active check was duplicated");
-            Call("SavePreference", "appAutoCheck", "false");
+            App.Runtime.SavePreference("appAutoCheck", "false");
             preferences = Map(Snapshot("SettingsInfo")["preferences"]);
             Check(!(bool)preferences["appAutoCheck"] && !(bool)preferences["appAutoDownload"], "Check opt-out did not disable downloads");
-            Call("SavePreference", "appAutoDownload", "true");
+            App.Runtime.SavePreference("appAutoDownload", "true");
             releaseCheck.Set(); finishCancellation.Set();
             Until(() => checks == 2 && !(bool)Snapshot("AppUpdateInfo")["busy"], "Enable during cancellation lost its immediate check");
             Check(Snapshot("AppUpdateInfo")["state"].ToString() == "ready" && server.Offsets.Count == 1, "Automatic check/download did not reach ready exactly once");
             Check(File.Exists(Path.Combine(Root, "cache/app-update/stage/installed-files.json")), "Ready update was not saved");
             Pass("atomic toggle coupling, immediate check despite recent success, nonblocking save, deduplication and rapid off/on cancellation recovery");
 
-            Call("SavePreference", "appAutoDownload", "false"); preferences = Map(Snapshot("SettingsInfo")["preferences"]);
+            App.Runtime.SavePreference("appAutoDownload", "false"); preferences = Map(Snapshot("SettingsInfo")["preferences"]);
             Check((bool)preferences["appAutoCheck"] && !(bool)preferences["appAutoDownload"], "Disabling downloads disabled version checks");
-            Call("SavePreference", "appAutoDownload", "true"); Idle();
+            App.Runtime.SavePreference("appAutoDownload", "true"); Idle();
             Check(server.Offsets.Count == 1, "Re-enabling downloaded the verified package again");
-            Call("DiscardDownload");
-            Call("SavePreference", "appAutoCheck", "false");
+            App.Runtime.AppUpdates.DiscardDownload();
+            App.Runtime.SavePreference("appAutoCheck", "false");
             var downloadEntered = new ManualResetEventSlim(); var continueDownload = new ManualResetEventSlim();
             Set("AppDownloadTransport", new Func<string, long, CancellationToken, HttpWebResponse>((url, offset, token) => { downloadEntered.Set(); continueDownload.Wait(token); return server.Get(offset); }));
-            Call("SavePreference", "appAutoDownload", "true"); Check(downloadEntered.Wait(2000), "Automatic download did not start");
-            Call("SavePreference", "appAutoDownload", "false"); Idle();
+            App.Runtime.SavePreference("appAutoDownload", "true"); Check(downloadEntered.Wait(2000), "Automatic download did not start");
+            App.Runtime.SavePreference("appAutoDownload", "false"); Idle();
             Check(Snapshot("AppUpdateInfo")["state"].ToString() == "paused", "Automatic download continued after opt-out");
-            Call("CheckScheduledAppUpdate"); Check(!(bool)Snapshot("AppUpdateInfo")["busy"], "Startup reused stale download preference");
+            App.Runtime.AppUpdates.CheckScheduledAppUpdate(); Check(!(bool)Snapshot("AppUpdateInfo")["busy"], "Startup reused stale download preference");
             downloadEntered.Reset();
-            Call("StartAppUpdate", "download"); Check(downloadEntered.Wait(2000), "Explicit manual download did not start");
-            Call("SavePreference", "appAutoCheck", "false");
+            App.Runtime.AppUpdates.StartAppUpdate("download"); Check(downloadEntered.Wait(2000), "Explicit manual download did not start");
+            App.Runtime.SavePreference("appAutoCheck", "false");
             Check(!((CancellationTokenSource)Field("AppUpdateCancellation")).IsCancellationRequested, "Turning off automation cancelled an explicit manual download");
             continueDownload.Set(); Idle(); Check(Snapshot("AppUpdateInfo")["state"].ToString() == "ready", "Manual download failed with automation off");
             Pass("download opt-out retains checking and progress, prepared packages are reused, explicit manual downloads remain available");
         }
         int before = checks;
-        Set("Offline", true); Call("SavePreference", "appAutoDownload", "true"); Call("CheckScheduledAppUpdate");
+        Set("Offline", true); App.Runtime.SavePreference("appAutoDownload", "true"); App.Runtime.AppUpdates.CheckScheduledAppUpdate();
         Check(checks == before, "Offline preference change contacted the network");
-        Call("SavePreference", "appAutoCheck", "false"); Set("Offline", false); Set("CommandLineDisablesUpdates", true);
-        Call("SavePreference", "appAutoDownload", "true"); Call("CheckScheduledAppUpdate"); Check(checks == before, "Manual-only launch contacted the network");
-        Set("CommandLineDisablesUpdates", false); Call("SavePreference", "appAutoCheck", "false");
+        App.Runtime.SavePreference("appAutoCheck", "false"); Set("Offline", false); Set("CommandLineDisablesUpdates", true);
+        App.Runtime.SavePreference("appAutoDownload", "true"); App.Runtime.AppUpdates.CheckScheduledAppUpdate(); Check(checks == before, "Manual-only launch contacted the network");
+        Set("CommandLineDisablesUpdates", false); App.Runtime.SavePreference("appAutoCheck", "false");
         Set("ReleaseTransport", new Func<string, CancellationToken, string>((url, token) => { Interlocked.Increment(ref checks); throw new IOException("Controlled offline release feed"); }));
-        Call("SavePreference", "appAutoCheck", "true"); Idle();
+        App.Runtime.SavePreference("appAutoCheck", "true"); Idle();
         Check(Snapshot("AppUpdateInfo")["state"].ToString() == "error" && (bool)Map(Snapshot("SettingsInfo")["preferences"])["appAutoCheck"], "Network error incorrectly failed preference saving");
-        before = checks; Call("CheckScheduledAppUpdate"); Check(checks == before, "Startup immediately retried a failed enable check");
-        Call("SavePreference", "appAutoCheck", "false");
+        before = checks; App.Runtime.AppUpdates.CheckScheduledAppUpdate(); Check(checks == before, "Startup immediately retried a failed enable check");
+        App.Runtime.SavePreference("appAutoCheck", "false");
         Set("ReleaseTransport", new Func<string, CancellationToken, string>((url, token) => { Interlocked.Increment(ref checks); token.WaitHandle.WaitOne(); token.ThrowIfCancellationRequested(); return "[]"; }));
-        Call("SavePreference", "appAutoCheck", "true"); Until(() => checks > before, "Immediate check did not start"); Call("CancelAppUpdate"); Idle();
-        before = checks; Call("CheckScheduledAppUpdate"); Check(checks == before, "Pause was undone by the delayed startup scheduler");
+        App.Runtime.SavePreference("appAutoCheck", "true"); Until(() => checks > before, "Immediate check did not start"); App.Runtime.AppUpdates.CancelAppUpdate(); Idle();
+        before = checks; App.Runtime.AppUpdates.CheckScheduledAppUpdate(); Check(checks == before, "Pause was undone by the delayed startup scheduler");
         string key = Path.GetFileName(Directory.GetFiles(Path.Combine(Root, "data/library/1-5"), "*.json.gz")[0]).Replace(".json.gz", "");
-        Check(Map(Call("LocalDetail", key))["data"] != null, "Update failure affected local queries");
+        Check(Map(App.Runtime.Queries.LocalDetail(key))["data"] != null, "Update failure affected local queries");
         Pass("offline/manual-only modes, successful save despite network failure, retry cooldown, pause protection and local queries after failure");
         Set("AppRelease", null); Set("AppUpdateState", "idle");
         string savedRelease = Path.Combine(Root, "cache/app-update/release.json"); if (File.Exists(savedRelease)) File.Delete(savedRelease);
-        Call("WriteRecord", Path.Combine(Root, "cache/app-update/check.json"), new { state = "available", checkedAt = DateTime.UtcNow.AddMinutes(-1).ToString("o") });
-        Call("WriteRecord", Path.Combine(Root, "cache/app-update/result.json"), new { state = "installed", version = Field("AppVersion").ToString(), at = DateTime.UtcNow.ToString("o") });
+        Luna.DataFormat.WriteRecord(Path.Combine(Root, "cache/app-update/check.json"), new { state = "available", checkedAt = DateTime.UtcNow.AddMinutes(-1).ToString("o") });
+        Luna.DataFormat.WriteRecord(Path.Combine(Root, "cache/app-update/result.json"), new { state = "installed", version = Field("AppVersion").ToString(), at = DateTime.UtcNow.ToString("o") });
         Check(Snapshot("AppUpdateInfo")["state"].ToString() == "installed" && Snapshot("AppUpdateInfo")["newVersion"].ToString() == "", "Successful installation still advertised an old offer");
-        Call("WriteRecord", Path.Combine(Root, "cache/app-update/result.json"), new { state = "installed", version = "0.0.1", at = DateTime.UtcNow.ToString("o") });
+        Luna.DataFormat.WriteRecord(Path.Combine(Root, "cache/app-update/result.json"), new { state = "installed", version = "0.0.1", at = DateTime.UtcNow.ToString("o") });
         Check(Snapshot("AppUpdateInfo")["state"].ToString() == "current", "An old installation receipt was mistaken for this upgrade");
-        Call("WriteRecord", Path.Combine(Root, "cache/app-update/transaction.json"), new { state = "committed", version = Field("AppVersion").ToString(), at = DateTime.UtcNow.AddSeconds(1).ToString("o") });
+        Luna.DataFormat.WriteRecord(Path.Combine(Root, "cache/app-update/transaction.json"), new { state = "committed", version = Field("AppVersion").ToString(), at = DateTime.UtcNow.AddSeconds(1).ToString("o") });
         Check(Snapshot("AppUpdateInfo")["state"].ToString() == "installed", "A committed upgrade lost its status when receipt writing failed");
         Pass("restart reports the installed version, consumes the old availability state and ignores receipts for other versions");
     }
@@ -215,27 +215,27 @@ internal static class LifecycleTests {
             string cache = Path.Combine(Root, "cache"), focus = Path.Combine(cache, "focus"); Directory.CreateDirectory(focus);
             for (int i = 1; i <= 100; i++) File.WriteAllText(Path.Combine(focus, "focus-" + i + "-top-1-5.json.gz"), "broken");
             Put(focus, "personal.txt", "keep");
-            Call("MaintainFocused");
+            App.Runtime.Library.MaintainFocused();
             Check(Directory.GetFiles(focus, "focus-*.json.gz").Length == 0, "Invalid focus files escaped cleanup");
             string quarantine = Path.Combine(cache, "quarantine");
             Check(Directory.GetFiles(quarantine, "luna-*.bad").Length <= 20 && File.ReadAllText(Path.Combine(focus, "personal.txt")) == "keep", "Quarantine count/personal protection");
             string huge = Path.Combine(focus, "focus-101-top-1-5.json.gz"); using (var file = File.Create(huge)) file.SetLength(20 * 1024 * 1024);
-            Reject(() => Call("RecordFileHash", huge), "Oversized record hashed into memory"); Call("MaintainFocused");
+            Reject(() => Luna.DataFormat.RecordFileHash(huge), "Oversized record hashed into memory"); App.Runtime.Library.MaintainFocused();
             Check(Directory.GetFiles(quarantine).Sum(p => new FileInfo(p).Length) <= 10 * 1024 * 1024, "Quarantine byte cap");
-            foreach (string file in Directory.GetFiles(quarantine)) File.SetLastWriteTimeUtc(file, DateTime.UtcNow.AddDays(-8)); Call("MaintainExceptionalFiles");
+            foreach (string file in Directory.GetFiles(quarantine)) File.SetLastWriteTimeUtc(file, DateTime.UtcNow.AddDays(-8)); App.Runtime.Quarantine.MaintainExceptionalFiles();
             Check(Directory.GetFiles(quarantine).Length == 0, "Expired quarantine retained");
             Pass("100 malformed hero records, oversized file, quarantine count/bytes/age limits and unrelated-file protection");
 
-            Call("InitializeLibrary"); string record = Directory.GetFiles(Path.Combine(Root, "data", "library", "1-5"), "*.json.gz")[0];
+            App.Runtime.Library.InitializeLibrary(); string record = Directory.GetFiles(Path.Combine(Root, "data", "library", "1-5"), "*.json.gz")[0];
             string key = Path.GetFileName(record).Replace(".json.gz", ""); byte[] original = File.ReadAllBytes(record); File.WriteAllText(record, "broken");
-            var query = Map(Call("LocalDetail", key)); Check(query["data"] == null, "Lazy initialization allowed corrupt query data"); File.WriteAllBytes(record, original);
-            using (var cancel = new CancellationTokenSource(30)) { try { Call("AuditLibrary", cancel.Token); } catch (OperationCanceledException) { } }
-            var checkpoint = Map(Call("ReadRecord", Path.Combine(cache, "audit-state.json"))); int before = int.Parse(checkpoint["next"].ToString());
+            var query = Map(App.Runtime.Queries.LocalDetail(key)); Check(query["data"] == null, "Lazy initialization allowed corrupt query data"); File.WriteAllBytes(record, original);
+            using (var cancel = new CancellationTokenSource(30)) { try { App.Runtime.Library.AuditLibrary(cancel.Token); } catch (OperationCanceledException) { } }
+            var checkpoint = Map(Luna.DataFormat.ReadRecord(Path.Combine(cache, "audit-state.json"))); int before = int.Parse(checkpoint["next"].ToString());
             Check(before > 0, "Audit did not persist progress");
-            Call("AuditLibrary", CancellationToken.None); checkpoint = Map(Call("ReadRecord", Path.Combine(cache, "audit-state.json")));
+            App.Runtime.Library.AuditLibrary(CancellationToken.None); checkpoint = Map(Luna.DataFormat.ReadRecord(Path.Combine(cache, "audit-state.json")));
             Check(int.Parse(checkpoint["next"].ToString()) >= before && checkpoint["completedAt"].ToString() != "", "Audit did not resume/complete");
             Put(cache, "webview2/test.bin", "browser"); Put(cache, "app-update/test.bin", "update");
-            Call("RefreshSpaceReport", CancellationToken.None); var report = Map(Call("ReadRecord", Path.Combine(cache, "space-report.json"))); var sizes = Map(report["bytes"]);
+            App.Runtime.Storage.RefreshSpaceReport(CancellationToken.None); var report = Map(Luna.DataFormat.ReadRecord(Path.Combine(cache, "space-report.json"))); var sizes = Map(report["bytes"]);
             Check(Convert.ToInt64(sizes["browser"]) > 0 && Convert.ToInt64(sizes["updates"]) > 0 && Convert.ToInt64(report["totalBytes"]) == sizes.Values.Sum(v => Convert.ToInt64(v)), "Storage accounting omitted browser/update data");
             Pass("query-time integrity, persisted audit resume and categorized storage totals");
 
@@ -277,33 +277,33 @@ internal static class LifecycleTests {
             string part = Path.Combine(cache, "app-update/package.part"); File.WriteAllBytes(part, package.Take(midpoint).ToArray());
             using (var server = new DownloadServer(package)) {
                 Set("AppDownloadTransport", new Func<string, long, CancellationToken, HttpWebResponse>((url, offset, token) => server.Get(offset)));
-                Call("DownloadAppRelease", CancellationToken.None);
+                App.Runtime.AppUpdates.DownloadAppRelease(CancellationToken.None);
                 Check(server.Offsets.SequenceEqual(new[] { (long)midpoint }), "Download did not resume at saved byte offset");
                 Check(File.Exists(Path.Combine(cache, "app-update/stage/installed-files.json")), "Resumed archive not staged");
-                Call("DownloadAppRelease", CancellationToken.None); Check(server.Offsets.Count == 1, "Prepared update downloaded twice");
+                App.Runtime.AppUpdates.DownloadAppRelease(CancellationToken.None); Check(server.Offsets.Count == 1, "Prepared update downloaded twice");
                 Put(Root, "cache/app-update/stage/web/index.html", "interrupted extraction");
                 Put(Root, "cache/app-update/stage/personal.txt", "keep this staged note");
-                Call("DownloadAppRelease", CancellationToken.None);
+                App.Runtime.AppUpdates.DownloadAppRelease(CancellationToken.None);
                 Check(server.Offsets.Count == 1 && Luna.Deployment.Text(Luna.Deployment.Manifest(Path.Combine(cache, "app-update/stage"), true), "version") == "1.7.0", "Damaged staged files did not recover from the authenticated local archive");
                 string preservedStage = Directory.GetDirectories(Path.Combine(cache, "app-update"), "stage-preserved-*").Single();
                 Check(File.ReadAllText(Path.Combine(preservedStage, "personal.txt")) == "keep this staged note", "Repair erased an unowned stage file");
                 Put(Root, "cache/app-update/package.zip", "damaged completed download");
-                Call("DownloadAppRelease", CancellationToken.None);
+                App.Runtime.AppUpdates.DownloadAppRelease(CancellationToken.None);
                 Check(server.Offsets.Count == 2 && Luna.Deployment.HashFile(Path.Combine(cache, "app-update/package.zip")) == Luna.Deployment.HashFile(archive), "A damaged completed archive was reused instead of downloaded again");
                 Check(Directory.GetFiles(Path.Combine(cache, "app-update"), "package-rejected-*.zip").Length == 1, "Rejected archive evidence was lost");
                 Put(Root, "cache/app-update/stage/installed-files.json", "{");
-                Call("DownloadAppRelease", CancellationToken.None);
+                App.Runtime.AppUpdates.DownloadAppRelease(CancellationToken.None);
                 Check(server.Offsets.Count == 2 && Luna.Deployment.Text(Luna.Deployment.Manifest(Path.Combine(cache, "app-update/stage"), true), "version") == "1.7.0", "Damaged manifest retry did not rebuild locally");
                 Runtime(".", Field("AppVersion").ToString());
                 Put(Root, "cache/app-update/stage/web/index.html", "changed before install");
                 bool refused = false;
                 try { Call("PrepareMaintenance", "update", "false"); } catch (Exception) { refused = true; }
                 Check(refused && Snapshot("AppUpdateInfo")["state"].ToString() == "error", "Damaged prepared update did not expose retry without exiting the app");
-                Call("DownloadAppRelease", CancellationToken.None);
+                App.Runtime.AppUpdates.DownloadAppRelease(CancellationToken.None);
                 Pass("staged file/manifest corruption, unowned-file preservation and completed archive corruption recover on retry");
             }
             UpdatePreferences(archive, envelope);
-            Set("Offline", true); Reject(() => Call("StartAppUpdate", "check"), "Offline mode made application requests");
+            Set("Offline", true); Reject(() => App.Runtime.AppUpdates.StartAppUpdate("check"), "Offline mode made application requests");
             Pass("HTTP Range resume, no repeated download for verified package, and offline update restriction");
             Console.WriteLine("All lifecycle checks passed."); return 0;
         } catch (Exception ex) { Console.Error.WriteLine(ex); return 1; }

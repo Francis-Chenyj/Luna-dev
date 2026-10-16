@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 using System.Web.Script.Serialization;
 
 internal static class StorageTests {
-    static readonly Type App = typeof(Luna.Program);
+    static readonly TestApplication App = new TestApplication(AppDomain.CurrentDomain.BaseDirectory);
     static readonly JavaScriptSerializer Json = new JavaScriptSerializer();
     static readonly string Root = AppDomain.CurrentDomain.BaseDirectory;
     static readonly string Library = Path.Combine(Root, "cache", "library");
@@ -20,10 +20,10 @@ internal static class StorageTests {
     static readonly string A = Id(1), B = Id(2), C = Id(3), D = Id(4);
     static string Id(int value) { return value.ToString("x64"); }
     static object Call(string name, params object[] args) {
-        try { return App.GetMethod(name, BindingFlags.NonPublic | BindingFlags.Static).Invoke(null, args); }
+        try { return App.Call(name, args); }
         catch (TargetInvocationException ex) { ExceptionDispatchInfo.Capture(ex.InnerException).Throw(); throw; }
     }
-    static void Set(string name, object value) { App.GetField(name, BindingFlags.NonPublic | BindingFlags.Static).SetValue(null, value); }
+    static void Set(string name, object value) { App.Set(name, value); }
     static Dictionary<string, object> Map(object value) { return (Dictionary<string, object>)value; }
     static Dictionary<string, object> ConvertObject(object value) { lock (Json) return Map(Json.DeserializeObject(Json.Serialize(value))); }
     static void Check(bool value, string message) { if (!value) throw new Exception(message); }
@@ -44,53 +44,53 @@ internal static class StorageTests {
     static void CreateProfile(string fingerprint, string profile = "1-5", bool complete = true, int daysAgo = 0, bool bundled = false) {
         string directory = bundled ? Path.Combine(Root, "data", "library", profile) : ProfilePath(fingerprint, profile);
         Directory.CreateDirectory(directory);
-        var catalog = Catalog(); var keys = (List<string>)Call("ExpectedKeys", catalog, profile);
+        var catalog = Catalog(); var keys = (List<string>)Luna.DataFormat.ExpectedKeys(catalog, profile);
         var entries = new Dictionary<string, object>(); var stamp = DateTime.UtcNow.AddDays(-daysAgo).ToString("o");
         foreach (string key in complete ? keys : keys.Take(2)) {
             var p = key.Split('-'); string path = Path.Combine(directory, key + ".json.gz");
-            Call("WriteCompressed", path, new { key = key, fingerprint = fingerprint, fetchedAt = stamp,
+            Luna.DataFormat.WriteCompressed(path, new { key = key, fingerprint = fingerprint, fetchedAt = stamp,
                 data = new { success = true, champion = new { championId = 266 }, lane = p[2], mode = p[3], sections = new object[0], testValue = fingerprint } });
-            entries[key] = Call("FileHash", File.ReadAllBytes(path)); File.SetLastWriteTimeUtc(path, DateTime.UtcNow.AddDays(-daysAgo));
+            entries[key] = Luna.DataFormat.FileHash(File.ReadAllBytes(path)); File.SetLastWriteTimeUtc(path, DateTime.UtcNow.AddDays(-daysAgo));
         }
-        if (complete) Call("WriteRecord", Path.Combine(directory, "manifest.json"), new { schema = 1, fingerprint = fingerprint, profile = profile, sourceGeneratedAt = stamp, expected = keys.Count, entries = entries, catalog = catalog });
+        if (complete) Luna.DataFormat.WriteRecord(Path.Combine(directory, "manifest.json"), new { schema = 1, fingerprint = fingerprint, profile = profile, sourceGeneratedAt = stamp, expected = keys.Count, entries = entries, catalog = catalog });
         Directory.SetLastWriteTimeUtc(directory, DateTime.UtcNow.AddDays(-daysAgo));
     }
     static void Pointer(string current, string previous = "", string profile = "1-5") {
-        Call("WriteRecord", Path.Combine(Library, "active-" + profile + ".json"), new { current = current, previous = previous });
+        Luna.DataFormat.WriteRecord(Path.Combine(Library, "active-" + profile + ".json"), new { current = current, previous = previous });
     }
     static void Reset() {
         RemoveFixture(Path.Combine(Root, "cache")); RemoveFixture(Path.Combine(Root, "data"));
-        Directory.CreateDirectory(Library); CreateProfile(Id(0), "1-5", true, 30, true); Call("InitializeLibrary");
+        Directory.CreateDirectory(Library); CreateProfile(Id(0), "1-5", true, 30, true); App.Runtime.Library.InitializeLibrary();
     }
-    static void Clean(string source = "") { Call("MaintainStorage", source, CancellationToken.None); }
-    static Dictionary<string, object> Report() { return Map(ConvertObject(Call("LibraryInfo", "1-5"))["storage"]); }
-    static string Value() { return Map(Map(Call("LocalDetail", Key))["data"])["testValue"].ToString(); }
+    static void Clean(string source = "") { App.Runtime.Storage.MaintainStorage(source, CancellationToken.None); }
+    static Dictionary<string, object> Report() { return Map(ConvertObject(App.Runtime.LibraryInfo("1-5"))["storage"]); }
+    static string Value() { return Map(Map(App.Runtime.Queries.LocalDetail(Key))["data"])["testValue"].ToString(); }
     static void WaitMaintenance() {
         var clock = Stopwatch.StartNew();
         while (clock.ElapsedMilliseconds < 10000) {
-            if ((int)App.GetField("StorageWorker", BindingFlags.NonPublic | BindingFlags.Static).GetValue(null) == 0) return;
+            if ((int)App.Field("StorageWorker") == 0) return;
             Thread.Sleep(10);
         }
         throw new Exception("Maintenance worker did not finish");
     }
     static int Main() {
         try {
-            Reset(); CreateProfile(A); CreateProfile(B); CreateProfile(C); Pointer(C, B); Call("InitializeLibrary");
+            Reset(); CreateProfile(A); CreateProfile(B); CreateProfile(C); Pointer(C, B); App.Runtime.Library.InitializeLibrary();
             File.WriteAllText(Path.Combine(Root, "cache", "detail-266-top-father-1-5.json"), "legacy sentinel");
-            string bundledHash = (string)Call("FileHash", File.ReadAllBytes(Path.Combine(Root, "data", "library", "1-5", "manifest.json")));
+            string bundledHash = (string)Luna.DataFormat.FileHash(File.ReadAllBytes(Path.Combine(Root, "data", "library", "1-5", "manifest.json")));
             Clean(); Check(!Directory.Exists(ProfilePath(A)) && Directory.Exists(ProfilePath(B)) && Directory.Exists(ProfilePath(C)), "Did not keep exactly active/previous editions");
             Check(Value() == C && (long)Convert.ToInt64(Report()["freedBytes"]) > 0, "Cleanup changed current result or omitted freed-byte count");
             Check(File.ReadAllText(Path.Combine(Root, "cache", "detail-266-top-father-1-5.json")) == "legacy sentinel", "Legacy cache was modified");
-            Check((string)Call("FileHash", File.ReadAllBytes(Path.Combine(Root, "data", "library", "1-5", "manifest.json"))) == bundledHash, "Bundled data was modified");
+            Check((string)Luna.DataFormat.FileHash(File.ReadAllBytes(Path.Combine(Root, "data", "library", "1-5", "manifest.json"))) == bundledHash, "Bundled data was modified");
             File.WriteAllText(Path.Combine(ProfilePath(C), Key + ".json.gz"), "broken");
-            Check(Value() == B && (string)Call("PreviousUsableFingerprint", "1-5", D) == B, "Corrupt current displaced usable backup");
+            Check(Value() == B && (string)App.Runtime.Library.PreviousUsableFingerprint("1-5", D) == B, "Corrupt current displaced usable backup");
             Pass("prunes old editions, preserves bundled/legacy files and keeps usable corruption fallback");
 
             Reset(); CreateProfile(A); Pointer(A); CreateProfile(B, "1-5", false, 2); CreateProfile(C, "1-5", false, 1);
             Clean(); Check(!Directory.Exists(ProfilePath(B)) && Directory.Exists(ProfilePath(C)), "Migration did not keep only newest resumable edition");
             CreateProfile(D, "1-5", false, 9); Clean(C); Check(!Directory.Exists(ProfilePath(D)), "Expired staging was retained");
-            Call("RecordSourceFingerprint", B); Clean(); Check(!Directory.Exists(ProfilePath(C)) && Directory.Exists(ProfilePath(A)), "Known new source did not invalidate old staging or deleted active data");
-            CreateProfile(C, "1-5", false, 1); Call("WriteRecord", Path.Combine(Library, "source-state.json"), new { fingerprint = B, checkedAt = DateTime.UtcNow.AddDays(-10).ToString("o") });
+            App.Runtime.Library.RecordSourceFingerprint(B); Clean(); Check(!Directory.Exists(ProfilePath(C)) && Directory.Exists(ProfilePath(A)), "Known new source did not invalidate old staging or deleted active data");
+            CreateProfile(C, "1-5", false, 1); Luna.DataFormat.WriteRecord(Path.Combine(Library, "source-state.json"), new { fingerprint = B, checkedAt = DateTime.UtcNow.AddDays(-10).ToString("o") });
             Clean(); Check(Directory.Exists(ProfilePath(C)), "Stale upstream observation deleted recent resumable work");
             Pass("retains at most one recent partial edition per profile; expires after 7 days; uses only fresh upstream observations");
 
@@ -114,7 +114,7 @@ internal static class StorageTests {
             File.WriteAllText(activeTemp, "recent");
             Clean(); Check(!File.Exists(oldTemp) && File.Exists(Path.Combine(stray, "keep.txt")), "Temporary cleanup crossed ownership boundary");
             Check(!File.Exists(shortTemp) && !File.Exists(pointerTemp) && File.Exists(activeTemp), "Short-name temp retention failed");
-            Check(!(bool)Call("LibraryPath", Path.Combine(Library, "..", "outside.txt")), "Path traversal passed cleanup boundary");
+            Check(!(bool)App.Runtime.Storage.LibraryPath(Path.Combine(Library, "..", "outside.txt")), "Path traversal passed cleanup boundary");
             Pass("user files and unknown directories survive; stale owned temp files are cleaned; traversal rejected");
 
             Reset(); CreateProfile(A); CreateProfile(B); Pointer(B);
@@ -125,7 +125,7 @@ internal static class StorageTests {
             Clean(); Check(!Directory.Exists(ProfilePath(A)) && Value() == B, "Next pass did not finish a deferred cleanup");
             Pass("locked files defer safely and are removed after release without affecting queries");
 
-            Reset(); CreateProfile(A); CreateProfile(B); Pointer(B, A); Call("InitializeLibrary");
+            Reset(); CreateProfile(A); CreateProfile(B); Pointer(B, A); App.Runtime.Library.InitializeLibrary();
             CreateProfile(C); Pointer(C, B); Clean(); Check(Value() == C, "Another process's pointer change was not noticed before query");
             Pass("existing windows refresh changed disk pointers after another process publishes and cleans data");
 
@@ -162,14 +162,14 @@ internal static class StorageTests {
             Pass("all 25 profiles retain their own two editions; concurrent queries max " + queryTimes.Max() + " ms");
 
             Reset(); CreateProfile(A); CreateProfile(B); Pointer(B);
-            string mutexName = "Local\\LunaData_" + ((string)Call("Hash", Root)).Substring(0, 20);
+            string mutexName = "Local\\LunaData_" + ((string)Luna.DataFormat.Hash(Root)).Substring(0, 20);
             using (var mutex = new Mutex(false, mutexName)) {
                 mutex.WaitOne();
-                Set("StorageNextCheck", 0L); Call("ScheduleStorageMaintenance"); WaitMaintenance();
+                Set("StorageNextCheck", 0L); App.Runtime.Storage.ScheduleStorageMaintenance(); WaitMaintenance();
                 Check(Directory.Exists(ProfilePath(A)), "Maintenance ignored active updater's mutex");
                 mutex.ReleaseMutex();
             }
-            Set("StorageNextCheck", 0L); Call("ScheduleStorageMaintenance"); WaitMaintenance();
+            Set("StorageNextCheck", 0L); App.Runtime.Storage.ScheduleStorageMaintenance(); WaitMaintenance();
             Check(!Directory.Exists(ProfilePath(A)) && Value() == B, "Startup/background maintenance did not resume after updater finished");
             Pass("background maintenance uses updater's cross-process lock and resumes without network requests");
 
@@ -178,7 +178,7 @@ internal static class StorageTests {
             using (var process = Process.Start(new ProcessStartInfo("powershell.exe", "-NoProfile -Command \"New-Item -ItemType Junction -Path '" + junction.Replace("'", "''") + "' -Target '" + outside.Replace("'", "''") + "' | Out-Null\"") { UseShellExecute = false, CreateNoWindow = true, RedirectStandardError = true })) {
                 process.WaitForExit(); Check(process.ExitCode == 0, "Could not create junction fixture: " + process.StandardError.ReadToEnd());
             }
-            Clean(); Check(File.ReadAllText(Path.Combine(outside, "sentinel.txt")) == "do not touch" && !(bool)Call("LibraryPath", Path.Combine(junction, "sentinel.txt")), "Junction crossed cleanup boundary");
+            Clean(); Check(File.ReadAllText(Path.Combine(outside, "sentinel.txt")) == "do not touch" && !(bool)App.Runtime.Storage.LibraryPath(Path.Combine(junction, "sentinel.txt")), "Junction crossed cleanup boundary");
             Directory.Delete(junction, false);
             Pass("junction targets outside the library are not traversed or deleted");
             Console.WriteLine("All storage checks passed in isolated temporary fixtures."); return 0;
