@@ -276,8 +276,11 @@ namespace Luna {
                     string checkpoint = Path.Combine(options.CacheDir, "audit-state.json");
                     var saved = DataFormat.SafeLocalPath(checkpoint) ? DataFormat.ReadRecord(checkpoint) : null;
                     int next = 0; bool same = DataFormat.Str(saved, "revision") == revision;
-                    if (same && DataFormat.DateValue(DataFormat.Str(saved, "completedAt")) > DateTime.UtcNow.AddDays(-1)) return;
-                    if (same) int.TryParse(DataFormat.Str(saved, "next"), out next);
+                    DateTime completedAt = DataFormat.DateValue(DataFormat.Str(saved, "completedAt")), now = DateTime.UtcNow;
+                    if (same && completedAt > now.AddDays(-1) && completedAt <= now) return;
+                    // Only unfinished audits resume. An expired (or future-dated)
+                    // completion must revisit every record, including repaired ones.
+                    if (same && completedAt == DateTime.MinValue) int.TryParse(DataFormat.Str(saved, "next"), out next);
                     if (next < 0) next = 0;
                     var items = profiles.SelectMany(p => p.Entries.OrderBy(e => e.Key).Select(e => new { profile = p, key = e.Key, hash = Convert.ToString(e.Value) })).ToArray();
                     if (next > items.Length) next = 0;

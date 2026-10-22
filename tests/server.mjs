@@ -23,6 +23,23 @@ function get(path,options={}) {
 }
 const health=await get('/api/health');assert.equal(health.data.app,'luna-local');assert.equal(health.data.offline,offline);assert.equal(health.data.version,expectedVersion);assert.equal(health.data.author,'FrancisChen');
 const preferences=(await get('/api/settings')).data;
+// Reading the feature must remain opt-in: this suite never enables a real client.
+const draft=(await get('/api/draft')).data;
+assert.equal(draft.enabled,false);assert.equal(draft.state,'disabled');
+assert.equal((await get('/api/draft',{headers:{}})).status,403);
+for(const side of ['ally','enemy']) {
+  assert.equal(draft.teams[side].length,5);
+  assert.deepEqual(draft.teams[side].map(slot=>slot.championId),[0,0,0,0,0]);
+  for(const slot of draft.teams[side]) assert.deepEqual(Object.keys(slot).sort(),['championId','lane','pickOrder','selection','slot']);
+}
+for(const endpoint of ['/api/draft/connect','/api/draft/disconnect']) {
+  assert.equal((await get(endpoint)).status,405);
+  assert.equal((await get(endpoint,{method:'POST',headers:{}})).status,403);
+  assert.equal((await get(endpoint,{method:'POST',headers:{...headers,Origin:'https://untrusted.example'}})).status,403);
+  assert.equal((await get(endpoint,{method:'POST',body:'unexpected'})).status,400);
+}
+assert.equal((await get('/api/draft/disconnect',{method:'POST'})).data.state,'disabled');
+assert.equal((await get('/draft.js',{raw:true})).status,200);
 assert.equal(preferences.version,health.data.version);assert.ok(['system','zh-CN','en'].includes(preferences.preferences.language));
 assert.equal(preferences.preferences.closeAction,'ask');
 assert.equal(preferences.desktopWindowAvailable,false);

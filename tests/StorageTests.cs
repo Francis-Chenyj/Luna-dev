@@ -154,7 +154,7 @@ internal static class StorageTests {
             Pass("all 25 profiles retain their own two editions; concurrent queries max " + queryTimes.Max() + " ms");
 
             Reset(); CreateProfile(A); CreateProfile(B); Pointer(B);
-            string mutexName = "Local\\LunaData_" + ((string)Luna.DataFormat.Hash(Root)).Substring(0, 20);
+            string mutexName = "Local\\LunaData_" + Luna.DataFormat.DirectoryLockIdentity(Root);
             using (var mutex = new Mutex(false, mutexName)) {
                 mutex.WaitOne();
                 App.Storage.ScheduleStorageMaintenance(); WaitMaintenance();

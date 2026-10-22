@@ -60,7 +60,7 @@ try {
     Run-Check 'javascript' $node @('--test','tests\core.test.cjs','tests\ui.test.cjs','tests\i18n.test.cjs','tests\repository.test.cjs')
     Run-Check 'check-tools' $windowsPowerShell (PowerShell-Arguments (Join-Path $sourcePath 'tests\run-check-tools.ps1') @('-NodePath',$node))
     Run-Check 'build' $windowsPowerShell (PowerShell-Arguments (Join-Path $sourcePath 'build.ps1'))
-    foreach ($suite in @('settings','stability','storage','auto-update','focus','hero-update','icons','longpath','lifecycle','http-transport','service-isolation')) {
+    foreach ($suite in @('settings','stability','storage','auto-update','focus','hero-update','icons','longpath','lifecycle','http-transport','service-isolation','backend-regressions','client-draft','client-draft-boundaries')) {
         Run-Check ('csharp-' + $suite) $windowsPowerShell (PowerShell-Arguments (Join-Path $sourcePath ('tests\run-' + $suite + '.ps1')))
     }
     Run-Check 'offline-http' $windowsPowerShell (PowerShell-Arguments (Join-Path $sourcePath 'tests\run-http.ps1') @('-RuntimeDirectory',$sourcePath,'-LogDirectory',(Join-Path $logPath 'offline'),'-NodePath',$node))
@@ -76,9 +76,11 @@ try {
     $unpackedSource = Join-Path $sourceExtract 'Luna'
     Run-Check 'source-package-build' $windowsPowerShell (PowerShell-Arguments (Join-Path $unpackedSource 'build.ps1')) $unpackedSource
     if ($Browser) {
-        $browserArguments = @((Join-Path $projectPath 'tests\browser-runner.mjs'),'--runtime',(Join-Path $runtimeExtract 'Luna'),'--output',(Join-Path $outputPath 'browser'))
+        # The browser script must match this round's immutable source snapshot.
+        # Node resolves the development dependencies from the ancestor project.
+        $browserArguments = @((Join-Path $sourcePath 'tests\browser-runner.mjs'),'--runtime',(Join-Path $runtimeExtract 'Luna'),'--output',(Join-Path $outputPath 'browser'))
         if ($BrowserChannel) { $browserArguments += @('--channel',$BrowserChannel) }
-        Run-Check 'browser' $node $browserArguments $projectPath 240
+        Run-Check 'browser' $node $browserArguments $sourcePath 240
     }
 } catch { $failure = $_ }
 finally {

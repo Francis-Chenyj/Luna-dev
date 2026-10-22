@@ -1,8 +1,8 @@
 {
   "schema": 1,
-  "version": "1.6.6",
+  "version": "1.7.0",
   "author": "FrancisChen",
-  "reviewDate": "2026-10-17",
+  "reviewDate": "2026-10-22",
   "intendedRepository": "Francis-Chenyj/Luna-dev",
   "intendedVisibility": "public",
   "originalCodeLicense": "MIT",
@@ -15,6 +15,6 @@
     "Resolve the documented scope of third-party screenshots and curated source material before redistribution."
   ],
   "releaseTag": null,
-  "statusExplanation": "Local 1.6.6 fault-test migration with typed services, real restarts and a scheduling clock; no GitHub publication. latestPublicRelease records the 2026-10-15 audit baseline and was not refreshed during this local work. Third-party evidence and publisher signing remain open; see docs/THIRD_PARTY_EVIDENCE.json.",
+  "statusExplanation": "Local 1.7.0 BP champion synchronization and regression repairs; no GitHub publication. BP access is optional and local, with champion-only projection. Public registration, distribution evidence and publisher signing remain open. latestPublicRelease records the 2026-10-15 audit baseline and was not refreshed.",
   "latestPublicRelease": "v1.5.0-dev.1"
 }

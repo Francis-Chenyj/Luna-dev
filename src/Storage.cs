@@ -132,7 +132,7 @@ namespace Luna {
             StorageWaiting = false;
             var prior = Storage;
             Storage = new StorageReport { busy = true, ready = prior.ready, downloadedBytes = prior.downloadedBytes, freedBytes = prior.freedBytes, checkedAt = prior.checkedAt, message = "正在自动整理离线数据…" };
-            long freed = 0; int removed = 0; bool deferred = false;
+            long freed = 0; int removed = 0; bool deferred = false, retryReceipt = false;
             try {
                 DateTime now = clock.UtcNow;
                 quarantine.MaintainExceptionalFiles();
@@ -201,19 +201,23 @@ namespace Luna {
             catch (Exception ex) { deferred = true; diagnostics.Log(ex); }
             finally {
                 freed += store.TakeFreedBytes();
+                if (token.IsCancellationRequested) deferred = true;
+                if (!deferred) try {
+                    string receipt = Path.Combine(options.CacheDir, "maintenance-state.json");
+                    if (DataFormat.SafeLocalPath(receipt)) DataFormat.WriteRecord(receipt, new { checkedAt = clock.UtcNow.ToString("o") });
+                    else deferred = true;
+                } catch (Exception ex) { deferred = true; retryReceipt = true; diagnostics.Log(ex); }
                 Storage = new StorageReport { ready = true, busy = false, deferred = deferred, downloadedBytes = DownloadedLibraryBytes(), freedBytes = prior.freedBytes + freed, removedProfiles = prior.removedProfiles + removed, checkedAt = clock.UtcNow.ToString("o"),
                     message = deferred ? "部分文件暂未清理；为保护数据已保留，下次检查再处理。" : "自动空间管理已开启。" };
-                Interlocked.Exchange(ref StorageNextCheck, clock.UtcNow.AddHours(24).Ticks);
+                Interlocked.Exchange(ref StorageNextCheck, (retryReceipt ? clock.UtcNow.AddMinutes(1) : clock.UtcNow.AddHours(24)).Ticks);
                 RefreshSpaceReport(token);
-                if (!token.IsCancellationRequested && !deferred && DataFormat.SafeLocalPath(Path.Combine(options.CacheDir, "maintenance-state.json")))
-                    DataFormat.WriteRecord(Path.Combine(options.CacheDir, "maintenance-state.json"), new { checkedAt = clock.UtcNow.ToString("o") });
             }
         }
         internal void ScheduleStorageMaintenance() {
             if (workers.IsCancellationRequested || clock.UtcNow.Ticks < Interlocked.Read(ref StorageNextCheck) || Interlocked.CompareExchange(ref StorageWorker, 1, 0) != 0) return;
             if (!workers.TryStart(() => {
                 bool acquired = false;
-                using (var mutex = new Mutex(false, "Local\\LunaData_" + DataFormat.Hash(options.Root).Substring(0, 20))) try {
+                using (var mutex = new Mutex(false, "Local\\LunaData_" + DataFormat.DirectoryLockIdentity(options.Root))) try {
                     try { acquired = mutex.WaitOne(0); } catch (AbandonedMutexException) { acquired = true; }
                     StorageWaiting = !acquired;
                     if (acquired) MaintainStorage("", workers.Token);

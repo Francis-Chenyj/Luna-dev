@@ -12,8 +12,19 @@ using System.Web.Script.Serialization;
 
 internal static class LifecycleTests {
     static readonly string Root = AppDomain.CurrentDomain.BaseDirectory;
+    static readonly string CurrentVersion = Luna.PreferenceStore.AppVersion;
+    static readonly string NextVersion = NewerVersion(CurrentVersion);
+    static readonly string PreviousVersion = OlderVersion(CurrentVersion);
     static Luna.ApplicationRuntime App;
     static readonly JavaScriptSerializer Json = new JavaScriptSerializer { MaxJsonLength = 16 * 1024 * 1024 };
+    static string NewerVersion(string text) { var version = new Version(text); return new Version(version.Major, version.Minor, checked(version.Build + 1)).ToString(); }
+    static string OlderVersion(string text) {
+        var version = new Version(text);
+        if (version.Build > 0) return new Version(version.Major, version.Minor, version.Build - 1).ToString();
+        if (version.Minor > 0) return new Version(version.Major, version.Minor - 1, 0).ToString();
+        if (version.Major > 0) return new Version(version.Major - 1, 0, 0).ToString();
+        throw new InvalidOperationException("The release must have a lower version for rollback fixtures.");
+    }
     static Dictionary<string, object> Map(object value) { return (Dictionary<string, object>)value; }
     static void Check(bool value, string message) { if (!value) throw new Exception(message); }
     static void Reject(Action action, string message) { try { action(); } catch (IOException) { return; } catch (ArgumentException) { return; } catch (CryptographicException) { return; } throw new Exception(message); }
@@ -39,7 +50,7 @@ internal static class LifecycleTests {
         App.SavePreference("theme", "light");
         Check(!(bool)Map(Json.DeserializeObject(File.ReadAllText(settings)))["appAutoDownload"], "Legacy preference not normalized on save");
         App.AppUpdates.DiscardDownload();
-        string feed = Json.Serialize(new[] { new { draft = false, prerelease = false, assets = new[] { new { name = "luna-update.json", browser_download_url = "https://github.com/Francis-Chenyj/Luna-dev/releases/download/v1.7.0/luna-update.json" } } } });
+        string feed = Json.Serialize(new[] { new { draft = false, prerelease = false, assets = new[] { new { name = "luna-update.json", browser_download_url = "https://github.com/Francis-Chenyj/Luna-dev/releases/download/v" + NextVersion + "/luna-update.json" } } } });
         int checks = 0; bool failFeed = false, holdFeed = false, blockDownload = false;
         using (var entered = new ManualResetEventSlim()) using (var releaseCheck = new ManualResetEventSlim())
         using (var cancellationEntered = new ManualResetEventSlim()) using (var finishCancellation = new ManualResetEventSlim())
@@ -117,7 +128,7 @@ internal static class LifecycleTests {
                 Luna.DataFormat.WriteRecord(Path.Combine(Root, "cache/app-update/result.json"), new { state = "installed", version = Luna.PreferenceStore.AppVersion, at = DateTime.UtcNow.ToString("o") });
                 Restart();
                 Check(Snapshot(App.AppUpdates.AppUpdateInfo())["state"].ToString() == "installed" && Snapshot(App.AppUpdates.AppUpdateInfo())["newVersion"].ToString() == "", "Successful installation still advertised an old offer");
-                Luna.DataFormat.WriteRecord(Path.Combine(Root, "cache/app-update/result.json"), new { state = "installed", version = "0.0.1", at = DateTime.UtcNow.ToString("o") });
+                Luna.DataFormat.WriteRecord(Path.Combine(Root, "cache/app-update/result.json"), new { state = "installed", version = PreviousVersion, at = DateTime.UtcNow.ToString("o") });
                 Restart(); Check(Snapshot(App.AppUpdates.AppUpdateInfo())["state"].ToString() == "current", "An old installation receipt was mistaken for this upgrade");
                 Luna.DataFormat.WriteRecord(Path.Combine(Root, "cache/app-update/transaction.json"), new { state = "committed", version = Luna.PreferenceStore.AppVersion, at = DateTime.UtcNow.AddSeconds(1).ToString("o") });
                 Restart(); Check(Snapshot(App.AppUpdates.AppUpdateInfo())["state"].ToString() == "installed", "A committed upgrade lost its status when receipt writing failed");
@@ -157,7 +168,7 @@ internal static class LifecycleTests {
     static void RecoveryRecords() {
         string[] invalid = { "", "{", "null", "[]", "{\"state\":\"unexpected\"}" };
         for (int i = 0; i < invalid.Length; i++) {
-            string root = Runtime("broken-journal-" + i, "1.6.2"), path = Path.Combine(root, "cache/app-update/transaction.json");
+            string root = Runtime("broken-journal-" + i, NextVersion), path = Path.Combine(root, "cache/app-update/transaction.json");
             Put(root, "cache/settings.json", "personal settings"); Put(root, "cache/app-update/transaction.json", invalid[i]);
             Check(!Luna.Deployment.NeedsRecovery(root), "Verified installation was blocked by a malformed journal");
             string[] saved = Directory.GetFiles(Path.GetDirectoryName(path), "transaction.invalid-*.json");
@@ -165,23 +176,23 @@ internal static class LifecycleTests {
             Check(!Luna.Deployment.NeedsRecovery(root) && Directory.GetFiles(Path.GetDirectoryName(path), "transaction.invalid-*.json").Length == 1, "Repeated launch did not settle recovery");
             Check(File.ReadAllText(Path.Combine(root, "cache/settings.json")) == "personal settings", "Recovery changed settings");
         }
-        string partial = Runtime("partial-journal", "1.6.2"), backup = Runtime("partial-journal/cache/app-update/rollback", "1.6.1");
+        string partial = Runtime("partial-journal", NextVersion), backup = Runtime("partial-journal/cache/app-update/rollback", CurrentVersion);
         Put(partial, "Luna.exe", "half replaced"); Put(partial, "cache/app-update/transaction.json", "{"); Put(partial, "my-file.txt", "keep");
         Check(Luna.Deployment.NeedsRecovery(partial), "Broken installation did not request its verified backup");
         Luna.Deployment.Restore(partial);
-        Check(!Luna.Deployment.NeedsRecovery(partial) && Luna.Deployment.Text(Luna.Deployment.Manifest(partial, true), "version") == "1.6.1", "Broken journal rollback failed");
+        Check(!Luna.Deployment.NeedsRecovery(partial) && Luna.Deployment.Text(Luna.Deployment.Manifest(partial, true), "version") == CurrentVersion, "Broken journal rollback failed");
         Check(File.ReadAllText(Path.Combine(partial, "my-file.txt")) == "keep", "Recovery deleted unowned files");
-        string unsafeRoot = Runtime("unrecoverable-journal", "1.6.2"); Put(unsafeRoot, "Luna.exe", "broken"); Put(unsafeRoot, "cache/app-update/transaction.json", "{");
+        string unsafeRoot = Runtime("unrecoverable-journal", NextVersion); Put(unsafeRoot, "Luna.exe", "broken"); Put(unsafeRoot, "cache/app-update/transaction.json", "{");
         Reject(() => Luna.Deployment.NeedsRecovery(unsafeRoot), "An unverified installation was allowed to start without a backup");
         Check(File.ReadAllText(Path.Combine(unsafeRoot, "cache/app-update/transaction.json")) == "{", "Unrecoverable evidence was changed");
-        string interrupted = Runtime("missing-backup", "1.6.2"); Put(interrupted, "cache/app-update/transaction.json", "{\"state\":\"applying\",\"added\":[]}");
+        string interrupted = Runtime("missing-backup", NextVersion); Put(interrupted, "cache/app-update/transaction.json", "{\"state\":\"applying\",\"added\":[]}");
         Reject(() => Luna.Deployment.Restore(interrupted), "An applying transaction without a backup was silently committed");
         Pass("empty/truncated/null/unknown journals, repeat launch, verified backup recovery, missing backup and preservation of evidence/user files");
     }
     static void MaintenanceFaults(string archive, string envelope) {
         var failures = new List<string>();
         foreach (string fault in new[] { "cleanup-locked", "receipt-locked", "backup-incomplete", "backup-damaged", "backup-personal" }) {
-            string root = Runtime("fault-" + fault, "1.6.0"), area = Path.Combine(root, "cache/app-update");
+            string root = Runtime("fault-" + fault, CurrentVersion), area = Path.Combine(root, "cache/app-update");
             Stage(root, archive, envelope);
             FileStream held = null;
             try {
@@ -202,9 +213,9 @@ internal static class LifecycleTests {
                     return true;
                 });
                 if (held != null) { held.Dispose(); held = null; }
-                Check(Luna.Deployment.Text(Luna.Deployment.Manifest(root, true), "version") == "1.7.0", "Installed files did not verify");
+                Check(Luna.Deployment.Text(Luna.Deployment.Manifest(root, true), "version") == NextVersion, "Installed files did not verify");
                 Check(Luna.Deployment.Text(Luna.Deployment.Read(Path.Combine(area, "transaction.json")), "state") == "committed", "A completed installation was reported as rolled back");
-                Check(Luna.Deployment.Text(Luna.Deployment.Manifest(Path.Combine(area, "rollback"), true), "version") == "1.6.0", "A verified rollback copy was not prepared");
+                Check(Luna.Deployment.Text(Luna.Deployment.Manifest(Path.Combine(area, "rollback"), true), "version") == CurrentVersion, "A verified rollback copy was not prepared");
                 if (fault.StartsWith("backup-")) {
                     string saved = Directory.GetDirectories(area, "rollback-preserved-*").Single();
                     string relative = fault == "backup-personal" ? "personal.txt" : "Luna.exe";
@@ -254,37 +265,37 @@ internal static class LifecycleTests {
             Check(Convert.ToInt64(sizes["browser"]) > 0 && Convert.ToInt64(sizes["updates"]) > 0 && Convert.ToInt64(report["totalBytes"]) == sizes.Values.Sum(v => Convert.ToInt64(v)), "Storage accounting omitted browser/update data");
             Pass("query-time integrity, persisted audit resume and categorized storage totals");
 
-            string incoming = Runtime("incoming", "1.7.0"), archive = Archive(incoming, Path.Combine(Root, "offer.zip")), envelope = Envelope(archive, "1.7.0");
+            string incoming = Runtime("incoming", NextVersion), archive = Archive(incoming, Path.Combine(Root, "offer.zip")), envelope = Envelope(archive, NextVersion);
             var release = Luna.Deployment.VerifyEnvelope(envelope);
             var tampered = Map(Json.DeserializeObject(envelope)); tampered["payload"] = Convert.ToBase64String(Encoding.UTF8.GetBytes("{}"));
             Reject(() => Luna.Deployment.VerifyEnvelope(Json.Serialize(tampered)), "Tampered signature accepted");
             Reject(() => Luna.Deployment.Under(Root, "../escape.txt"), "Path traversal accepted");
             Reject(() => Luna.Deployment.Under(Root, "cache/file:stream"), "Alternate data stream accepted");
             string malicious = Path.Combine(Root, "malicious.zip"); using (var zip = ZipFile.Open(malicious, ZipArchiveMode.Create)) { using (var stream = new StreamWriter(zip.CreateEntry("Luna/../escape.txt").Open())) stream.Write("bad"); }
-            string maliciousEnvelope = Envelope(malicious, "1.7.0"); Reject(() => Luna.Deployment.ExtractVerified(malicious, Path.Combine(Root, "malicious-stage"), Luna.Deployment.VerifyEnvelope(maliciousEnvelope)), "Signed zip traversal accepted");
+            string maliciousEnvelope = Envelope(malicious, NextVersion); Reject(() => Luna.Deployment.ExtractVerified(malicious, Path.Combine(Root, "malicious-stage"), Luna.Deployment.VerifyEnvelope(maliciousEnvelope)), "Signed zip traversal accepted");
             Pass("publisher signature, package hash and archive path defenses");
 
             MaintenanceFaults(archive, envelope);
 
-            string failed = Runtime("failed-install", "1.6.0"); Put(failed, "cache/settings.json", "user-settings"); Put(failed, "notes.txt", "personal"); Stage(failed, archive, envelope);
+            string failed = Runtime("failed-install", CurrentVersion); Put(failed, "cache/settings.json", "user-settings"); Put(failed, "notes.txt", "personal"); Stage(failed, archive, envelope);
             string failedArea = Path.Combine(failed, "cache/app-update");
             Reject(() => Luna.Deployment.Apply(failed, Path.Combine(failedArea, "stage"), Path.Combine(failedArea, "release.json"), r => false), "Failed startup did not roll back");
-            Check(Luna.Deployment.Text(Luna.Deployment.Manifest(failed, true), "version") == "1.6.0" && File.ReadAllText(Path.Combine(failed, "cache/settings.json")) == "user-settings", "Rollback lost old app/preferences");
+            Check(Luna.Deployment.Text(Luna.Deployment.Manifest(failed, true), "version") == CurrentVersion && File.ReadAllText(Path.Combine(failed, "cache/settings.json")) == "user-settings", "Rollback lost old app/preferences");
             Luna.Deployment.Apply(failed, Path.Combine(failedArea, "stage"), Path.Combine(failedArea, "release.json"), r => true);
-            Check(Luna.Deployment.Text(Luna.Deployment.Manifest(failed, true), "version") == "1.7.0" && File.Exists(Path.Combine(failedArea, "rollback/installed-files.json")), "Update/backup failed");
+            Check(Luna.Deployment.Text(Luna.Deployment.Manifest(failed, true), "version") == NextVersion && File.Exists(Path.Combine(failedArea, "rollback/installed-files.json")), "Update/backup failed");
             Check(File.ReadAllText(Path.Combine(failed, "notes.txt")) == "personal", "Update changed an unowned file");
             // Recreate a journal left by an interrupted process and recover on next launch.
             Luna.Deployment.Write(Path.Combine(failedArea, "transaction.json"), new { state = "applying", added = new string[0] });
             Luna.Deployment.Restore(failed);
-            Check(Luna.Deployment.Text(Luna.Deployment.Manifest(failed, true), "version") == "1.6.0", "Interrupted transaction did not recover");
+            Check(Luna.Deployment.Text(Luna.Deployment.Manifest(failed, true), "version") == CurrentVersion, "Interrupted transaction did not recover");
             Pass("full update, failed health-check rollback, interrupted-transaction recovery and user-data preservation");
 
-            string uninstall = Runtime("uninstall-keep", "1.6.0"); Put(uninstall, "cache/settings.json", "retain"); Put(uninstall, "personal.txt", "keep"); Directory.CreateDirectory(Path.Combine(uninstall, "empty-personal-folder"));
+            string uninstall = Runtime("uninstall-keep", CurrentVersion); Put(uninstall, "cache/settings.json", "retain"); Put(uninstall, "personal.txt", "keep"); Directory.CreateDirectory(Path.Combine(uninstall, "empty-personal-folder"));
             Put(uninstall, "web/index.html", "locally modified"); int kept = Luna.Deployment.Uninstall(uninstall, false);
             Check(kept == 1 && File.Exists(Path.Combine(uninstall, "cache/settings.json")) && File.Exists(Path.Combine(uninstall, "personal.txt")) && Directory.Exists(Path.Combine(uninstall, "empty-personal-folder")), "Uninstall deleted protected files");
-            string full = Runtime("uninstall-data", "1.6.0"); Put(full, "cache/settings.json", "delete by explicit choice"); Put(full, "personal.txt", "keep"); Luna.Deployment.Uninstall(full, true);
+            string full = Runtime("uninstall-data", CurrentVersion); Put(full, "cache/settings.json", "delete by explicit choice"); Put(full, "personal.txt", "keep"); Luna.Deployment.Uninstall(full, true);
             Check(!Directory.Exists(Path.Combine(full, "cache")) && File.Exists(Path.Combine(full, "personal.txt")), "Full uninstall did not honor its boundary");
-            string source = Runtime("source-protected", "1.6.0"); Directory.CreateDirectory(Path.Combine(source, "src")); Reject(() => Luna.Deployment.Uninstall(source, true), "Source directory was uninstallable");
+            string source = Runtime("source-protected", CurrentVersion); Directory.CreateDirectory(Path.Combine(source, "src")); Reject(() => Luna.Deployment.Uninstall(source, true), "Source directory was uninstallable");
             Pass("uninstall preserves settings by default, removes selected data, retains extra/modified files, rejects source folders");
 
             Directory.CreateDirectory(Path.Combine(cache, "app-update")); Put(Root, "cache/app-update/release.json", envelope);
@@ -299,7 +310,7 @@ internal static class LifecycleTests {
                 Put(Root, "cache/app-update/stage/web/index.html", "interrupted extraction");
                 Put(Root, "cache/app-update/stage/personal.txt", "keep this staged note");
                 App.AppUpdates.DownloadAppRelease(CancellationToken.None);
-                Check(server.Offsets.Count == 1 && Luna.Deployment.Text(Luna.Deployment.Manifest(Path.Combine(cache, "app-update/stage"), true), "version") == "1.7.0", "Damaged staged files did not recover from the authenticated local archive");
+                Check(server.Offsets.Count == 1 && Luna.Deployment.Text(Luna.Deployment.Manifest(Path.Combine(cache, "app-update/stage"), true), "version") == NextVersion, "Damaged staged files did not recover from the authenticated local archive");
                 string preservedStage = Directory.GetDirectories(Path.Combine(cache, "app-update"), "stage-preserved-*").Single();
                 Check(File.ReadAllText(Path.Combine(preservedStage, "personal.txt")) == "keep this staged note", "Repair erased an unowned stage file");
                 Put(Root, "cache/app-update/package.zip", "damaged completed download");
@@ -308,7 +319,7 @@ internal static class LifecycleTests {
                 Check(Directory.GetFiles(Path.Combine(cache, "app-update"), "package-rejected-*.zip").Length == 1, "Rejected archive evidence was lost");
                 Put(Root, "cache/app-update/stage/installed-files.json", "{");
                 App.AppUpdates.DownloadAppRelease(CancellationToken.None);
-                Check(server.Offsets.Count == 2 && Luna.Deployment.Text(Luna.Deployment.Manifest(Path.Combine(cache, "app-update/stage"), true), "version") == "1.7.0", "Damaged manifest retry did not rebuild locally");
+                Check(server.Offsets.Count == 2 && Luna.Deployment.Text(Luna.Deployment.Manifest(Path.Combine(cache, "app-update/stage"), true), "version") == NextVersion, "Damaged manifest retry did not rebuild locally");
                 Runtime(".", Luna.PreferenceStore.AppVersion.ToString());
                 Put(Root, "cache/app-update/stage/web/index.html", "changed before install");
                 bool refused = false;

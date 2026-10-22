@@ -95,7 +95,7 @@ internal static class AutoUpdateTests {
             source.FailStatus = false;
             Pass("automatic source failure stops with original complete data and provenance intact");
 
-            string mutexName = "Local\\LunaData_" + ((string)Luna.DataFormat.Hash(Root)).Substring(0, 20);
+            string mutexName = "Local\\LunaData_" + Luna.DataFormat.DirectoryLockIdentity(Root);
             using (var mutex = new Mutex(false, mutexName)) {
                 Check(mutex.WaitOne(0), "Fixture mutex unexpectedly occupied");
                 try {

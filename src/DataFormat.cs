@@ -26,6 +26,11 @@ namespace Luna {
         internal static IEnumerable<object> Arr(object value) { return (value as IEnumerable ?? new object[0]).Cast<object>(); }
         internal static string Stamp() { return DateTime.UtcNow.ToString("o", CultureInfo.InvariantCulture); }
         internal static string Hash(string text) { using (var h = SHA256.Create()) return BitConverter.ToString(h.ComputeHash(Encoding.UTF8.GetBytes(text))).Replace("-", "").ToLowerInvariant(); }
+        // Windows directory aliases that differ only by case must share ownership.
+        internal static string DirectoryLockIdentity(string root) {
+            string normalized = Path.GetFullPath(root).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar).ToLowerInvariant() + Path.DirectorySeparatorChar;
+            return Hash(normalized).Substring(0, 20);
+        }
         internal static Dictionary<string, object> ReadRecord(string path) {
             try { if (!SafeLocalPath(path) || !File.Exists(Deployment.IoPath(path)) || new FileInfo(path).Length > RecordByteLimit) return null; return Obj(Json().DeserializeObject(File.ReadAllText(Deployment.IoPath(path), Encoding.UTF8))); } catch { return null; }
         }

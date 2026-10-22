@@ -39,7 +39,7 @@
       $('settings-action-status').hidden=!actionMessage;
       $('settings-action-status').textContent=I.message(actionMessage);
       $('settings-action-status').classList.toggle('warning',!!actionMessage&&actionMessage!=='folder.opened');
-      $('about-version').textContent=info?.version||'1.6.2';
+      $('about-version').textContent=info?.version||'—';
       if(activeDocument)$('document-title').textContent=t(documentTitle(activeDocument));
       if(diagnosticData)$('diagnostics-preview').value=diagnosticText(diagnosticData);
       $('diagnostics-status').textContent=I.message(diagnosticState);

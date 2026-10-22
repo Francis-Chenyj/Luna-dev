@@ -5,6 +5,10 @@ import assert from 'node:assert/strict';
 import {performance} from 'node:perf_hooks';
 
 const [runtime,output]=process.argv.slice(2);
+const readJson=async name=>JSON.parse((await fs.readFile(path.join(runtime,name),'utf8')).replace(/^\uFEFF/,''));
+const config=await readJson('fixture.json');
+const predecessorVersion=config.predecessorVersion??(await readJson('installed-files.json')).version;
+assert.match(predecessorVersion,/^\d+\.\d+\.\d+$/,'Fixture must identify its predecessor version');
 const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const samples=[],sessions=[];
 const log=async()=>{try{return (await fs.readFile(path.join(runtime,'fixture-requests.jsonl'),'utf8')).trim().split(/\r?\n/).filter(Boolean).map(line=>JSON.parse(line.replace(/^\uFEFF/,'')));}catch{return [];}};
@@ -18,7 +22,7 @@ try{
     const api=async(route,method='GET')=>{const res=await fetch('http://127.0.0.1:18672'+route,{method,headers:{'X-Luna':'1'},signal:AbortSignal.timeout(3000)});assert.ok(res.ok,route+' '+res.status);return res.json();};
     let health;
     for(let tries=0;tries<100;tries++){try{health=await api('/api/health');break;}catch{await delay(80);}}
-    assert.equal(health?.version,'1.6.1');
+    assert.equal(health?.version,predecessorVersion);
     const readyMs=performance.now()-started;
     if(run===1){const saved=await api('/api/settings/save?key=appAutoDownload&value=true','POST');assert.equal(saved.preferences.appAutoCheck,true);assert.equal(saved.preferences.appAutoDownload,true);}
     let failures=0;

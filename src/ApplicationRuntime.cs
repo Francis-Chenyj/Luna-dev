@@ -123,6 +123,7 @@ namespace Luna {
         internal readonly AppUpdateService AppUpdates;
         internal readonly StorageMaintenance Storage;
         internal readonly DataUpdateCoordinator Updates;
+        internal readonly ClientDraftService Draft;
         internal Func<bool> DesktopAvailable;
         internal Action AppearanceChanged;
         int disposed;
@@ -141,6 +142,9 @@ namespace Luna {
             Storage = new StorageMaintenance(options, Workers, Library, AppUpdates, Quarantine, Activity, Diagnostics, clock);
             string warning; var saved = Preferences.ReadPreferences(out warning);
             Updates = new DataUpdateCoordinator(options, Workers, Library, Storage, Source, Diagnostics, saved.autoUpdate, clock);
+            // Offline mode disables upstream data access; an explicit BP connection
+            // still talks only to the user's local League client.
+            Draft = new ClientDraftService();
             Preferences.Changed += PreferenceChanged;
             Workers.WhenDrained(Source.Dispose);
         }
@@ -165,7 +169,7 @@ namespace Luna {
             automaticUpdatesThisRun = !Options.Offline && Updates.AutomaticUpdates, errors = Diagnostics.Errors }; }
         public void Dispose() {
             if (Interlocked.Exchange(ref disposed, 1) != 0) return;
-            Preferences.Changed -= PreferenceChanged; Workers.Dispose();
+            Preferences.Changed -= PreferenceChanged; Draft.Dispose(); Workers.Dispose();
         }
     }
 }

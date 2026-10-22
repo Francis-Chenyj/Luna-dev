@@ -1,6 +1,6 @@
 # Fault regression maintenance / 故障回归维护
 
-Applies to Luna 1.6.6. Test changes must preserve the failure being simulated and the observable recovery behavior.
+Applies to Luna 1.7.0. Test changes must preserve the failure being simulated and the observable recovery behavior.
 
 ## 场景迁移
 
@@ -39,3 +39,8 @@ Applies to Luna 1.6.6. Test changes must preserve the failure being simulated an
 ## English summary
 
 Legacy fault tests now instantiate and dispose real runtimes, inject network functions, prepare real disk faults and coordinate asynchronous work with events. A narrow clock dependency accelerates fixture request pacing and exercises maintenance deadlines; production defaults retain real time and cancellation. Assertions observe published data, job status, downloads and successful concurrent requests. Private-member reflection is prohibited by a repository regression. The historical deployment harness remains historical; current upgrades use the unmodified predecessor runtime with `run-upgrade-compatibility.ps1`.
+
+
+## 1.7.0 regressions
+
+BackendRegressionTests covers receipt-write failures in both update paths, full expired audits versus unfinished checkpoints, and case-alias writer exclusion. ClientDraftTests uses injected discovery/transport and synthetic responses; browser-draft exercises ten stable slots and click-only queries through sanitized route fixtures. Never use production credentials or account/session captures as test fixtures. The HTTP suite reads disabled state and rejects invalid connect requests without enabling a real client.

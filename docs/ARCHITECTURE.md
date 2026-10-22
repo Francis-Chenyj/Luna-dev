@@ -1,6 +1,6 @@
 # Runtime ownership / 运行时状态归属
 
-Applies to Luna 1.6.6. The existing .NET Framework build, local API and on-disk formats remain supported.
+Applies to Luna 1.7.0. The existing .NET Framework build, local API and on-disk formats remain supported.
 
 ## 服务边界
 
@@ -47,3 +47,11 @@ Applies to Luna 1.6.6. The existing .NET Framework build, local API and on-disk 
 Each `ApplicationRuntime` owns its services. Query code has no network dependency; the repository alone owns indexes and damage markers, and returns detached catalogs. One data coordinator retains both full-library and champion scheduling. Storage maintenance consumes repository operations and update cleanup methods rather than shared fields. Application-update state, transports, preferences, diagnostics and activity are per instance.
 
 The original directory mutexes, atomic publication, ownership checks, data formats and rollback rules are retained. `BackgroundWork` registers threads before starting them, stops accepting work before cancellation, and releases network resources only after workers drain. Native/process host state remains in `Program`; domain services never reference it. The legacy private-state adapter is removed. Regressions now use typed services, actual restarts, injected transports, event barriers and a narrow scheduling clock. Production request pacing is verified with the default real clock.
+
+## Optional local client connection
+
+`ApplicationRuntime.Draft` owns a `ClientDraftService` instance. It starts disabled and is disposed with its owning runtime. Its discovery, transport, session projection and cancellation are injectable without adding business state to `Program`. Connection credentials and raw LCU payloads never pass through the public local API or diagnostic logger. A worker generation prevents obsolete connections from publishing, and each returned snapshot is detached from service state.
+
+The BP worker is separate from data/library update scheduling. Local-only connections remain opt-in under `--offline`; upstream update policy is unchanged. Requests use a three-second total deadline, bounded response bodies, two fixed HTTPS loopback GET paths, no proxies or redirects and request-scoped certificate handling. Cancellation releases late responses as well as current requests. An uncooperative discovery dependency cannot block service disposal indefinitely.
+
+`web/draft.js` reads only the projected DTO. It keeps ten existing buttons in place during refreshes and delegates a clicked hero to `chooseHero`, which preserves filters and chooses a known client lane or a clearly labelled local default. No automatic batch of hero queries is triggered by synchronization. See [the privacy and compatibility contract](CLIENT_DRAFT.md).

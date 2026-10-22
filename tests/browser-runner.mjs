@@ -10,6 +10,8 @@ import {parseArgs} from 'node:util';
 import {chromium} from 'playwright';
 import {expect} from 'playwright/test';
 import {runBrowserSmoke, inspectLayout} from './browser-smoke.mjs';
+import {runDraftBrowser} from './browser-draft.mjs';
+import {runDraftAccessibility} from './browser-draft-accessibility.mjs';
 
 const {values} = parseArgs({options:{runtime:{type:'string'},output:{type:'string'},channel:{type:'string'}}});
 assert.ok(values.runtime && values.output, 'Usage: node tests/browser-runner.mjs --runtime <unpacked Luna> --output <new directory> [--channel msedge]');
@@ -89,6 +91,10 @@ try {
   await ready();report.smoke=await runBrowserSmoke(adapter,origin);
   report.checks.push('fresh launch, search, all scopes, refresh/history, keyboard tabs, local license, Escape/focus and English counts');
   report.checks.push('local license loads with a delayed response');
+  await runDraftBrowser(page,context,origin,report);
+  report.draftAccessibility=await runDraftAccessibility(page,context,origin,output);
+  assert.ok(report.draftAccessibility.passed,JSON.stringify(report.draftAccessibility.problems));
+  report.checks.push(...report.draftAccessibility.checks);
   for(const language of ['zh-CN','en'])for(const theme of ['light','dark']) {
     await page.locator('#settings-button').click();await page.locator('#tab-general').click();
     await page.locator('#language-select').selectOption(language);await expect(page.locator('html')).toHaveAttribute('lang',language);

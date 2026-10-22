@@ -28,7 +28,8 @@
   }
   let checkingConnection=false, initializing=false, contacts=0;
   let searchTimer, filterTimer, toastTimer, healthTimer, libraryTimer;
-  let libraryRevision=null, libraryBusy=false, libraryChecking=false, lastLibraryData=null, lastHeroData=null;
+  let libraryRevision=null, libraryBusy=false, libraryChecking=false, lastLibraryData=null, lastLibraryProfile=null, lastHeroData=null;
+  let draft=null;
   let lastFocusKey=null;
   let heroBusy=false,heroChecking=false,heroStatusKey=null,lastHeroCompletion=null,heroRequestEpoch=0;
   const selectedUpdateKey=()=>state.hero&&Object.hasOwn(state.hero.lanes,state.lane)?'detail-'+state.hero.id+'-'+state.lane+'-father-'+state.threshold+'-'+state.sensitivity:null;
@@ -99,6 +100,7 @@
       if(health.app!=='luna-local') throw new Error(t("服务不匹配"));
       state.offline=health.offline; contacts++;setConnection('connected');
       await settings.read();
+      if(draft)draft.read();
       if(!state.initialized) await init();
       // Another local request may restore the badge before the heartbeat. Failed
       // query columns still need recovery even when that badge is already green.
@@ -108,6 +110,7 @@
   }
   function cancelQuery() { clearTimeout(filterTimer);state.controller?.abort();state.queryBusy=false;state.seq++; }
   function clearSelection() {
+    draft?.selectionChanged(null);
     cancelQuery();clearTimeout(searchTimer);closeSuggestions();state.hero=null;state.lane='';state.laneOrigin='default';state.results={};heroStatusKey=null;heroBusy=false;heroRequestEpoch++;
     document.body.classList.remove('has-selection');
     for(const id of ['selection-panel','filters','results','lane-unavailable','profile-availability'])$(id).hidden=true;
@@ -146,10 +149,11 @@
     $('quick-label').textContent=state.history.length?t("最近 / 常用"):t("快速查询");
     $('quick-heroes').innerHTML=ids.map(id=>heroById(id)).filter(Boolean).map(h=>`<button type="button" class="quick-chip" data-hero="${h.id}"><img src="/icons/${h.id}.png" alt="">${e(heroName(h))}</button>`).join('');
   }
-  function closeSuggestions() { $('suggestions').hidden=true; $('hero-search').setAttribute('aria-expanded','false'); $('hero-search').removeAttribute('aria-activedescendant'); state.active=-1; }
+  function closeSuggestions() { clearTimeout(searchTimer);searchTimer=null;$('suggestions').hidden=true; $('hero-search').setAttribute('aria-expanded','false'); $('hero-search').removeAttribute('aria-activedescendant'); state.active=-1; }
   function renderSuggestions() {
     const query=$('hero-search').value;
     state.suggestions=C.search(state.heroes,query,20); state.active=-1;
+    $('hero-search').removeAttribute('aria-activedescendant');
     $('suggestions').innerHTML=state.suggestions.length?state.suggestions.map((h,i)=>`<button type="button" class="suggestion" role="option" aria-selected="false" id="suggestion-${i}" data-index="${i}"><img src="/icons/${h.id}.png" alt=""><span><strong>${e(heroName(h))} <small>${e(heroTitle(h))} · ${e(C.englishName(h))}</small></strong></span><span class="suggestion-lanes">${e(Object.keys(h.lanes).map(laneLabel).join(' / ') || t("暂无分路数据"))}</span></button>`).join(''):t("<div class=\"suggestion-empty\">没有找到匹配的英雄，试试完整姓名或称号。</div>");
     $('suggestions').hidden=false; $('hero-search').setAttribute('aria-expanded','true');
   }
@@ -178,14 +182,16 @@
   }
   function chooseHero(hero, {source='search',lane}={}) {
     if(!hero || state.exited) return;
+    draft?.selectionChanged(source);
     clearTimeout(searchTimer);
     clearTimeout(filterTimer);
     // History restores its saved lane. Detail searches and matchup cards keep
     // the active lane; home searches and recent/quick chips start a new context.
     const historyLane=source==='history'&&state.lanes.some(l=>l.key===lane)?lane:'';
+    const draftLane=source==='draft'&&state.lanes.some(l=>l.key===lane)?lane:'';
     const retainedLane=state.hero&&(source==='search'||source==='related')?state.lane:'';
-    state.lane=historyLane||retainedLane||(Object.keys(hero.lanes).length?C.bestLane(hero):'');
-    state.laneOrigin=historyLane?'history':retainedLane?'retained':'default';
+    state.lane=historyLane||draftLane||retainedLane||(Object.keys(hero.lanes).length?C.bestLane(hero):'');
+    state.laneOrigin=historyLane?'history':draftLane?'draft':source==='draft'?'draft-default':retainedLane?'retained':'default';
     state.hero=hero;
     $('hero-search').value=''; $('search-message').textContent=''; closeSuggestions();
     state.history=[hero.id,...state.history.filter(id=>id!==hero.id)].slice(0,6);
@@ -208,9 +214,10 @@
     $('selected-icon').src=`/icons/${h.id}.png`;$('selected-title').textContent=heroTitle(h);$('selected-name').textContent=heroName(h);$('selected-en').textContent=I.language==='en'?'':C.englishName(h);
     $('lane-buttons').innerHTML=state.lanes.map(l=>`<button type="button" class="lane-button ${l.key===state.lane?'active':''}" data-lane="${l.key}" aria-pressed="${l.key===state.lane}" ${Object.hasOwn(h.lanes,l.key)?'':'disabled'} title="${Object.hasOwn(h.lanes,l.key)?t("查看{0}数据",laneLabel(l.key)):t("原站当前没有该英雄的此分路数据")}">${e(laneLabel(l.key))}</button>`).join('');
     const laneReason=({default:t("默认分路"),retained:t("沿用分路"),history:t("恢复分路"),manual:t("已选分路")})[state.laneOrigin];
-    $('lane-note').textContent=state.lane?t("{0}：{1} · 可点击其他可用分路切换",laneReason,laneLabel(state.lane)):t("原站暂无此英雄的分路数据");
+    $('lane-note').textContent=state.lane?state.laneOrigin==='draft-default'?t('draft.defaultLane',laneLabel(state.lane)):state.laneOrigin==='draft'?t('draft.assignedLane',laneLabel(state.lane)):t("{0}：{1} · 可点击其他可用分路切换",laneReason,laneLabel(state.lane)):t("原站暂无此英雄的分路数据");
     $('threshold').value=state.threshold;$('threshold-output').value=state.threshold;$('sensitivity').value=state.sensitivity;$('sensitivity-output').value=state.sensitivity;
     if(refresh){resetHeroUpdateStatus();readHeroUpdate();}
+    if(lastLibraryData)renderLibrary(lastLibraryData);
   }
   function renderResult(mode) {
     const result=state.results[mode];
@@ -330,6 +337,7 @@
   function filterChanged() {
     if(!state.hero || state.exited) return;
     state.threshold=Number($('threshold').value);state.sensitivity=Number($('sensitivity').value);
+    if(lastLibraryData)renderLibrary(lastLibraryData);
     resetHeroUpdateStatus();
     $('threshold-output').value=state.threshold;$('sensitivity-output').value=state.sensitivity;
     cancelQuery();prepareResults();renderResult('father');renderResult('son');renderMeta(true);
@@ -351,15 +359,16 @@
     event.preventDefault();if(state.exited)return;
     clearSelection();history.pushState(null,'',location.pathname+location.search);$('hero-search').focus();
   });
-  $('hero-search').addEventListener('input',()=>{state.active=-1;$('search-message').textContent='';clearTimeout(searchTimer);searchTimer=setTimeout(renderSuggestions,70);});
+  $('hero-search').addEventListener('input',()=>{state.active=-1;$('hero-search').removeAttribute('aria-activedescendant');$('search-message').textContent='';clearTimeout(searchTimer);searchTimer=setTimeout(()=>{searchTimer=null;renderSuggestions();},70);});
   $('hero-search').addEventListener('focus',()=>{if($('hero-search').value.trim()) renderSuggestions();});
   $('hero-search').addEventListener('keydown',event=>{
     if(event.isComposing||event.keyCode===229) return;
-    if(event.key==='ArrowDown'||event.key==='ArrowUp') {event.preventDefault();if($('suggestions').hidden) renderSuggestions();setActive(state.active+(event.key==='ArrowDown'?1:-1));}
+    if(event.key==='ArrowDown'||event.key==='ArrowUp') {event.preventDefault();const refresh=!!searchTimer;clearTimeout(searchTimer);searchTimer=null;if(refresh||$('suggestions').hidden) renderSuggestions();setActive(state.active<0?(event.key==='ArrowDown'?0:state.suggestions.length-1):state.active+(event.key==='ArrowDown'?1:-1));}
     if(event.key==='Escape') closeSuggestions();
   });
   $('suggestions').addEventListener('click',event=>{const item=event.target.closest('[data-index]');if(item) chooseHero(state.suggestions[Number(item.dataset.index)]);});
   document.addEventListener('click',event=>{if(!event.target.closest('.search-section')) closeSuggestions();});
+  document.addEventListener('focusin',event=>{if(!event.target.closest('.search-section')) closeSuggestions();});
   document.addEventListener('keydown',event=>{if(!state.exited&&!document.querySelector('dialog[open]')&&(event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='k'){event.preventDefault();$('hero-search').focus();$('hero-search').select();}});
   $('quick-heroes').addEventListener('click',event=>{const button=event.target.closest('[data-hero]');if(button) chooseHero(heroById(button.dataset.hero),{source:'recent'});});
   $('lane-buttons').addEventListener('click',event=>{const button=event.target.closest('[data-lane]');if(button&&!button.disabled&&state.hero&&Object.hasOwn(state.hero.lanes,button.dataset.lane)&&button.dataset.lane!==state.lane){state.lane=button.dataset.lane;state.laneOrigin='manual';renderSelection();writeLocation();loadResults();}});
@@ -409,6 +418,7 @@
   }
   function renderLibrary(data) {
     const job=data.job;
+    const matchesProfile=lastLibraryProfile===state.threshold+'-'+state.sensitivity;
     const autoEnabled=!state.offline&&data.automaticUpdates!==false;
     let updateLabel=state.offline?t("离线模式 · 仅使用本地数据"):autoEnabled?t("启动后自动更新已开启"):t("本次启动仅手动更新");
     if(!state.offline) {
@@ -422,11 +432,12 @@
     $('library-auto-note').textContent=state.offline
       ? t("离线模式不会自动或手动联网更新。保存的开关在下次普通启动时生效。")
       : autoEnabled?t("普通启动约 1 秒后检查版本，优先更新当前与最近英雄，再续传完整库。英雄两侧一起校验通过就可使用，不必等待全库完成。停止后本次不自动重启。"):t("本次启动已关闭自动更新，可手动检查更新。");
-    $('library-coverage').textContent=t("当前条件：阈值 {0} / 严谨度 {1} · {2} · {3} / {4} 条",state.threshold,state.sensitivity,data.complete?t("完整离线库"):t("尚未保存完整库"),data.saved,data.expected);
+    $('library-coverage').textContent=matchesProfile?t("当前条件：阈值 {0} / 严谨度 {1} · {2} · {3} / {4} 条",state.threshold,state.sensitivity,data.complete?t("完整离线库"):t("尚未保存完整库"),data.saved,data.expected):t('library.checkingProfile',state.threshold,state.sensitivity);
     const librarySource=provenance(data);
     $('library-date').textContent=data.saved?t("当前优先使用：{0} · 数据生成：{1}",librarySource.label+(librarySource.detail?' · '+librarySource.detail:''),formatTime(data.sourceGeneratedAt)):t("恢复默认条件即可使用随包提供的全英雄离线库。");
     $('library-local-update').textContent=data.saved?t("完整库本机更新：{0}。部分英雄可能已有更近的更新，以结果卡片的来源和时间为准。",librarySource.localUpdated):t("本机更新：当前条件尚未保存完整库。");
     $('library-source-check').textContent=t("上次成功检查原站：{0}。检查版本不会改变本机更新时间。",formatTime(data.sourceCheckedAt));
+    if(!matchesProfile)for(const id of ['library-date','library-local-update','library-source-check'])$(id).textContent='';
     $('library-profiles').textContent=t("已完整保存 {0} / 25 种筛选组合：{1}（阈值 / 严谨度）",data.profiles.length,data.profiles.map(p=>p.replace('-',' / ')).join(', '));
     const storage=data.storage;
     const megabytes=bytes=>(Math.max(0,Number(bytes)||0)/1000000).toFixed(2)+' MB';
@@ -446,7 +457,7 @@
     $('update-library').disabled=state.offline||job.busy;
     $('cancel-update').hidden=!job.busy;
     $('all-profiles').disabled=state.offline||job.busy;
-    $('update-library').textContent=data.complete?t("检查并更新离线库"):t("下载当前条件并更新离线库");
+    $('update-library').textContent=!matchesProfile||data.complete?t("检查并更新离线库"):t("下载当前条件并更新离线库");
     $('offline-update-note').hidden=!state.offline;
     $('catalog-button').textContent=job.busy?(job.kind==='hero'?t("英雄更新中…"):t("离线库更新中…")):t("数据管理");
   }
@@ -460,7 +471,7 @@
       if(state.exited) return;
       if(threshold!==state.threshold||sensitivity!==state.sensitivity) return;
       const job=data.job, wasBusy=libraryBusy;libraryBusy=job.busy;
-      lastLibraryData=data;renderLibrary(data);
+      lastLibraryData=data;lastLibraryProfile=threshold+'-'+sensitivity;renderLibrary(data);
       if((libraryRevision!==null&&libraryRevision!==data.revision)||(wasBusy&&!job.busy&&job.state==='complete')) await reloadCatalog();
       libraryRevision=data.revision;
       if(wasBusy&&!job.busy&&!job.automatic)toast(I.jobMessage(job));
@@ -468,10 +479,10 @@
     } catch(error){if(!state.exited)$('library-message').textContent=error.message;}
     finally {
       libraryChecking=false;clearTimeout(libraryTimer);
-      if(!state.exited)libraryTimer=setTimeout(readLibrary,libraryBusy||heroBusy?2000:15000);
+      if(!state.exited)libraryTimer=setTimeout(readLibrary,lastLibraryProfile!==state.threshold+'-'+state.sensitivity?1000:libraryBusy||heroBusy?2000:15000);
     }
   }
-  function openLibrary() { $('library-dialog').showModal();readLibrary(); }
+  function openLibrary() { if(lastLibraryData)renderLibrary(lastLibraryData);$('library-dialog').showModal();readLibrary(); }
   $('catalog-button').addEventListener('click',openLibrary);
   $('home-library-button').addEventListener('click',openLibrary);
   $('update-status').addEventListener('click',openLibrary);
@@ -489,7 +500,7 @@
   $('exit-button').addEventListener('click',async()=>{
     try {
       await api('/api/quit',{method:'POST',timeout:5000});
-      state.exited=true;clearInterval(healthTimer);clearTimeout(libraryTimer);clearTimeout(searchTimer);clearTimeout(toastTimer);cancelQuery();application.abort();recentResults.clear();
+      state.exited=true;draft?.dispose();clearInterval(healthTimer);clearTimeout(libraryTimer);clearTimeout(searchTimer);clearTimeout(toastTimer);cancelQuery();application.abort();recentResults.clear();
       setConnection('stopped');$('toast').hidden=true;document.querySelector('.workspace').hidden=true;$('exit-screen').hidden=false;
       $('exit-button').disabled=true;$('settings-button').disabled=true;
       for(const dialog of document.querySelectorAll('dialog[open]'))dialog.close();
@@ -498,7 +509,7 @@
   $('reconnect-button').addEventListener('click',checkConnection);
   window.addEventListener('focus',()=>{if(state.initialized)checkConnection();});
   window.addEventListener('popstate',()=>{if(!state.exited&&!restoreLocation())clearSelection();});
-  window.addEventListener('pagehide',()=>{cancelQuery();application.abort();clearInterval(healthTimer);clearTimeout(libraryTimer);recentResults.clear();});
+  window.addEventListener('pagehide',()=>{draft?.dispose();cancelQuery();application.abort();clearInterval(healthTimer);clearTimeout(libraryTimer);clearTimeout(searchTimer);recentResults.clear();});
   window.addEventListener('pageshow',event=>{if(event.persisted)location.reload();});
   async function init() {
     if(initializing || state.exited) return;
@@ -511,6 +522,7 @@
       if(health.app!=='luna-local')throw new Error(t("当前地址不是Luna服务，请重新启动程序。"));
       state.offline=health.offline;updateCatalog(catalog);
       state.initialized=true;setConnection('connected');$('fatal').hidden=true;
+      draft?.read();
       if(state.offline)toast('离线模式：默认条件已保存全英雄关系，可直接查询。');
       restoreLocation();
       $('hero-search').disabled=false;$('search-button').disabled=false;
@@ -533,10 +545,12 @@
       if(lastHeroData&&lastHeroData.key===selectedUpdateKey())showHeroUpdate(lastHeroData.data,lastHeroData.key,false);else resetHeroUpdateStatus();
     }
     if(!$('suggestions').hidden&&$('hero-search').value){const active=state.active;renderSuggestions();if(active>=0)setActive(active);}
-    if(lastLibraryData)renderLibrary(lastLibraryData);
+    if(lastLibraryData){renderLibrary(lastLibraryData);if(lastLibraryProfile!==state.threshold+'-'+state.sensitivity)readLibrary();}
+    draft?.render();
     for(const id of ['toast','fatal','search-message']){const node=$(id);if(node.textContent)node.textContent=I.message(node.textContent);}
   }
   const settings=window.LunaSettings({api,toast,openLibrary,rerender:renderLanguage,isExited:()=>state.exited});
+  draft=window.LunaDraft({api,chooseHero,heroById,heroName,laneLabel,isExited:()=>state.exited});
   healthTimer=setInterval(checkConnection,10000);
   init();
 })();

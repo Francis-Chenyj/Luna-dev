@@ -1,5 +1,12 @@
 # Changelog / 更新日志
 
+## 1.7.0 — 2026-10-22 (local review)
+
+- Add optional local-client BP synchronization: two teams of five champion slots, visible selection rounds, and on-demand local matchup queries.
+- Read only two fixed LCU endpoints. Discard unrelated response fields; keep authentication in memory; never request account/history/rank endpoints or automate picks/bans.
+- Recover data updates when maintenance receipts cannot be saved; repeat expired complete audits; normalize directory identities for data writer locks.
+- Fix search arrow selection, dismissed debounce callbacks, filter-specific completeness labels and the obsolete settings version fallback.
+- Add BP parser/lifecycle/privacy and browser regressions, backend failure regressions, and a ten-round verification record. See [feature boundaries](docs/CLIENT_DRAFT.md), [release notes](docs/RELEASE-v1.7.0.md) and [QA](docs/QA-1.7.0.md).
 ## 1.6.6 — 2026-10-17 (local review)
 
 - Remove the private-state reflection adapter from fault regressions; use typed services, actual runtime restarts, injected transports and event barriers.

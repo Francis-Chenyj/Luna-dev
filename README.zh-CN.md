@@ -6,7 +6,7 @@
 
 [English](README.md) · **简体中文**
 
-**v1.6.6** · Windows 10 / 11 · .NET Framework 4.7.2+ · [MIT — 原创代码](LICENSE)
+**v1.7.0** · Windows 10 / 11 · .NET Framework 4.7.2+ · [MIT — 原创代码](LICENSE)
 
 用于英雄联盟选人阶段的本地对局查询工具。搜索英雄，即可查看 **严父（谁克制我）** 和 **大儿（我克制谁）**，并按分路与分段筛选结果。
 
@@ -35,9 +35,9 @@ Luna 1.5.0 简体中文、深色主题，使用随包数据：亚托克斯、上
 
 ## 下载与快速开始
 
-**1.6.6 本地修订：**完成旧故障测试迁移，删除私有字段反射适配器；通过真实重启、受控网络和事件验证取消及恢复，并补齐请求间隔和整理期限检查。查询、更新和磁盘格式保持兼容。此构建尚未上传 GitHub。详见 [1.6.6 发布说明](docs/RELEASE-v1.6.6.md)、[验证范围](docs/QA-1.6.6.md)与[测试维护](docs/TESTING.md)。
+**1.7.0 本地修订：**完成旧故障测试迁移，删除私有字段反射适配器；通过真实重启、受控网络和事件验证取消及恢复，并补齐请求间隔和整理期限检查。查询、更新和磁盘格式保持兼容。此构建尚未上传 GitHub。详见 [1.7.0 发布说明](docs/RELEASE-v1.7.0.md)、[验证范围](docs/QA-1.7.0.md)与[测试维护](docs/TESTING.md)。
 
-**开发中 · 本地审阅版本。** 本次交付 `Luna-v1.6.6-Windows.zip`；`Luna-v1.6.6-Source.zip` 用于开发，不含可执行程序。[Releases 下载页](https://github.com/Francis-Chenyj/Luna-dev/releases)是独立的公开分发渠道，本地有新版不代表线上已发布。请用随包 `SHA256SUMS.txt` 核对 ZIP 的 SHA-256。第三方分发授权和 Riot 注册仍待完成，详见[分发状态](release-status.json)与[第三方声明](THIRD_PARTY_NOTICES.md)。
+**开发中 · 本地审阅版本。** 本次交付 `Luna-v1.7.0-Windows.zip`；`Luna-v1.7.0-Source.zip` 用于开发，不含可执行程序。[Releases 下载页](https://github.com/Francis-Chenyj/Luna-dev/releases)是独立的公开分发渠道，本地有新版不代表线上已发布。请用随包 `SHA256SUMS.txt` 核对 ZIP 的 SHA-256。第三方分发授权和 Riot 注册仍待完成，详见[分发状态](release-status.json)与[第三方声明](THIRD_PARTY_NOTICES.md)。
 
 **运行要求：** Windows 10 / 11、.NET Framework 4.7.2 或更高版本，以及 Microsoft Edge WebView2 Runtime。Luna 复用已安装的运行环境，不打包完整浏览器。缺少时请安装[微软 Evergreen Runtime](https://developer.microsoft.com/microsoft-edge/webview2/)。`Luna.exe --browser` 可使用浏览器兼容模式，但不支持托盘。普通使用无需 Node.js、Python、账号、API Key 或管理员权限。
 
@@ -93,7 +93,7 @@ Luna 1.5.0 简体中文、深色主题，使用随包数据：亚托克斯、上
 
 启用自动下载或点击“下载新版”后，已写入的部分跨启动保留；服务器支持时使用 HTTP Range 接续。源不支持续传时安全重新下载，不能保证每个下载服务器都支持断点。文件校验完成后不重复下载。只有点击 **重启并更新** 并确认才安装；最小化到托盘不等于退出或安装。
 
-成功重启后，应用设置显示更新成功，不再提示旧的“发现新版”。健康检查现在要求原生窗口、界面初始化和本地查询一起通过；故障恢复与本次实际验收范围见 [QA](docs/QA-1.6.6.md)。历史短会话测试保留原版本记录，不代表本次执行了公网发布升级。
+成功重启后，应用设置显示更新成功，不再提示旧的“发现新版”。健康检查现在要求原生窗口、界面初始化和本地查询一起通过；故障恢复与本次实际验收范围见 [QA](docs/QA-1.7.0.md)。历史短会话测试保留原版本记录，不代表本次执行了公网发布升级。
 
 程序只接受项目正式发布源中经内置公钥验证的更新说明，并验证 ZIP 大小、SHA-256、文件清单和路径。新版本通过本地启动与查询检查后启用；检查失败恢复旧程序。升级过程中意外中断，可再次启动恢复。设置及离线库不参与程序文件替换。
 
@@ -129,3 +129,8 @@ README 排版参考 [Yifan Ad Skipper](https://github.com/CharryLee0426/yifan-ad
 Copyright © 2026 FrancisChen。Luna 的原创代码、脚本、说明和绿色 L 图标采用 [MIT 许可证](LICENSE)。第三方游戏素材、上游数据及截图中的第三方内容仍适用各自条款，详见[第三方声明](THIRD_PARTY_NOTICES.md)。
 
 Luna 未获 Riot Games 官方认可，也不代表 Riot Games 或参与制作、管理其产品的相关人员的观点。Riot Games 及其相关名称和标志的权利归各自权利人。
+
+
+## 可选 BP 同步（1.7.0）
+
+在首页主动连接已运行的英雄联盟客户端。进入英雄选择后，我方、对方各五个位置随选人进度显示头像；点击头像才打开该英雄本地的严父／大儿。每次程序启动时默认关闭，不查询战绩或段位，不自动选禁英雄。分路未知时明确使用该英雄本地常用分路，不沿用上一个英雄的分路。详见[使用方法、隐私边界与兼容范围](docs/CLIENT_DRAFT.md)。

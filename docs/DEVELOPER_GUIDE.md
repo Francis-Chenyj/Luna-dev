@@ -2,7 +2,7 @@
 
 **English** · [简体中文](DEVELOPER_GUIDE.zh-CN.md) · [Project overview](../README.md) · [User guide](USER_GUIDE.md) · [Changelog](../CHANGELOG.md)
 
-**Applies to version 1.6.6 · Author: FrancisChen**
+**Applies to version 1.7.0 · Author: FrancisChen**
 
 Fault-test conventions and the migration from private-state reflection are described in [test maintenance](TESTING.md). New tests use typed services, injected dependencies and actual runtime lifecycles.
 
@@ -10,7 +10,7 @@ See [audit repairs and test commands](AUDIT_REPAIRS.md), [contributing](CONTRIBU
 
 Project home: [Luna on GitHub](https://github.com/Francis-Chenyj/Luna-dev).
 
-This guide covers the existing build, tests and local packaging workflow. Start with a source checkout or `Luna-v1.6.6-Source.zip`; the Windows package does not contain the development source or tests. Run commands from the source root.
+This guide covers the existing build, tests and local packaging workflow. Start with a source checkout or `Luna-v1.7.0-Source.zip`; the Windows package does not contain the development source or tests. Run commands from the source root.
 
 ## Environment
 
@@ -191,19 +191,19 @@ For deterministic checks of a normal service, change the launch arguments to `--
 
 ## Package and verify
 
-Use a **new empty output directory**. The default `dist/v1.6.6/` may already contain local artifacts; the following example chooses a separate directory:
+Use a **new empty output directory**. The default `dist/v1.7.0/` may already contain local artifacts; the following example chooses a separate directory:
 
 ```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\package.ps1 -OutputDirectory .\dist\v1.6.6-review
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tests\run-package.ps1 -ReleaseDirectory .\dist\v1.6.6-review
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\package.ps1 -OutputDirectory .\dist\v1.7.0-review
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tests\run-package.ps1 -ReleaseDirectory .\dist\v1.7.0-review
 ```
 
 Choose another unused directory for a repeat run. Packaging refuses to mix with existing files.
 
 | Output | Contents |
 | --- | --- |
-| `Luna-v1.6.6-Windows.zip` | Rebuilt EXE, runtime files, bundled data, both READMEs and documentation |
-| `Luna-v1.6.6-Source.zip` | Source, scripts, tests, data and documentation; no EXE |
+| `Luna-v1.7.0-Windows.zip` | Rebuilt EXE, runtime files, bundled data, both READMEs and documentation |
+| `Luna-v1.7.0-Source.zip` | Source, scripts, tests, data and documentation; no EXE |
 | `SHA256SUMS.txt` | SHA-256 values for both ZIPs and the manifest |
 | `release-files.json` | Every archive entry's path, size and hash |
 | `_build/` | Intermediate local build, not a download attachment |
@@ -220,7 +220,7 @@ Before handing a package to users, follow the [release checklist](RELEASE_CHECKL
 
 Windows display scaling and browser zoom are separate controls. Check real Windows scaling at 125% and 150% with browser zoom at 100%; record the observed pixel ratio, language/theme, viewport and screenshots. Restore the original display setting afterwards. Changing only the browser width or zoom does not count as a Windows scaling check. Document separately any OS/browser combination or clean-machine environment that was not available.
 
-Use the release inventory and SHA-256 to distinguish local builds sharing a version number. The [QA record](QA-1.6.6.md) records completed checks; the [release draft](RELEASE-v1.6.6.md) describes the selected build. Run relevant checks again when the code or package contents change; do not silently replace an already verified ZIP.
+Use the release inventory and SHA-256 to distinguish local builds sharing a version number. The [QA record](QA-1.7.0.md) records completed checks; the [release draft](RELEASE-v1.7.0.md) describes the selected build. Run relevant checks again when the code or package contents change; do not silently replace an already verified ZIP.
 
 ## Data and search maintenance
 
@@ -245,16 +245,16 @@ Use matching official catalog coverage for a search rebuild, record source/versi
 | [Developer guide](DEVELOPER_GUIDE.md) / [简体中文开发指南](DEVELOPER_GUIDE.zh-CN.md) | Layout, build, testing and local packaging |
 | [Changelog](../CHANGELOG.md) | Versioned changes, including an Unreleased section |
 | [Repository details](REPOSITORY_SETUP.md) | About description, project URL and topics |
-| [Release draft](RELEASE-v1.6.6.md) | Future release description and attachment list |
+| [Release draft](RELEASE-v1.7.0.md) | Future release description and attachment list |
 | [Release checklist](RELEASE_CHECKLIST.md) | Source/upload boundaries, runtime acceptance and outstanding publication items |
-| [QA record](QA-1.6.6.md) | Dated validation results and their limits |
+| [QA record](QA-1.7.0.md) | Dated validation results and their limits |
 | [Third-party review](THIRD_PARTY_REVIEW.md) | Distribution evidence and unresolved items |
 
 Keep the two language editions in step when changing user-visible behavior. The product is **Luna**, author **FrancisChen**, repository **Francis-Chenyj/Luna-dev**; reference-project links belong in README acknowledgements.
 
 For a future application version, update versioned source/UI expectations and release metadata together; the HTTP and package checks derive the expected release version from metadata. Tooling/documentation-only work stays under **Unreleased** unless a new version is intentionally prepared. Issue forms and the Windows workflow are locally prepared; GitHub activation and actual Release publication remain separate authorized actions.
 
-## Desktop host / 桌面窗口 (1.6.6)
+## Desktop host / 桌面窗口 (1.7.0)
 
 `src/DesktopWindow.cs` owns the WinForms/WebView2 window and NotifyIcon. HTTP runs on a dedicated thread; query and update workers are unchanged. Close choices are stored as `closeAction: ask|tray|exit` in schema-1 preferences (missing field defaults to ask). Explicit Exit and Windows session end bypass the preference. `/api/window/close` and `/api/window/show` require the same POST, X-Luna, loopback Host and Origin checks as other mutations. Do not use them from external origins.
 
@@ -268,3 +268,8 @@ WebView2 uses `cache/webview2` and clears only DiskCache/CacheStorage asynchrono
 See [Application lifecycle / 程序维护](APPLICATION_LIFECYCLE.md) for signing, installation, updates, rollback and uninstall.
 
 See [runtime ownership](ARCHITECTURE.md) for service boundaries, concurrency rules and fixture migration. Run the new suite with `tests/run-service-isolation.ps1`.
+
+
+## Optional BP synchronization (1.7.0)
+
+Connect the running League client from Luna's home page. Five champion slots per team appear during champion selection; click a portrait to open its local matchup details. The feature is off after every app start, uses only local read-only endpoints, and does not query player history or rank. Unknown lanes use a clearly identified local default rather than the previously selected champion's lane. [Usage, privacy boundaries and compatibility](CLIENT_DRAFT.md).

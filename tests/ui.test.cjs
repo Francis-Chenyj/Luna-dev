@@ -7,6 +7,11 @@ const code=fs.readFileSync(require.resolve('../web/app.js'),'utf8');
 const html=fs.readFileSync(require.resolve('../web/index.html'),'utf8');
 const heroes=[{id:266,name:'亚托克斯',title:'暗裔剑魔',en:'Aatrox',keywords:'剑魔',lanes:{top:100,jungle:20}},{id:103,name:'阿狸',title:'九尾妖狐',en:'Ahri',keywords:'狐狸',lanes:{middle:100}}];
 const lanes=[{key:'top',label:'上路'},{key:'jungle',label:'打野'},{key:'middle',label:'中路'}];
+function draftSnapshot(enabled=true,state='champ-select'){
+  const team=()=>Array.from({length:5},(_,slot)=>({slot,championId:0,selection:'empty',pickOrder:0,lane:''}));
+  return {enabled,state,revision:1,teams:{ally:team(),enemy:team()}};
+}
+function draftPick(data,team,slot,id,selection='locked',lane='',pickOrder=0){Object.assign(data.teams[team][slot],{championId:id,selection,lane,pickOrder});return data;}
 
 test('all eight scope choices survive reload and history without refetching on scope-only changes',async t=>{
   const env=await setup();t.after(()=>env.close());await env.choose(266);
@@ -118,9 +123,10 @@ class Element {
 async function flush(){for(let i=0;i<12;i++)await new Promise(setImmediate);}
 async function setup(options={}) {
   const elements=new Map([...html.matchAll(/<[^>]*\bid="([^"]+)"[^>]*>/g)].map(m=>{const node=new Element();node.hidden=/\bhidden\b/.test(m[0]);node.disabled=/\bdisabled\b/.test(m[0]);return [m[1],node];}));
-  const $=id=>{assert.ok(elements.has(id),'Unknown DOM id: '+id);return elements.get(id);};
+  const $=id=>{if(/^suggestion-\d+$/.test(id)&&!elements.has(id))elements.set(id,new Element());assert.ok(elements.has(id),'Unknown DOM id: '+id);return elements.get(id);};
   const workspace=new Element(),document=new Element(),window=new Element();
   document.getElementById=$;document.createElement=()=>new Element();document.body=new Element();document.documentElement=new Element();document.querySelectorAll=()=>[];document.querySelector=selector=>selector==='.workspace'?workspace:selector==='.local-badge'?$('service-status'):null;
+  for(const node of elements.values())node.focus=()=>{document.activeElement=node;};
   const appearance=new Element();appearance.matches=!!options.dark;
   window.chrome={webview:new Element()};
   const copied=[];window.matchMedia=()=>appearance;window.navigator={clipboard:{async writeText(value){if(options.clipboardDenied)throw new Error('Denied');copied.push(value);}}};
@@ -145,7 +151,16 @@ async function setup(options={}) {
     else if(url.pathname==='/api/maintenance')result=server.maintenance||{success:true,available:true,path:'D:/isolated/Luna'};
     else if(url.pathname==='/api/maintenance/run')result=server.maintenanceFailure?{success:false,httpStatus:400,message:'maintenance.sourceFolder'}:{success:true};
     else if(url.pathname==='/api/catalog')result=server.catalog;
-    else if(url.pathname==='/api/settings')result=structuredClone(server.settings);
+    else if(url.pathname==='/api/settings')result=server.settingsFailure?{success:false,httpStatus:503,message:'settings.loadFailed'}:structuredClone(server.settings);
+    else if(url.pathname==='/api/draft')result=typeof server.draft==='function'?await server.draft():server.draft||draftSnapshot(false,'disabled');
+    else if(url.pathname==='/api/draft/connect'){
+      result=server.draftConnect?await server.draftConnect():typeof server.draft==='object'?server.draft:draftSnapshot(true,'searching');
+      if(!server.draftConnect)server.draft=result;
+    }
+    else if(url.pathname==='/api/draft/disconnect'){
+      result=server.draftDisconnect?await server.draftDisconnect():draftSnapshot(false,'disabled');
+      if(!server.draftDisconnect)server.draft=result;
+    }
     else if(url.pathname==='/api/settings/save'){
       if(server.saveFailure)result={success:false,httpStatus:400,message:'settings.saveFailed'};
       else{
@@ -161,7 +176,7 @@ async function setup(options={}) {
     else if(url.pathname==='/api/folders/open')result={success:true};
     else if(url.pathname==='/api/about/document')result={success:true,text:'MIT test document'};
     else if(url.pathname==='/api/health')result=server.health;
-    else if(url.pathname==='/api/library')result=server.library;
+    else if(url.pathname==='/api/library')result=typeof server.library==='function'?await server.library(url.searchParams):server.library;
     else if(url.pathname==='/api/library/focus')result=server.focus?server.focus(url.searchParams):{success:true};
     else if(url.pathname==='/api/hero/status')result=server.heroStatus?server.heroStatus(url.searchParams):{success:true,state:'idle',busy:false};
     else if(url.pathname==='/api/hero/update')result=server.heroUpdate?server.heroUpdate(url.searchParams):{success:true,state:'queued',busy:true,message:'已排入优先更新'};
@@ -184,6 +199,7 @@ async function setup(options={}) {
   Object.assign(window,{LunaCore:C,LunaI18n:require('../web/i18n.js').create()});
   const context={window,document,location,history,localStorage:{getItem:()=>null,setItem(){}},fetch,URLSearchParams,AbortController,TypeError,SyntaxError,Error,console,performance:{now:()=>tick},setTimeout:(f,d)=>schedule(f,d),clearTimeout:id=>timers.delete(id),setInterval:(f,d)=>schedule(f,d,true),clearInterval:id=>timers.delete(id)};
   vm.createContext(context);vm.runInContext(fs.readFileSync(require.resolve('../web/settings.js'),'utf8'),context,{filename:'settings.js'});
+  vm.runInContext(fs.readFileSync(require.resolve('../web/draft.js'),'utf8'),context,{filename:'draft.js'});
   vm.runInContext(code,context,{filename:'app.js'});await flush();
   return {$,server,requests,pending,workspace,window,location,document,appearance,copied,
     async choose(id,lane){await $('quick-heroes').emit('click',{target:{closest:()=>({dataset:{hero:String(id)}})}});await flush();if(lane)await this.lane(lane);},
@@ -896,4 +912,207 @@ test('an ordinary browser sharing the native server cannot offer tray preference
   const env=await setup();t.after(()=>env.close());delete env.window.chrome;
   await env.$('settings-button').emit('click');env.server.settings.version='1.5.2-browser-check';await env.window.emit('focus');await flush();
   assert.equal(env.$('close-action-select').disabled,true);assert.equal(env.$('close-unavailable').hidden,false);
+});
+
+test('first Up selects the last suggestion, arrows wrap, and Enter confirms the active hero',async t=>{
+  const env=await setup();t.after(()=>env.close());
+  env.$('hero-search').value='a';
+  const key=key=>env.$('hero-search').emit('keydown',{key,preventDefault(){}});
+  await key('ArrowUp');assert.equal(env.$('hero-search').getAttribute('aria-activedescendant'),'suggestion-1');
+  await key('ArrowDown');assert.equal(env.$('hero-search').getAttribute('aria-activedescendant'),'suggestion-0');
+  await key('ArrowUp');await env.$('search-form').emit('submit',{preventDefault(){}});await flush();
+  assert.equal(new URLSearchParams(env.location.hash.slice(1)).get('hero'),'266');
+});
+
+test('Escape, outside clicks and keyboard focus leaving search cancel pending suggestions',async t=>{
+  for(const close of [env=>env.$('hero-search').emit('keydown',{key:'Escape'}),env=>env.document.emit('click',{target:{closest:()=>null}}),env=>env.document.emit('focusin',{target:{closest:()=>null}})]){
+    const env=await setup();t.after(()=>env.close());env.$('hero-search').value='a';await env.$('hero-search').emit('input');
+    await close(env);await env.advance(70);
+    assert.equal(env.$('suggestions').hidden,true);assert.equal(env.$('hero-search').getAttribute('aria-expanded'),'false');
+    assert.equal(env.$('hero-search').getAttribute('aria-activedescendant'),null);
+  }
+});
+
+test('typing replaces the active suggestion immediately and arrows resolve the newest pending text',async t=>{
+  const env=await setup();t.after(()=>env.close());env.$('hero-search').value='a';
+  await env.$('hero-search').emit('keydown',{key:'ArrowDown',preventDefault(){}});
+  env.$('hero-search').value='Ahri';await env.$('hero-search').emit('input');
+  assert.equal(env.$('hero-search').getAttribute('aria-activedescendant'),null);
+  await env.$('hero-search').emit('keydown',{key:'ArrowDown',preventDefault(){}});
+  await env.$('search-form').emit('submit',{preventDefault(){}});await env.advance(70);
+  assert.equal(new URLSearchParams(env.location.hash.slice(1)).get('hero'),'103');assert.equal(env.$('suggestions').hidden,true);
+});
+
+test('a failed settings read never invents an old version number',async t=>{
+  const env=await setup({server:{settingsFailure:true}});t.after(()=>env.close());
+  assert.equal(env.$('about-version').textContent,'—');assert.match(env.$('settings-save-status').textContent,/未能读取/);
+  env.server.settingsFailure=false;await env.window.emit('focus');await flush();
+  assert.equal(env.$('about-version').textContent,env.server.settings.version);
+});
+
+test('library coverage is bound to its requested filters across language changes and late replies',async t=>{
+  const env=await setup();t.after(()=>env.close());await env.choose(266);
+  let release;env.server.library=q=>q.get('thresholdLevel')==='2'?new Promise(resolve=>{release=resolve;}):env.server.library;
+  env.$('threshold').value='2';await env.$('threshold').emit('input');
+  assert.match(env.$('library-coverage').textContent,/阈值 2.*正在读取/);assert.doesNotMatch(env.$('library-coverage').textContent,/完整离线库/);
+  env.$('language-select').value='en';await env.$('language-select').emit('change');await flush();
+  assert.match(env.$('library-coverage').textContent,/threshold 2.*Reading library coverage/);assert.doesNotMatch(env.$('library-coverage').textContent,/Complete library/);
+  release({success:true,complete:false,saved:0,expected:4,profiles:['1-5'],revision:'initial',job:{busy:false,state:'idle',message:'Local lookup',done:0,total:0,profile:'1-5'}});await flush();
+  assert.match(env.$('library-coverage').textContent,/threshold 2.*not yet saved.*0 \/ 4/);
+});
+
+test('draft is disabled initially and never discovers, queries or downloads without an explicit action',async t=>{
+  const env=await setup();t.after(()=>env.close());
+  assert.equal(env.$('draft-connect').hidden,false);assert.equal(env.$('draft-disconnect').hidden,true);
+  assert.equal(env.requests.filter(x=>x.path==='/api/draft').length,1);
+  await env.advance(5000);assert.equal(env.requests.filter(x=>x.path==='/api/draft').length,1);
+  assert.ok(env.requests.every(x=>!/^\/api\/(?:detail|draft\/connect|hero\/update|library\/update)/.test(x.path)));
+  for(const side of ['ally','enemy'])for(let slot=0;slot<5;slot++)assert.equal(env.$('draft-'+side+'-'+slot).disabled,true);
+});
+
+test('draft connect waits without blocking lookup, then syncs only visible picks into stable slots',async t=>{
+  const env=await setup();t.after(()=>env.close());await env.$('draft-connect').emit('click');
+  assert.match(env.$('draft-status').textContent,/寻找本机客户端/);
+  const button=env.$('draft-ally-0');
+  env.server.draft=draftPick(draftPick(draftSnapshot(),'ally',0,266,'hovered','',1),'enemy',0,103,'hovered','',1);
+  await env.advance(1000);
+  assert.equal(env.$('draft-ally-0'),button);assert.equal(button.disabled,false);assert.match(env.$('draft-ally-0-meta').textContent,/预选.*第 1 轮.*分路未确认/);
+  assert.equal(env.$('draft-enemy-0').disabled,true);assert.match(env.$('draft-enemy-0-name').textContent,/尚未选择/);
+  assert.equal(env.requests.filter(x=>x.path.startsWith('/api/detail')).length,0);
+  env.server.draft.teams.enemy[0].selection='locked';await env.advance(1000);
+  assert.equal(env.$('draft-enemy-0').disabled,false);assert.match(env.$('draft-count').textContent,/2 个英雄/);
+  assert.ok(env.requests.every(x=>!/^\/api\/(?:hero\/update|library\/update)/.test(x.path)));
+});
+
+test('clicking a draft hero performs one local pair query and uses its own default role with saved filters',async t=>{
+  const env=await setup();t.after(()=>env.close());await env.choose(266,'jungle');
+  env.$('threshold').value='2';await env.$('threshold').emit('input');await env.advance(300);
+  env.$('segment').value='high_segment';await env.$('segment').emit('change');
+  env.server.draft=draftPick(draftSnapshot(),'enemy',2,103);await env.$('draft-connect').emit('click');
+  const before=env.requests.length;await env.$('draft-enemy-2').emit('click');await flush();
+  const reads=env.requests.slice(before).filter(x=>x.path.startsWith('/api/detail'));
+  assert.equal(reads.length,2);assert.ok(reads.every(x=>x.path.includes('championId=103')&&x.path.includes('lane=middle')&&x.path.includes('thresholdLevel=2')));
+  assert.equal(env.$('segment').value,'high_segment');assert.match(env.$('lane-note').textContent,/分路未确认.*本地常用分路.*中路/);
+  assert.equal(env.document.activeElement,env.$('selected-name'));
+  assert.ok(env.requests.every(x=>!/^\/api\/(?:hero\/update|library\/update)/.test(x.path)));
+});
+
+test('an explicit client role is preserved even when the local hero has no records for it',async t=>{
+  const env=await setup();t.after(()=>env.close());env.server.draft=draftPick(draftSnapshot(),'ally',0,103,'locked','top');await env.$('draft-connect').emit('click');
+  const before=env.requests.length;await env.$('draft-ally-0').emit('click');await flush();
+  assert.equal(env.$('lane-unavailable').hidden,false);assert.match(env.$('lane-note').textContent,/客户端分路.*上路/);
+  assert.ok(env.requests.slice(before).every(x=>!x.path.startsWith('/api/detail')));
+});
+
+test('unknown heroes and empty slots cannot query an invalid champion or leak raw identity fields',async t=>{
+  const env=await setup();t.after(()=>env.close());const data=draftPick(draftSnapshot(),'ally',0,999999);data.nickname='SENSITIVE_NAME';data.credentials='SENSITIVE_TOKEN';data.teams.ally[0].summonerName='SENSITIVE_NAME';
+  env.server.draft=data;await env.$('draft-connect').emit('click');const before=env.requests.length;
+  await env.$('draft-ally-0').emit('click');await env.$('draft-enemy-0').emit('click');await flush();
+  assert.equal(env.$('draft-ally-0').disabled,true);assert.match(env.$('draft-ally-0-name').textContent,/#999999/);
+  assert.match(env.$('draft-ally-0').getAttribute('aria-label'),/本地目录尚未收录/);
+  assert.ok(env.requests.slice(before).every(x=>!x.path.startsWith('/api/detail')));
+  const visible=['draft-status','draft-count','draft-ally-0-name','draft-ally-0-meta'].map(id=>env.$(id).textContent).join(' ')+' '+env.$('draft-ally-0').getAttribute('aria-label');
+  assert.doesNotMatch(visible,/SENSITIVE/);
+});
+
+test('draft polling preserves focus, supports hover changes and swaps without overwriting an open query',async t=>{
+  const env=await setup();t.after(()=>env.close());env.server.draft=draftPick(draftSnapshot(),'ally',0,266,'hovered');await env.$('draft-connect').emit('click');
+  await env.choose(103);const selected=env.$('selected-name').textContent,button=env.$('draft-ally-0');button.focus();
+  env.server.draft=draftPick(draftPick(draftSnapshot(),'ally',0,103),'ally',1,266,'locked','top',2);await env.advance(1000);
+  assert.equal(env.document.activeElement,button);assert.equal(env.$('draft-ally-0'),button);assert.match(env.$('draft-ally-0-name').textContent,/阿狸/);assert.equal(env.$('selected-name').textContent,selected);
+  assert.equal(env.requests.filter(x=>x.path.startsWith('/api/detail')).length,2);
+});
+
+test('leaving champion select clears every slot and moves focus only if its hero becomes unavailable',async t=>{
+  const env=await setup();t.after(()=>env.close());env.server.draft=draftPick(draftSnapshot(),'ally',0,266);await env.$('draft-connect').emit('click');await env.choose(266);
+  env.$('draft-ally-0').focus();env.server.draft=draftSnapshot(true,'in-game');await env.advance(1000);
+  assert.equal(env.$('draft-ally-0').disabled,true);assert.equal(env.document.activeElement,env.$('draft-disconnect'));
+  assert.match(env.$('draft-status').textContent,/已离开英雄选择/);assert.match(env.$('father-body').innerHTML,/结果-top/);
+});
+
+test('a disconnected or malformed draft clears stale picks and recovers without clearing local results',async t=>{
+  const env=await setup();t.after(()=>env.close());env.server.draft=draftPick(draftSnapshot(),'ally',0,266);await env.$('draft-connect').emit('click');await env.choose(266);
+  env.server.draft=async()=>{throw new Error('SENSITIVE_TOKEN');};await env.advance(1000);
+  assert.equal(env.$('draft-ally-0').disabled,true);assert.equal(env.$('draft-retry').hidden,false);assert.doesNotMatch(env.$('draft-status').textContent,/SENSITIVE/);
+  env.server.draft={enabled:true,state:'champ-select',teams:{ally:[],enemy:[]}};await env.advance(1000);assert.equal(env.$('draft-ally-0').disabled,true);
+  env.server.draft=draftPick(draftSnapshot(),'enemy',4,103,'locked','',2);await env.advance(1000);
+  assert.equal(env.$('draft-enemy-4').disabled,false);assert.match(env.$('father-body').innerHTML,/结果-top/);
+});
+
+test('disconnect invalidates an older status reply, stops polling and keeps the current query',async t=>{
+  const env=await setup();t.after(()=>env.close());env.server.draft=draftPick(draftSnapshot(),'ally',0,266);await env.$('draft-connect').emit('click');await env.choose(266);
+  let late;env.server.draft=()=>new Promise(resolve=>{late=resolve;});await env.advance(1000);
+  await env.$('draft-disconnect').emit('click');late(draftPick(draftSnapshot(),'enemy',0,103));await flush();
+  assert.equal(env.$('draft-connect').hidden,false);assert.equal(env.$('draft-enemy-0').disabled,true);assert.match(env.$('father-body').innerHTML,/结果-top/);
+  const count=env.requests.filter(x=>x.path==='/api/draft').length;await env.advance(5000);assert.equal(env.requests.filter(x=>x.path==='/api/draft').length,count);
+});
+
+test('draft localizes accessible labels and role explanations without another hero query',async t=>{
+  const env=await setup();t.after(()=>env.close());env.server.draft=draftPick(draftSnapshot(),'ally',0,103,'locked','',2);await env.$('draft-connect').emit('click');await env.$('draft-ally-0').emit('click');await flush();
+  const before=env.requests.filter(x=>x.path.startsWith('/api/detail')).length;
+  env.$('language-select').value='en';await env.$('language-select').emit('change');
+  assert.match(env.$('draft-ally-0').getAttribute('aria-label'),/Your team.*Ahri.*Locked.*Round 2.*Role unconfirmed/);
+  assert.match(env.$('lane-note').textContent,/Role unconfirmed.*most common local role/);
+  assert.equal(env.requests.filter(x=>x.path.startsWith('/api/detail')).length,before);
+});
+
+test('draft avatar failure falls back once without turning the champion button into a broken query',async t=>{
+  const env=await setup();t.after(()=>env.close());env.server.draft=draftPick(draftSnapshot(),'ally',0,266);await env.$('draft-connect').emit('click');
+  await env.$('draft-ally-0-icon').emit('error');await env.advance(1000);
+  assert.equal(env.$('draft-ally-0-icon').hidden,true);assert.equal(env.$('draft-ally-0-placeholder').hidden,false);assert.equal(env.$('draft-ally-0').disabled,false);
+  env.server.draft.teams.ally[0].championId=103;await env.advance(1000);
+  assert.equal(env.$('draft-ally-0-icon').hidden,false);assert.equal(env.$('draft-ally-0-icon').getAttribute('src'),'/icons/103.png');
+});
+
+test('closing the page cancels draft polling and ignores a pending connection response',async t=>{
+  const env=await setup();t.after(()=>env.close());let release;env.server.draftConnect=()=>new Promise(resolve=>{release=resolve;});
+  const connecting=env.$('draft-connect').emit('click');await flush();await env.close();release(draftPick(draftSnapshot(),'ally',0,266));await connecting;
+  assert.equal(env.$('draft-ally-0').disabled,true);const count=env.requests.filter(x=>x.path==='/api/draft').length;await env.advance(5000);assert.equal(env.requests.filter(x=>x.path==='/api/draft').length,count);
+});
+
+test('all ten draft picks are addressed by slot, including reordered rows, and duplicate slots fail closed',async t=>{
+  const env=await setup();t.after(()=>env.close());const full=draftSnapshot();
+  for(const side of ['ally','enemy'])for(let slot=0;slot<5;slot++)draftPick(full,side,slot,slot%2?103:266,'locked','',Math.floor(slot/2)+1);
+  full.teams.ally.reverse();full.teams.enemy.reverse();env.server.draft=full;await env.$('draft-connect').emit('click');
+  for(const side of ['ally','enemy'])for(let slot=0;slot<5;slot++){assert.equal(env.$('draft-'+side+'-'+slot).disabled,false);assert.match(env.$('draft-'+side+'-'+slot+'-name').textContent,slot%2?/阿狸/:/亚托克斯/);}
+  assert.match(env.$('draft-count').textContent,/10 个英雄/);assert.equal(env.requests.filter(x=>x.path.startsWith('/api/detail')).length,0);
+  full.teams.ally[0].slot=full.teams.ally[1].slot;await env.advance(1000);
+  for(const side of ['ally','enemy'])for(let slot=0;slot<5;slot++)assert.equal(env.$('draft-'+side+'-'+slot).disabled,true);
+  assert.match(env.$('draft-status').textContent,/暂时无法读取/);
+});
+
+test('failed stop remains cleared and stops reading until the user retries the disconnect',async t=>{
+  const env=await setup();t.after(()=>env.close());env.server.draft=draftPick(draftSnapshot(),'ally',0,266);await env.$('draft-connect').emit('click');
+  env.server.draftDisconnect=async()=>{throw new Error('Stop not confirmed');};await env.$('draft-disconnect').emit('click');
+  assert.equal(env.$('draft-ally-0').disabled,true);assert.match(env.$('draft-status').textContent,/停止请求尚未确认.*暂停读取/);
+  const count=env.requests.filter(x=>x.path==='/api/draft').length;await env.advance(10000);assert.equal(env.requests.filter(x=>x.path==='/api/draft').length,count);
+  delete env.server.draftDisconnect;await env.$('draft-retry').emit('click');
+  assert.equal(env.$('draft-connect').hidden,false);assert.equal(env.$('draft-disconnect').hidden,true);assert.match(env.$('draft-status').textContent,/尚未连接/);
+});
+
+test('a pending connect is deduplicated and connection errors never reveal raw transport details',async t=>{
+  const env=await setup();t.after(()=>env.close());let reject;env.server.draftConnect=()=>new Promise((resolve,fail)=>{reject=fail;});
+  const pending=env.$('draft-connect').emit('click');await flush();await env.$('draft-connect').emit('click');
+  assert.equal(env.requests.filter(x=>x.path==='/api/draft/connect').length,1);assert.equal(env.$('draft-connect').disabled,true);
+  reject(new Error('SENSITIVE_PASSWORD_AND_PATH'));await pending;
+  assert.match(env.$('draft-status').textContent,/暂时无法读取/);assert.doesNotMatch(env.$('draft-status').textContent,/SENSITIVE/);
+  env.server.draft=draftSnapshot(true,'ready');await env.advance(1000);assert.match(env.$('draft-status').textContent,/等待进入英雄选择/);
+});
+
+test('only a BP-origin query offers a direct return to the previously selected slot',async t=>{
+  const env=await setup();t.after(()=>env.close());await env.choose(103);assert.equal(env.$('draft-return').hidden,true);
+  env.server.draft=draftPick(draftSnapshot(),'enemy',3,266);await env.$('draft-connect').emit('click');await env.$('draft-enemy-3').emit('click');await flush();
+  assert.equal(env.$('draft-return').hidden,false);const reads=env.requests.filter(x=>x.path.startsWith('/api/detail')).length;
+  await env.$('draft-return').emit('click');assert.equal(env.document.activeElement,env.$('draft-enemy-3'));
+  assert.equal(env.requests.filter(x=>x.path.startsWith('/api/detail')).length,reads);
+  await env.search('Ahri');assert.equal(env.$('draft-return').hidden,true);
+  await env.$('draft-enemy-3').emit('click');await env.home();assert.equal(env.$('draft-return').hidden,true);
+});
+
+test('returning to an expired BP slot focuses an available connection control without reopening old data',async t=>{
+  const env=await setup();t.after(()=>env.close());env.server.draft=draftPick(draftSnapshot(),'ally',4,266);await env.$('draft-connect').emit('click');await env.$('draft-ally-4').emit('click');await flush();
+  env.server.draft=draftSnapshot(true,'in-game');await env.advance(1000);await env.$('draft-return').emit('click');
+  assert.equal(env.document.activeElement,env.$('draft-disconnect'));assert.match(env.$('father-body').innerHTML,/结果-top/);
+  await env.$('draft-disconnect').emit('click');env.$('selected-name').focus();await env.$('draft-return').emit('click');
+  assert.equal(env.document.activeElement,env.$('draft-connect'));
 });

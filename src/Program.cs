@@ -163,7 +163,7 @@ namespace Luna {
                             string marker;
                             if (!headers.TryGetValue("X-Luna", out marker) || marker != "1") { RejectRequest(client, stream, 403, "请从本地程序打开"); return; }
                         }
-                        bool mutation = path == "/api/quit" || path == "/api/library/update" || path == "/api/library/cancel" || path == "/api/library/focus" || path == "/api/hero/update" || path == "/api/settings/save" || path == "/api/folders/open" || path == "/api/window/show" || path == "/api/window/close" || path == "/api/space/clean" || path == "/api/app-update/check" || path == "/api/app-update/download" || path == "/api/app-update/cancel" || path == "/api/maintenance/run";
+                        bool mutation = path == "/api/draft/connect" || path == "/api/draft/disconnect" || path == "/api/quit" || path == "/api/library/update" || path == "/api/library/cancel" || path == "/api/library/focus" || path == "/api/hero/update" || path == "/api/settings/save" || path == "/api/folders/open" || path == "/api/window/show" || path == "/api/window/close" || path == "/api/space/clean" || path == "/api/app-update/check" || path == "/api/app-update/download" || path == "/api/app-update/cancel" || path == "/api/maintenance/run";
                         if (request.Method != (mutation ? "POST" : "GET")) { RejectRequest(client, stream, 405, "不支持此请求方式"); return; }
                         string length;
                         if (headers.ContainsKey("Transfer-Encoding") || (headers.TryGetValue("Content-Length", out length) && length != "0")) { RejectRequest(client, stream, 400, "此接口不接收请求正文"); return; }
@@ -173,6 +173,9 @@ namespace Luna {
                             var q = HttpUtility.ParseQueryString(url.Query);
 
                             if (path == "/api/health") { SendJson(stream, new { app = "luna-local", version = PreferenceStore.AppVersion, author = "FrancisChen", offline = Runtime.Options.Offline, probeToken = ProbeToken }); return; }
+                            if (path == "/api/draft") { SendJson(stream, Runtime.Draft.ReadSnapshot()); return; }
+                            if (path == "/api/draft/connect") { SendJson(stream, Runtime.Draft.Connect()); return; }
+                            if (path == "/api/draft/disconnect") { SendJson(stream, Runtime.Draft.Disconnect()); return; }
                             if (path == "/api/space") { SendJson(stream, Runtime.Storage.SpaceInfo()); return; }
                             if (path == "/api/space/clean") { Runtime.Storage.RequestSpaceMaintenance(); SendJson(stream, Runtime.Storage.SpaceInfo()); return; }
                             if (path == "/api/app-update") { SendJson(stream, Runtime.AppUpdates.AppUpdateInfo()); return; }
@@ -214,7 +217,7 @@ namespace Luna {
                             }
                             if (path == "/api/window-icon") { SendJson(stream, DesktopIcons == null ? (object)new { supported = true, windows = new object[0] } : DesktopIcons.Status()); return; }
                             if (path == DesktopPath) { StartDesktopIcons(); path = "/"; }
-                            var allowed = new Dictionary<string, string> { { "/", "index.html" }, { "/index.html", "index.html" }, { "/app.css", "app.css" }, { "/app.js", "app.js" }, { "/locales.js", "locales.js" }, { "/i18n.js", "i18n.js" }, { "/settings.js", "settings.js" }, { "/core.js", "core.js" }, { "/aliases.js", "aliases.js" }, { "/logo.svg", "logo.svg" }, { "/app.ico", "app.ico" }, { "/app-1.4.1.ico", "app-1.4.1.ico" }, { "/app-32.png", "app-32.png" }, { "/app-48.png", "app-48.png" }, { "/app-256.png", "app-256.png" }, { "/favicon.ico", "app.ico" } };
+                            var allowed = new Dictionary<string, string> { { "/", "index.html" }, { "/index.html", "index.html" }, { "/app.css", "app.css" }, { "/app.js", "app.js" }, { "/draft.js", "draft.js" }, { "/locales.js", "locales.js" }, { "/i18n.js", "i18n.js" }, { "/settings.js", "settings.js" }, { "/core.js", "core.js" }, { "/aliases.js", "aliases.js" }, { "/logo.svg", "logo.svg" }, { "/app.ico", "app.ico" }, { "/app-1.4.1.ico", "app-1.4.1.ico" }, { "/app-32.png", "app-32.png" }, { "/app-48.png", "app-48.png" }, { "/app-256.png", "app-256.png" }, { "/favicon.ico", "app.ico" } };
                             string file;
                             if (allowed.TryGetValue(path, out file)) {
                                 string type = file.EndsWith(".ico") ? "image/x-icon" : file.EndsWith(".png") ? "image/png" : file.EndsWith(".js") ? "text/javascript" : file.EndsWith(".css") ? "text/css" : file.EndsWith(".svg") ? "image/svg+xml" : "text/html";

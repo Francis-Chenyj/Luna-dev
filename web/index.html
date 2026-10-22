@@ -5,11 +5,11 @@
   <meta id="theme-color" name="theme-color" content="#111715">
   <title>Luna · 英雄联盟对局助手</title>
   <link rel="icon" href="/app-1.4.1.ico" type="image/x-icon" sizes="16x16 20x20 24x24 30x30 32x32 36x36 40x40 48x48 60x60 64x64 72x72 96x96 128x128 256x256"><link rel="icon" href="/logo.svg?v=1.4.1" type="image/svg+xml" sizes="any"><link rel="stylesheet" href="/app.css">
-  <script src="/locales.js" defer></script><script src="/i18n.js" defer></script><script src="/settings.js" defer></script><script src="/aliases.js" defer></script><script src="/core.js" defer></script><script src="/app.js" defer></script>
+  <script src="/locales.js" defer></script><script src="/i18n.js" defer></script><script src="/settings.js" defer></script><script src="/aliases.js" defer></script><script src="/core.js" defer></script><script src="/draft.js" defer></script><script src="/app.js" defer></script>
 </head>
 <body>
   <header class="topbar">
-    <a id="home-link" class="brand" href="/"><img src="/logo.svg" alt="" width="34" height="34"><span><span class="brand-name">Luna</span><small>1.6.6</small></span></a>
+    <a id="home-link" class="brand" href="/"><img src="/logo.svg" alt="" width="34" height="34"><span><span class="brand-name">Luna</span><small>1.7.0</small></span></a>
     <div class="top-actions"><span class="author-credit" title="本地程序作者" data-i18n-title="本地程序作者"><span data-i18n="作者：FrancisChen">作者：FrancisChen</span></span><span id="service-status" class="local-badge" role="status" data-state="checking"><i></i> <span data-i18n="正在连接">正在连接</span></span><button id="settings-button" class="quiet-button"><span data-i18n="设置 / Settings">设置 / Settings</span><span id="app-update-badge" class="new-version-badge" data-i18n="appUpdate.badge" hidden>新版</span></button><button id="help-button" class="quiet-button"><span data-i18n="使用说明">使用说明</span></button><button id="exit-button" class="quiet-button"><span data-i18n="退出">退出</span></button></div>
   </header>
   <div id="connection-notice" class="connection-notice" role="status" hidden><span><span data-i18n="本地服务连接中断，已显示的结果仍可查看。请重新双击“启动Luna.cmd”；若程序打开了新窗口，请在新窗口继续使用。">本地服务连接中断，已显示的结果仍可查看。请重新双击“启动Luna.cmd”；若程序打开了新窗口，请在新窗口继续使用。</span></span><button id="reconnect-button" class="secondary-button"><span data-i18n="重新连接">重新连接</span></button></div>
@@ -18,6 +18,28 @@
     <section class="intro">
       <div><p class="eyebrow">LEAGUE OF LEGENDS · MATCHUP EXPLORER</p><h1><span class="headline-main" data-i18n="知己知彼，">知己知彼，</span><span><span data-i18n="选得明白。">选得明白。</span></span></h1><p class="intro-copy"><span data-i18n="输入英雄的中英文姓名、称号或别名，本地即查严父与大儿。">输入英雄的中英文姓名、称号或别名，本地即查严父与大儿。</span></p></div>
       <div class="intro-stat"><strong id="hero-count">—</strong><span><span data-i18n="位英雄 · 五个分路">位英雄 · 五个分路</span></span></div>
+    </section>
+    <section id="draft-panel" class="draft-panel" aria-labelledby="draft-title" data-state="disabled">
+      <div class="draft-heading"><div><p class="eyebrow">CHAMPION SELECT</p><h2 id="draft-title" tabindex="-1" data-i18n="draft.title">BP 同步</h2></div><div class="draft-actions"><button id="draft-connect" type="button" class="secondary-button" data-i18n="draft.connect">连接客户端</button><button id="draft-disconnect" type="button" class="quiet-button" data-i18n="draft.disconnect" hidden>停止同步</button><button id="draft-retry" type="button" class="quiet-button" data-i18n="draft.retry" hidden>重试</button></div></div>
+      <p id="draft-status" class="draft-status" role="status" aria-live="polite"></p>
+      <div class="draft-board">
+      <section class="draft-team ally" aria-labelledby="draft-ally-title"><h3 id="draft-ally-title" data-i18n="draft.ally">我方</h3><div class="draft-slots">
+        <button id="draft-ally-0" class="draft-slot" type="button" data-draft-team="ally" data-draft-slot="0" disabled><span class="draft-portrait"><img id="draft-ally-0-icon" alt="" width="48" height="48" hidden><span id="draft-ally-0-placeholder" aria-hidden="true">?</span></span><strong id="draft-ally-0-name">—</strong><small id="draft-ally-0-meta"></small></button>
+        <button id="draft-ally-1" class="draft-slot" type="button" data-draft-team="ally" data-draft-slot="1" disabled><span class="draft-portrait"><img id="draft-ally-1-icon" alt="" width="48" height="48" hidden><span id="draft-ally-1-placeholder" aria-hidden="true">?</span></span><strong id="draft-ally-1-name">—</strong><small id="draft-ally-1-meta"></small></button>
+        <button id="draft-ally-2" class="draft-slot" type="button" data-draft-team="ally" data-draft-slot="2" disabled><span class="draft-portrait"><img id="draft-ally-2-icon" alt="" width="48" height="48" hidden><span id="draft-ally-2-placeholder" aria-hidden="true">?</span></span><strong id="draft-ally-2-name">—</strong><small id="draft-ally-2-meta"></small></button>
+        <button id="draft-ally-3" class="draft-slot" type="button" data-draft-team="ally" data-draft-slot="3" disabled><span class="draft-portrait"><img id="draft-ally-3-icon" alt="" width="48" height="48" hidden><span id="draft-ally-3-placeholder" aria-hidden="true">?</span></span><strong id="draft-ally-3-name">—</strong><small id="draft-ally-3-meta"></small></button>
+        <button id="draft-ally-4" class="draft-slot" type="button" data-draft-team="ally" data-draft-slot="4" disabled><span class="draft-portrait"><img id="draft-ally-4-icon" alt="" width="48" height="48" hidden><span id="draft-ally-4-placeholder" aria-hidden="true">?</span></span><strong id="draft-ally-4-name">—</strong><small id="draft-ally-4-meta"></small></button>
+      </div></section>
+      <section class="draft-team enemy" aria-labelledby="draft-enemy-title"><h3 id="draft-enemy-title" data-i18n="draft.enemy">对方</h3><div class="draft-slots">
+        <button id="draft-enemy-0" class="draft-slot" type="button" data-draft-team="enemy" data-draft-slot="0" disabled><span class="draft-portrait"><img id="draft-enemy-0-icon" alt="" width="48" height="48" hidden><span id="draft-enemy-0-placeholder" aria-hidden="true">?</span></span><strong id="draft-enemy-0-name">—</strong><small id="draft-enemy-0-meta"></small></button>
+        <button id="draft-enemy-1" class="draft-slot" type="button" data-draft-team="enemy" data-draft-slot="1" disabled><span class="draft-portrait"><img id="draft-enemy-1-icon" alt="" width="48" height="48" hidden><span id="draft-enemy-1-placeholder" aria-hidden="true">?</span></span><strong id="draft-enemy-1-name">—</strong><small id="draft-enemy-1-meta"></small></button>
+        <button id="draft-enemy-2" class="draft-slot" type="button" data-draft-team="enemy" data-draft-slot="2" disabled><span class="draft-portrait"><img id="draft-enemy-2-icon" alt="" width="48" height="48" hidden><span id="draft-enemy-2-placeholder" aria-hidden="true">?</span></span><strong id="draft-enemy-2-name">—</strong><small id="draft-enemy-2-meta"></small></button>
+        <button id="draft-enemy-3" class="draft-slot" type="button" data-draft-team="enemy" data-draft-slot="3" disabled><span class="draft-portrait"><img id="draft-enemy-3-icon" alt="" width="48" height="48" hidden><span id="draft-enemy-3-placeholder" aria-hidden="true">?</span></span><strong id="draft-enemy-3-name">—</strong><small id="draft-enemy-3-meta"></small></button>
+        <button id="draft-enemy-4" class="draft-slot" type="button" data-draft-team="enemy" data-draft-slot="4" disabled><span class="draft-portrait"><img id="draft-enemy-4-icon" alt="" width="48" height="48" hidden><span id="draft-enemy-4-placeholder" aria-hidden="true">?</span></span><strong id="draft-enemy-4-name">—</strong><small id="draft-enemy-4-meta"></small></button>
+      </div></section>
+      </div>
+      <p id="draft-count" class="draft-hint" role="status" aria-live="polite"></p>
+      <details class="draft-privacy"><summary data-i18n="draft.privacyTitle">连接范围与隐私</summary><p data-i18n="draft.privacy">仅在本次启动连接本机客户端，读取选人和对局阶段。原始响应可能附带身份字段，Luna 只提取英雄与选人状态，不保存或展示其他字段，不查询战绩。点击英雄只查询本地关系；不会自动下载。</p></details>
     </section>
     <section class="search-section" aria-label="英雄搜索" data-i18n-aria-label="英雄搜索">
       <form id="search-form" autocomplete="off"><span class="search-icon" aria-hidden="true">⌕</span><label class="sr-only" for="hero-search"><span data-i18n="搜索英雄姓名、称号或别名">搜索英雄姓名、称号或别名</span></label><input id="hero-search" placeholder="试试：亚托克斯 / 暗裔剑魔 / 剑魔" data-i18n-placeholder="试试：亚托克斯 / 暗裔剑魔 / 剑魔" aria-controls="suggestions" aria-expanded="false" role="combobox" aria-autocomplete="list" disabled><kbd class="search-shortcut">Ctrl K</kbd><button class="primary-button" id="search-button" type="submit" disabled><span data-i18n="查询英雄">查询英雄</span> <span aria-hidden="true">↗</span></button></form>
@@ -28,7 +50,7 @@
     </section>
     <div id="fatal" class="notice error-notice" role="alert" hidden></div>
     <section id="selection-panel" class="selection-panel" hidden>
-      <div class="selected-hero"><img id="selected-icon" alt="" width="64" height="64"><div><p id="selected-title"></p><h2 id="selected-name"></h2><span id="selected-en"></span></div></div>
+      <div class="selected-hero"><img id="selected-icon" alt="" width="64" height="64"><div><p id="selected-title"></p><h2 id="selected-name" tabindex="-1"></h2><span id="selected-en"></span><button id="draft-return" type="button" class="quiet-button draft-return" data-i18n="draft.return" hidden>返回 BP</button></div></div>
       <div class="lane-control"><span class="control-label"><span data-i18n="查询分路">查询分路</span></span><div id="lane-buttons" role="group" aria-label="选择分路" data-i18n-aria-label="选择分路"></div><span id="lane-note" class="muted"></span></div>
       <div class="hero-update-actions"><button id="refresh-button" class="secondary-button" title="联网获取当前英雄、当前分路与筛选条件的严父和大儿" data-i18n-title="联网获取当前英雄、当前分路与筛选条件的严父和大儿"><span data-i18n="↻ 联网更新此英雄">↻ 联网更新此英雄</span></button><p id="hero-update-status" role="status" aria-live="polite"><span data-i18n="仅当前分路与筛选条件，严父和大儿一起更新。">仅当前分路与筛选条件，严父和大儿一起更新。</span></p></div>
     </section>
@@ -111,7 +133,7 @@
     </section>
     <section id="settings-about" class="settings-panel" role="tabpanel" aria-labelledby="tab-about" tabindex="0" hidden>
       <div class="about-brand"><img src="/app-256.png" width="76" height="76" alt="Luna"><div><h3>Luna</h3><p data-i18n="about.intro"></p></div></div>
-      <dl class="about-facts"><div><dt data-i18n="about.version">版本</dt><dd id="about-version">1.6.6</dd></div><div><dt data-i18n="about.author">作者</dt><dd>FrancisChen</dd></div><div><dt data-i18n="about.license">原创代码 · MIT</dt><dd>MIT</dd></div></dl>
+      <dl class="about-facts"><div><dt data-i18n="about.version">版本</dt><dd id="about-version">1.7.0</dd></div><div><dt data-i18n="about.author">作者</dt><dd>FrancisChen</dd></div><div><dt data-i18n="about.license">原创代码 · MIT</dt><dd>MIT</dd></div></dl>
       <a class="project-link" href="https://github.com/Francis-Chenyj/Luna-dev" target="_blank" rel="noopener noreferrer" data-i18n="about.home">Luna 项目主页 ↗</a><p class="settings-note" data-i18n="about.pending"></p>
       <p class="settings-note" data-i18n="about.licenseNote"></p>
       <div class="settings-actions"><button id="about-changelog" class="secondary-button" data-i18n="about.changelog">更新记录</button><button id="about-license" class="secondary-button" data-i18n="about.mit">查看 MIT 许可证</button><button id="about-third-party" class="secondary-button" data-i18n="about.thirdParty">第三方声明</button></div>

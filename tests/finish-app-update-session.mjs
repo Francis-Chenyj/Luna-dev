@@ -10,6 +10,9 @@ const hash=async name=>createHash('sha256').update(await fs.readFile(name)).dige
 const release=await read(path.join(releaseDirectory,'release-files.json'));
 const archive=release.packages.find(p=>p.kind==='Windows');
 const config=await read(path.join(runtime,'fixture.json'));
+const predecessorVersion=config.predecessorVersion??(await read(path.join(runtime,'installed-files.json'))).version;
+assert.match(predecessorVersion,/^\d+\.\d+\.\d+$/,'Fixture must identify its predecessor version');
+assert.notEqual(predecessorVersion,release.version,'Fixture must start before the target release');
 config.archive=path.join(releaseDirectory,archive.name);config.metadata=path.join(releaseDirectory,'luna-update.json');config.delayMs=1;
 await fs.writeFile(path.join(runtime,'fixture.json'),JSON.stringify(config));
 const settingsPath=path.join(runtime,'cache/settings.json');
@@ -21,7 +24,7 @@ const api=async(route,method='GET')=>{const res=await fetch(url+route,{method,he
 const until=async(check,message)=>{for(let i=0;i<150;i++){try{const result=await check();if(result)return result;}catch{}await delay(100);}throw Error(message);};
 try{
   child=spawn(path.join(runtime,'Luna.exe'),['--no-browser','--port','18773'],{cwd:runtime,windowsHide:true,stdio:'ignore'});
-  await until(async()=>((await api('/api/health')).version==='1.6.1'),'Predecessor did not start');
+  await until(async()=>((await api('/api/health')).version===predecessorVersion),'Predecessor did not start');
   await api('/api/app-update/check','POST');
   await until(async()=>((await api('/api/app-update')).state==='ready'),'Final package was not staged');
   const staged=await read(path.join(runtime,'cache/app-update/release.json'));

@@ -125,7 +125,7 @@ namespace Luna {
         }
         void UpdateLibrary(string requested, bool all, bool automatic, int delayMs, CancellationToken token) {
             bool acquired = false;
-            using (var mutex = new Mutex(false, "Local\\LunaData_" + DataFormat.Hash(options.Root).Substring(0, 20))) try {
+            using (var mutex = new Mutex(false, "Local\\LunaData_" + DataFormat.DirectoryLockIdentity(options.Root))) try {
                 if (delayMs > 0) token.WaitHandle.WaitOne(delayMs);
                 token.ThrowIfCancellationRequested();
                 try { acquired = mutex.WaitOne(0); } catch (AbandonedMutexException) { acquired = true; }
@@ -194,9 +194,12 @@ namespace Luna {
                 else { diagnostics.Log(ex); Progress((automatic ? "自动更新未完成，原有离线库仍可查询。" : "更新未完成，原有离线库仍可查询。") + ex.GetBaseException().Message + " 可手动重试，或下次正常启动时自动检查并续传。", "error"); }
             } finally {
                 PriorityPump = null;
-                if (acquired) { try { maintenance.AfterUpdate(UpdateDone, workers.Token); } finally { mutex.ReleaseMutex(); } }
-                if (token.IsCancellationRequested) CancelQueuedHeroes();
-                FinishUpdateWorker();
+                try {
+                    if (acquired) { try { maintenance.AfterUpdate(UpdateDone, workers.Token); } finally { mutex.ReleaseMutex(); } }
+                } finally {
+                    if (token.IsCancellationRequested) CancelQueuedHeroes();
+                    FinishUpdateWorker();
+                }
             }
         }
         int FocusUpdated;
@@ -331,7 +334,7 @@ namespace Luna {
         }
         void RunHeroWorker(CancellationToken token) {
             bool acquired = false;
-            using (var mutex = new Mutex(false, "Local\\LunaData_" + DataFormat.Hash(options.Root).Substring(0, 20))) try {
+            using (var mutex = new Mutex(false, "Local\\LunaData_" + DataFormat.DirectoryLockIdentity(options.Root))) try {
                 try { acquired = WaitHandle.WaitAny(new WaitHandle[] { mutex, token.WaitHandle }, 30000) == 0; }
                 catch (AbandonedMutexException) { acquired = true; }
                 token.ThrowIfCancellationRequested();
@@ -355,8 +358,9 @@ namespace Luna {
                 }
                 Progress(token.IsCancellationRequested ? "更新已停止，原有数据仍可使用。" : "英雄更新未完成，原有数据仍可使用。" + ex.GetBaseException().Message, token.IsCancellationRequested ? "cancelled" : "error");
             } finally {
-                if (acquired) { try { maintenance.AfterUpdate(1, workers.Token); } finally { mutex.ReleaseMutex(); } }
-                FinishUpdateWorker();
+                try {
+                    if (acquired) { try { maintenance.AfterUpdate(1, workers.Token); } finally { mutex.ReleaseMutex(); } }
+                } finally { FinishUpdateWorker(); }
             }
         }
         void ServiceHeroRequests(CancellationToken token) {
