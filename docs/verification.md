@@ -1,6 +1,6 @@
 # Luna 验证记录 / Verification
 
-> 历史验证记录。旧版界面截图保存在本地 research 历史归档中，不纳入当前程序包；当前署名和文档验证见 [QA-1.4.3.md](QA-1.4.3.md)。
+> 历史验证记录。旧版界面截图保存在本地 research 历史归档中，不纳入当前程序包；当时的署名和文档验证见 [QA-1.4.3.md](QA-1.4.3.md)，当前 1.7.1 验证范围见 [QA-1.7.1.md](QA-1.7.1.md)。
 
 ## 1.4.0 搜索、独立英雄更新与空间管理 / Search, champion refresh and storage
 

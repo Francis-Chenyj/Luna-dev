@@ -24,10 +24,12 @@ This guide describes current operation by task. Version history belongs in the c
 - [Troubleshooting](#troubleshooting)
 - [Example: winning lane and winning the game](#example-winning-lane-and-winning-the-game)
 - [Data sources and notices](#data-sources-and-notices)
+- [Desktop-window upgrade](#desktop-window-upgrade-160)
+- [Optional BP synchronization](#optional-bp-synchronization-171)
 
 ## Install and launch
 
-Luna requires Windows 10 / 11, .NET Framework 4.7.2+ and Microsoft Edge WebView2 Runtime. It uses a native desktop window; install the [Evergreen Runtime](https://developer.microsoft.com/microsoft-edge/webview2/) if needed. Browser compatibility mode (`Luna.exe --browser`) does not support tray controls. Normal use needs no developer tools, login, API key or administrator privileges.
+Luna requires Windows 10 / 11, .NET Framework 4.7.2+ and Microsoft Edge WebView2 Runtime. It uses a native desktop window; install the [Evergreen Runtime](https://developer.microsoft.com/microsoft-edge/webview2/) if needed. Browser compatibility mode (`Luna.exe --browser`) does not support tray controls. Local queries need no developer tools, Luna login, API key or administrator privileges. Optional BP synchronization requires an already running, logged-in League client.
 
 Download the [1.7.1 development pre-release](https://github.com/Francis-Chenyj/Luna-dev/releases/tag/v1.7.1) from GitHub. This preview is installed manually rather than through the signed stable automatic-update channel:
 
@@ -55,14 +57,15 @@ Open **Settings** at the top right. Changes are saved in `cache/settings.json` b
 | --- | --- |
 | General | Language: Follow system, 简体中文 or English. Appearance: Follow system, Dark or Light. Changes apply immediately and preserve your selected champion, lane, filters and active work. |
 | Data | Update data automatically at startup. The switch applies **on the next service launch** and does not start or stop an existing task. Open Data management for manual checks, full-library downloads or Stop update. |
+| Application | Check for signed stable app updates (automatic checks default on; automatic downloads default off), download, confirm installation, and uninstall eligible packaged copies. The current development pre-release is installed manually. |
 | Support | Open logs/data folders and copy diagnostics. A preview shows exactly what was copied. If clipboard access fails, select the preview and press Ctrl+C. |
 | About | Luna icon, version, FrancisChen, Luna homepage, local changelog, original-code MIT license and third-party notices. These documents remain readable offline. |
 
 Follow system uses the Windows display language at launch (Chinese selects Simplified Chinese; other languages select English) and responds to system light/dark appearance changes. An explicit choice overrides the system. Closing a window is not necessarily a new service launch: use **Exit**, then start Luna again to apply a changed startup-update preference.
 
-In 1.6.0, the owned desktop window follows the selected theme on supported Windows versions. App changes are applied immediately; system-theme changes are detected within about one second. Windows high contrast preserves system caption colors. Older Windows versions and browser compatibility mode may keep system/browser frame colors. Restart after upgrading the EXE. See [QA](QA-1.6.0.md) for measured results and limits.
+The owned desktop window (introduced in 1.6.0) follows the selected theme on supported Windows versions. App changes are applied immediately; system-theme changes are detected within about one second. Windows high contrast preserves system caption colors. Older Windows versions and browser compatibility mode may keep system/browser frame colors. Restart after upgrading the EXE. See [QA](QA-1.6.0.md) for measured results and limits.
 
-Offline mode always disables network updates. The `--no-auto-update` launch option always disables automatic updates for that run; saved preferences cannot override either restriction. This switch updates data, not the Luna application itself.
+Offline mode always disables network updates. The `--no-auto-update` launch option always disables automatic updates for that run; saved preferences cannot override either restriction. The Data-tab switch controls matchup data. Application-update preferences are separate, and installation always requires confirmation.
 
 The data-folder button opens `cache/`; logs are in `cache/logs/`. Older `cache/error.log` files are left untouched. Startup failures remain in `启动错误.txt` beside the EXE. Diagnostic copying includes only the Luna version, run mode, effective startup-update flag and error-category counts for the current process. It excludes raw errors, paths, accounts, tokens and search history, and sends nothing automatically. Log files themselves can contain local technical details.
 
@@ -128,7 +131,7 @@ Background work prioritizes current and recent champions before continuing the c
 - Closing the management panel does not stop downloading. **停止更新 (Stop update)** prevents the automatic task from restarting during this service run; manual updates remain available.
 - The default profile contains 856 records and downloads are rate-limited. Filling every profile can take hours; local results remain available first.
 
-The offline launcher prohibits external updates while retaining access to all saved default and extra profiles. Network buttons are disabled in offline windows; use the normal launcher to update. To disable only the startup check while allowing manual updates, see [local launch options](DEVELOPER_GUIDE.md#local-launch-options).
+The offline launcher prohibits external updates while retaining access to all saved default and extra profiles. External-update buttons are disabled; use the normal launcher to update. Explicitly connecting to the local League client for BP synchronization remains available. To disable automatic checks while allowing manual updates, see [local launch options](DEVELOPER_GUIDE.md#local-launch-options).
 
 Data updates **do not install a newer Luna application**. Manage application updates separately in **Settings → Application**. Automatic download is initially off; installation requires confirmation and a compatible signed stable release.
 
@@ -150,7 +153,7 @@ The management panel separately records the **last successful upstream check**. 
 
 ## Upgrades, backups and storage
 
-Complete 1.6.0 runtime folders support **Settings → Application → Check for app updates**. Downloads can resume; confirming Restart and update replaces program files while keeping preferences and offline data. A failed local startup/query health check restores the old program. Without a signed stable update, the current version remains usable. Source folders cannot be upgraded in place.
+Complete packaged runtime folders support **Settings → Application → Check for app updates**. Downloads can resume; confirming Restart and update replaces program files while keeping preferences and offline data. A failed local startup/query health check restores the old program. Without a signed stable update, the current version remains usable. Source folders cannot be upgraded in place.
 
 For manual migration or older releases, use **退出 (Exit)** to stop the old service first:
 
@@ -164,7 +167,9 @@ Native-window recent queries use local storage inside `cache/webview2`; browser 
 | Location | Contents |
 | --- | --- |
 | `data/` | Bundled catalog, relationships, search terms and portraits |
-| `cache/settings.json` | Language, appearance and startup-data-update preferences |
+| `cache/settings.json` | Language, appearance, close behavior, data updates and application-update preferences |
+| `cache/webview2/` | Native-window browser profile, including recent-query local storage |
+| `cache/app-update/` | Application-update downloads, staging, recovery journals and backups |
 | `cache/library/` | Downloaded profiles, previous editions and resumable downloads |
 | `cache/focus/` | Validated champion pairs and priority records |
 | `cache/detail-*.json` | Preserved legacy single-query records |

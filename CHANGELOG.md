@@ -1,5 +1,12 @@
 # Changelog / 更新日志
 
+## Unreleased / 尚未打包发布
+
+- Correct the help dialog's stale version and close-window instructions in both languages, and align the Windows manifest version. Extend the existing version guard to include these previously unchecked version fields.
+- Update the current release checklist, user/developer guides, test inventory, issue-form example and Chinese Markdown formatting. Keep historical release/QA records explicitly historical.
+- These changes are on the default branch after the 1.7.1 release. The published `v1.7.1` tag and download assets retain their original contents; these corrections are not a new downloadable release.
+- 本节记录 1.7.1 发布后的源码修正，尚未形成新下载包。历史条目中的“本地审阅／尚未上传”描述当时状态；此前改进已随 1.7.1 开发预发布公开。
+
 ## 1.7.1 — 2026-10-28 (development pre-release)
 
 - Fix the BP detail heading's focus box overlapping the champion title. Pointer selection leaves the name clear; keyboard navigation retains an underline, focus transfer and return to the original BP slot.

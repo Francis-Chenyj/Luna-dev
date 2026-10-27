@@ -1,4 +1,8 @@
-# 1.6.3 operation and verification / 操作与验证补充
+# Operation and verification / 操作与验证补充
+
+Applies to 1.7.1. The behaviors below were introduced in 1.6.3 and remain supported.
+
+适用于 1.7.1；下列操作与验证机制自 1.6.3 引入，当前仍适用。
 
 ## User behavior / 用户操作
 
@@ -34,6 +38,6 @@ This confirms native readiness and rejects an intentionally broken JavaScript ap
 
 `scripts/check-release-readiness.ps1` validates the evidence inventory without claiming authorization. `-ForPublication -RuntimeDirectory <runtime>` additionally requires completed evidence review and valid Authenticode signatures. Sign before generating ownership/checksum manifests, then create the RSA update envelope. A certificate or permission record cannot be manufactured by changing a boolean. Private keys must remain outside source, reports and packages.
 
-When a real code-signing certificate is available in the current user's certificate store, use `scripts/package.ps1 -OutputDirectory <new-directory> -SigningCertificateThumbprint <thumbprint> -TimestampServer <https-timestamp-url>`. The script signs both freshly built executables before producing inventories and hashes. It does not export the private key or create a substitute certificate. Omitting these options produces an unsigned local review package.
+When a real code-signing certificate is available in the current user's certificate store, use `scripts/package.ps1 -OutputDirectory <new-directory> -SigningCertificateThumbprint <thumbprint> -TimestampServer <https-timestamp-url>`. The script signs both freshly built executables before producing inventories and hashes. It does not export the private key or create a substitute certificate. Omitting these options produces an unsigned package. Packaging does not publish it or make it eligible for the signed stable update channel. The current 1.7.1 development pre-release is installed manually; see the [release checklist](RELEASE_CHECKLIST.md).
 
 Long-path behavior follows Microsoft's [path normalization documentation](https://learn.microsoft.com/en-us/dotnet/framework/migration-guide/mitigation-path-normalization); Luna applies extended paths only at internal filesystem calls, retaining normal paths for ownership and reparse checks.

@@ -1,8 +1,8 @@
 # Luna 仓库资料 / Repository details
 
-作者：**FrancisChen** · 整理日期：2026-10-13
+作者：**FrancisChen** · 核对日期：2026-10-28
 
-Luna-dev 是 Luna 的公开开发仓库。产品名保持 Luna；首个下载版本标记为 Pre-release。此文件记录仓库展示信息和后续维护规则。
+Luna-dev 是 Luna 的公开开发仓库。产品名保持 Luna；当前下载版为 1.7.1，标记为 Pre-release。此文件记录仓库展示信息和后续维护规则。
 
 ## 项目身份与入口
 
@@ -37,7 +37,8 @@ Luna-dev 是 Luna 的公开开发仓库。产品名保持 Luna；首个下载版
 
 - 默认分支为 `main`，产品标题使用 Luna，署名使用 FrancisChen。
 - About 使用上述简介、项目主页和主题标签；下载统一指向 [Releases](https://github.com/Francis-Chenyj/Luna-dev/releases)。
-- 开发版本标记为 Pre-release，首个标签为 `v1.5.0-dev.1`，程序内版本为 `1.5.0`。
+- 当前开发预发布为 [v1.7.1](https://github.com/Francis-Chenyj/Luna-dev/releases/tag/v1.7.1)，程序版本为 `1.7.1`。历史首个标签 `v1.5.0-dev.1` 对应程序 `1.5.0`，不作为当前版本入口。
+- `main` 可以包含发布之后的文档和修复；标签及附件保留原快照。已发布附件不原地替换，新的程序包使用更高版本；具体边界见发布核对清单。
 - `.github/ISSUE_TEMPLATE/` 提供双语错误反馈与功能建议；默认分支更新后检查实际表单。
 - `.github/workflows/windows-checks.yml` 调用 `scripts/check.ps1`，只构建与检查，不自动发布。云端结果以 Actions 对应提交为准。
 - 只上传源码清单中的文件；排除 `cache/`、`research/`、`dist/`、日志、个人快捷方式与凭据。

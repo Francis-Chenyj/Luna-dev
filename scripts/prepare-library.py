@@ -29,7 +29,7 @@ def request(url):
         time.sleep(wait)
         try:
             opener = urllib.request.build_opener(urllib.request.ProxyHandler({'https':args.proxy})) if args.proxy else urllib.request.build_opener()
-            with opener.open(urllib.request.Request(url, headers={'User-Agent':'Luna/1.3 (offline library)', 'Accept':'application/json'}), timeout=18) as response:
+            with opener.open(urllib.request.Request(url, headers={'User-Agent':'Luna (offline library maintenance)', 'Accept':'application/json'}), timeout=18) as response:
                 raw = response.read(16*1024*1024+1)
             if len(raw) > 16*1024*1024:
                 raise ValueError('Response too large')

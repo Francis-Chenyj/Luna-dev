@@ -22,7 +22,7 @@ This guide covers the existing build, tests and local packaging workflow. Start 
 | Microsoft Edge WebView2 Runtime | Native windows and the real `-Desktop` readiness smoke test |
 | Python 3, standard library | Optional offline-library acquisition and search-index maintenance |
 
-The build uses the installed .NET Framework `csc.exe`, looking in `Framework64/v4.0.30319` before `Framework/v4.0.30319`. The hero-update and long-path test wrappers currently use the Framework64 compiler directly. A 64-bit Windows development environment is therefore recommended for the complete suite.
+The build uses the installed .NET Framework `csc.exe`, looking in `Framework64/v4.0.30319` before `Framework/v4.0.30319`. The hero-update and long-path test wrappers currently use the Framework64 compiler directly. The complete-suite entry point requires 64-bit Windows and the Framework64 compiler.
 
 The build and baseline checks need no npm installation; optional browser verification uses locked Playwright development dependencies. No frontend bundler or external C# restore is required. Node.js and Python are not runtime dependencies for end users.
 
@@ -32,6 +32,7 @@ The build and baseline checks need no npm installation; optional browser verific
 | --- | --- |
 | `src/ApplicationRuntime.cs` | Service composition, launch options and worker lifetime |
 | `src/Program.cs` | HTTP/native process host calling explicit services |
+| `src/ClientDraft.cs`, `web/draft.js` | Optional local-client BP synchronization, champion-only projection and on-demand details |
 | `src/Library.cs`, `src/QueryService.cs` | Indexes, validation, atomic publication and local queries |
 | `src/DataUpdates.cs` | Shared full-library/champion scheduling, progress and cancellation |
 | `src/Storage.cs`, `src/QuarantineStore.cs` | Conservative retention, space reports and quarantine |
@@ -80,9 +81,10 @@ This alternate output does **not** copy `web` or `data`; use a full runtime layo
 
 | Option | Behavior |
 | --- | --- |
-| `--offline` | Prohibit external updates; retain local reads |
-| `--no-auto-update` | Skip the startup check while allowing manual updates |
-| `--no-browser` | Run the local service without opening a browser |
+| `--offline` | Prohibit external updates; retain local reads and explicitly enabled local BP synchronization |
+| `--no-auto-update` | Disable automatic data/application updates for this run, including preference-triggered checks; allow manual updates |
+| `--no-browser` | Run the local service without opening a window |
+| `--browser` | Use browser compatibility mode instead of the native window; no tray controls |
 | `--port <number>` | Choose a starting port between 1024 and 65000; try up to 29 subsequent ports if occupied |
 
 The EXE's default starting port is 17653. The provided offline launcher additionally selects 17683. Exit an existing normal service before testing `--no-auto-update`: reopening the same instance does not replace its startup configuration.
@@ -105,7 +107,7 @@ Maintenance recovery has a durable boundary at the committed journal. Cleanup/re
 
 ### Complete local verification
 
-Run the same entry point used by the prepared Windows workflow:
+Run the same entry point used by the Windows workflow:
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\check.ps1
@@ -113,9 +115,9 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\check.ps1
 
 This creates a fresh `dist/checks/<unique-id>/` directory with an isolated source snapshot, a `report.json`, a readable `summary.md`, per-step logs, packages and extracted test copies. It preserves the working executable, icons and personal cache. Node.js must be on PATH, or pass `-NodePath <absolute-node.exe-path>`. To choose the output directory, use `-OutputDirectory .\dist\my-check`; it must be new and under this source tree's `dist` directory. Existing results are never overwritten.
 
-The sequence is JavaScript and repository consistency checks → runner failure/timeout checks → build → all ten C# suites → offline HTTP → packaging and inventory/hash checks → full offline HTTP against the extracted Windows ZIP → rebuild from the extracted Source ZIP. Each HTTP pass compares all bundled default-profile records and verifies request boundaries, settings, documents and assets. The runner stops on failure, uses bounded waits, stops only the processes it starts, and preserves logs for inspection. Temporary fixture files remain under the check directory's `temp` folder.
+The sequence is JavaScript and repository consistency checks → runner failure/timeout checks → build → all 14 C# suites → offline HTTP → packaging and inventory/hash checks → full offline HTTP against the extracted Windows ZIP → runtime/recovery smoke checks → rebuild from the extracted Source ZIP. These are 23 check groups; `-Browser` adds the 24th group. Each HTTP pass compares all bundled default-profile records and verifies request boundaries, settings, documents and assets. The runner stops on failure, uses bounded waits, stops only the processes it starts, and preserves logs for inspection. Temporary fixture files remain under the check directory's `temp` folder.
 
-The source package's `.github/workflows/windows-checks.yml` uses `windows-2022`, Windows PowerShell and Node.js 24. It is prepared for branch pushes, pull requests and manual runs, with read-only repository permissions, pinned official actions and no artifact upload or Release step. Its setup can download Node.js/actions and the locked Playwright/Chromium test tools; Luna tests use local fixtures and offline services, without contacting data providers or using personal credentials. Development configuration is excluded from the Windows package. [GitHub workflow syntax](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax), [runner image](https://github.com/actions/runner-images/blob/main/images/windows/Windows2022-Readme.md).
+The source package's `.github/workflows/windows-checks.yml` uses `windows-2022`, Windows PowerShell and Node.js 24. It runs on branch pushes, pull requests and manual requests, with read-only repository permissions, pinned official actions and no artifact upload or Release step. Its setup can download Node.js/actions and the locked Playwright/Chromium test tools; Luna tests use local fixtures and offline services, without contacting data providers or using personal credentials. Development configuration is excluded from the Windows package. [GitHub workflow syntax](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax), [runner image](https://github.com/actions/runner-images/blob/main/images/windows/Windows2022-Readme.md).
 
 Check the repository Actions page for the result of each GitHub-hosted run. Local results are recorded separately. Checksums confirm content integrity; human review of language, themes and layout remains part of release review. Successful technical checks do not resolve third-party distribution conditions.
 
@@ -135,6 +137,12 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tests\run-focus.ps1
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tests\run-hero-update.ps1
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tests\run-icons.ps1
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tests\run-longpath.ps1
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tests\run-lifecycle.ps1
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tests\run-http-transport.ps1
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tests\run-service-isolation.ps1
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tests\run-backend-regressions.ps1
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tests\run-client-draft.ps1
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tests\run-client-draft-boundaries.ps1
 ```
 
 | Suite | Main coverage |
@@ -148,6 +156,12 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tests\run-longpath.ps1
 | `run-hero-update.ps1` | Manual champion-update queue and state |
 | `run-icons.ps1` | Native icon resources |
 | `run-longpath.ps1` | Deeper install paths and update temporary paths |
+| `run-lifecycle.ps1` | Signed package validation, upgrade rollback, uninstall and retention |
+| `run-http-transport.ps1` | HTTP framing, timeouts and disconnect cancellation |
+| `run-service-isolation.ps1` | Independent runtime ownership and concurrent operations |
+| `run-backend-regressions.ps1` | Maintenance retries, receipts and directory identity |
+| `run-client-draft.ps1` | BP session parsing, opt-in lifecycle and privacy |
+| `run-client-draft-boundaries.ps1` | Client discovery, response limits and phase-transition races |
 
 The automatic-update suite uses the bundled 856 records as default-profile fixtures; extra conditions are simulated. `run-focus.ps1 -Live` explicitly contacts the real upstream service and is not part of the default offline checks. A real upstream check is separate from compiling and packaging.
 
@@ -252,7 +266,7 @@ Use matching official catalog coverage for a search rebuild, record source/versi
 
 Keep the two language editions in step when changing user-visible behavior. The product is **Luna**, author **FrancisChen**, repository **Francis-Chenyj/Luna-dev**; reference-project links belong in README acknowledgements.
 
-For a future application version, update versioned source/UI expectations and release metadata together; the HTTP and package checks derive the expected release version from metadata. Tooling/documentation-only work stays under **Unreleased** unless a new version is intentionally prepared. Issue forms and the Windows workflow are locally prepared; GitHub activation and actual Release publication remain separate authorized actions.
+For a future application version, update versioned source/UI expectations and release metadata together; the HTTP and package checks derive the expected release version from metadata. Tooling/documentation-only work stays under **Unreleased** unless a new version is intentionally prepared. Issue forms and the Windows workflow are active in the published repository. Local builds do not upload code or create a Release; publication remains a separate maintainer action.
 
 ## Desktop host / 桌面窗口 (1.7.1)
 

@@ -22,7 +22,7 @@
 | Microsoft Edge WebView2 Runtime | 原生窗口运行与 `-Desktop` 真实界面健康测试 |
 | Python 3 标准库 | 可选的离线数据采集与搜索索引维护 |
 
-构建使用已有的 .NET Framework `csc.exe`，优先寻找 `Framework64/v4.0.30319`，其次寻找 `Framework/v4.0.30319`。单英雄更新和长路径测试脚本目前直接使用 Framework64 编译器，因此完整测试建议在 64 位 Windows 环境中运行。
+构建使用已有的 .NET Framework `csc.exe`，优先寻找 `Framework64/v4.0.30319`，其次寻找 `Framework/v4.0.30319`。单英雄更新和长路径测试脚本目前直接使用 Framework64 编译器，完整测试入口要求 64 位 Windows 和 Framework64 编译器。
 
 构建和基础检查无需 npm；可选真实浏览器检查需要锁定的 Playwright 开发依赖。无需前端打包或外部 C# 包还原。普通用户运行 Luna 不需要 Node.js 或 Python。
 
@@ -32,6 +32,7 @@
 | --- | --- |
 | `src/ApplicationRuntime.cs` | 服务组装、启动策略与后台工作生命周期 |
 | `src/Program.cs` | HTTP 和桌面进程宿主；调用服务接口 |
+| `src/ClientDraft.cs`、`web/draft.js` | 可选本地客户端 BP 同步、仅英雄字段投影与按需详情 |
 | `src/Library.cs`、`src/QueryService.cs` | 索引、校验、原子发布及本地查询 |
 | `src/DataUpdates.cs` | 整库和单英雄共同调度、进度、取消及优先级 |
 | `src/Storage.cs`、`src/QuarantineStore.cs` | 保守清理、空间统计和隔离区 |
@@ -80,9 +81,10 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\build.ps1 -OutputDirec
 
 | 参数 | 行为 |
 | --- | --- |
-| `--offline` | 禁止外网更新，保留本地读取 |
-| `--no-auto-update` | 关闭启动检查，仍允许手动联网更新 |
-| `--no-browser` | 运行本地服务但不打开浏览器 |
+| `--offline` | 禁止外网更新，保留本地读取及主动开启的本机 BP 同步 |
+| `--no-auto-update` | 本次运行禁止数据和程序自动更新，包括设置触发的自动检查；仍允许手动更新 |
+| `--no-browser` | 运行本地服务但不打开窗口 |
+| `--browser` | 使用浏览器兼容模式，替代原生窗口；不含托盘控制 |
 | `--port <数字>` | 指定 1024–65000 内的起始端口；占用时最多再尝试后续 29 个端口 |
 
 EXE 默认起始端口为 17653；离线启动脚本另外指定 17683。测试 `--no-auto-update` 前先退出已有普通服务，重新打开同一实例不会替换其启动设置。
@@ -105,7 +107,7 @@ EXE 默认起始端口为 17653；离线启动脚本另外指定 17683。测试 
 
 ### 一次完成本地检查
 
-运行与预备 Windows 工作流相同的入口：
+运行与 Windows 工作流相同的入口：
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\check.ps1
@@ -113,9 +115,9 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\check.ps1
 
 每次会创建新的 `dist/checks/<唯一编号>/`，保存独立源码副本、`report.json`、可阅读的 `summary.md`、各步骤日志、程序包与解压测试副本。检查不会改动正在使用的可执行程序、图标和个人缓存。Node.js 需在 PATH 中，也可以传入 `-NodePath <node.exe绝对路径>`。如需指定位置，使用 `-OutputDirectory .\dist\my-check`，必须是当前源码目录下 `dist` 内尚不存在的新目录；不会覆盖以前的检查结果。
 
-检查顺序为：JavaScript 与项目一致性检查 → 检查工具的失败和超时处理 → 构建 → 11 组 C# 测试 → 离线接口 → 打包及文件清单、哈希校验 → 解压 Windows 包后再次完整检查离线接口 → 解压源码包重新构建。每轮接口检查核对默认条件的全部随包记录，同时检查请求边界、设置、文档和界面资源。任一步失败即停止，等待设有超时，只清理检查自身启动的进程，并保留日志。测试临时文件集中在检查目录的 `temp` 中。
+检查顺序为：JavaScript 与项目一致性检查 → 检查工具的失败和超时处理 → 构建 → 14 组 C# 测试 → 离线接口 → 打包及文件清单、哈希校验 → 解压 Windows 包后再次完整检查离线接口 → 运行与恢复冒烟检查 → 解压源码包重新构建。默认共 23 个检查组，`-Browser` 增加第 24 组。每轮接口检查核对默认条件的全部随包记录，同时检查请求边界、设置、文档和界面资源。任一步失败即停止，等待设有超时，只清理检查自身启动的进程，并保留日志。测试临时文件集中在检查目录的 `temp` 中。
 
-源码包中的 `.github/workflows/windows-checks.yml` 选择 `windows-2022`、Windows PowerShell 和 Node.js 24，准备在分支推送、拉取请求或手动触发时运行。只配置仓库读取权限，官方 Actions 固定到明确版本的提交，不上传程序包、不创建 Release。环境准备可能下载 Node.js 和 Actions；Luna 测试使用本地样本和离线服务，不连接数据提供方，也不使用个人凭据。Windows 运行包不包含这些开发配置。参见 [GitHub 工作流语法](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax)与 [Windows 环境清单](https://github.com/actions/runner-images/blob/main/images/windows/Windows2022-Readme.md)。
+源码包中的 `.github/workflows/windows-checks.yml` 选择 `windows-2022`、Windows PowerShell 和 Node.js 24，在分支推送、拉取请求或手动触发时运行。只配置仓库读取权限，官方 Actions 固定到明确版本的提交，不上传程序包、不创建 Release。环境准备可能下载 Node.js、Actions 和锁定的 Playwright/Chromium 测试工具；Luna 测试使用本地样本和离线服务，不连接数据提供方，也不使用个人凭据。Windows 运行包不包含这些开发配置。参见 [GitHub 工作流语法](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax)与 [Windows 环境清单](https://github.com/actions/runner-images/blob/main/images/windows/Windows2022-Readme.md)。
 
 GitHub 实际执行结果以仓库 Actions 页面中对应提交的运行记录为准，本地检查另行记录。校验和用于确认内容完整性，语言、主题和排版仍需人工检查；技术检查通过不代表第三方分发条件已经解决。
 
@@ -135,6 +137,12 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tests\run-focus.ps1
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tests\run-hero-update.ps1
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tests\run-icons.ps1
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tests\run-longpath.ps1
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tests\run-lifecycle.ps1
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tests\run-http-transport.ps1
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tests\run-service-isolation.ps1
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tests\run-backend-regressions.ps1
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tests\run-client-draft.ps1
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tests\run-client-draft-boundaries.ps1
 ```
 
 | 测试 | 主要覆盖 |
@@ -148,6 +156,12 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tests\run-longpath.ps1
 | `run-hero-update.ps1` | 手动英雄更新队列和状态 |
 | `run-icons.ps1` | 原生图标资源 |
 | `run-longpath.ps1` | 较深的安装目录与更新临时路径 |
+| `run-lifecycle.ps1` | 签名包校验、升级回退、卸载与保留边界 |
+| `run-http-transport.ps1` | HTTP 报文、超时与连接断开取消 |
+| `run-service-isolation.ps1` | 独立运行时状态与并发操作 |
+| `run-backend-regressions.ps1` | 维护重试、结果记录与目录身份 |
+| `run-client-draft.ps1` | BP 解析、主动连接生命周期与隐私 |
+| `run-client-draft-boundaries.ps1` | 客户端发现、响应限额与阶段切换竞争 |
 
 自动更新套件将随包 856 份记录作为默认条件输入，额外条件使用模拟样本。`run-focus.ps1 -Live` 会明确访问真实原站，不属于默认离线检查；真实外网核验与构建、打包分开进行。
 
@@ -210,7 +224,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tests\run-package.ps1 
 
 脚本从 `src/AssemblyInfo.cs` 读取版本，并与 `release-status.json` 核对。打包会重新构建 EXE，不直接复制根目录的旧 EXE，并校验产物版本和作者。
 
-两个 ZIP 都以 `Luna/` 为顶层目录，包含许可证、第三方声明和核查状态。明确的目录与扩展名规则排除缓存、采集目录、个人快捷方式和常见密钥文件。**当前两个包都会带入第三方数据和素材。**打包成功不会改变 `publicReleaseReady`，也不会创建 GitHub 仓库或 Release。
+两个 ZIP 都以 `Luna/` 为顶层目录，包含许可证、第三方声明和核查状态。明确的目录与扩展名规则排除缓存、采集目录、个人快捷方式和常见密钥文件。**当前两个包都会带入第三方数据和素材。** 打包成功不会改变 `publicReleaseReady`，也不会创建 GitHub 仓库或 Release。
 
 包校验核对哈希、文件清单、路径边界、分发元数据及运行包 / 源码包差异。源码包还包含 `.gitattributes`、反馈表单、工作流和统一检查脚本；运行包不带开发配置。`repository.test.cjs` 检查当前版本和作者一致性、项目入口，以及本地文档和配图文件是否存在。语言跳转、标题锚点与排版仍需人工复核，ZIP 完整性检查不能证明导航正确。
 
@@ -252,7 +266,7 @@ Windows 系统缩放与浏览器网页缩放是两个独立设置。实际切换
 
 更改用户可见行为时，同步维护两种语言。产品名为 **Luna**，作者为 **FrancisChen**，仓库为 **Francis-Chenyj/Luna-dev**；参考项目链接集中在 README 致谢。
 
-以后准备程序新版本时，应同步更新源码、界面中的版本预期及分发资料；接口与包检查从元数据读取预期版本。仅调整工具和文档的改动先记入 **Unreleased**，不擅自提高程序版本。反馈表单与 Windows 工作流已在本地准备，GitHub 上的启用和实际 Release 发布仍需另行授权。
+以后准备程序新版本时，应同步更新源码、界面中的版本预期及分发资料；接口与包检查从元数据读取预期版本。仅调整工具和文档的改动先记入 **Unreleased**，不擅自提高程序版本。反馈表单与 Windows 工作流已在公开仓库启用。本地构建不会上传代码或创建 Release；发布仍是维护者另行执行的操作。
 
 ## Desktop host / 桌面窗口 (1.7.1)
 

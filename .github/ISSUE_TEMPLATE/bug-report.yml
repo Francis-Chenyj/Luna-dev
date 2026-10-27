@@ -15,7 +15,7 @@ body:
     attributes:
       label: Luna version / 程序版本
       description: Settings → About; if Luna cannot open, check the ZIP filename. / 设置 → 关于；无法启动时查看 ZIP 文件名。
-      placeholder: "e.g. / 例如 1.5.0"
+      placeholder: "e.g. / 例如 1.7.1"
     validations:
       required: true
   - type: input

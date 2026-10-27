@@ -1,8 +1,12 @@
 # 第三方分发条件核查
 
-首次来源核查：2026-10-11（Luna 1.4.3） · 当前版本复核：2026-10-12（Luna 1.5.0，Asia/Shanghai） · 维护者：FrancisChen
+首次来源核查：2026-10-11（Luna 1.4.3） · 历史版本复核：2026-10-12（Luna 1.5.0，Asia/Shanghai） · 维护者：FrancisChen
 
-## 当前发布安排（2026-10-13）
+当前下载为 1.7.1 开发预发布，证据待办仍见 [release-status.json](../release-status.json)；现用 1.7.1 配图及原 1.5.0 配图的日期、条件见[配图说明](images/README.md)。本文保留原核查日期，不把本次文案校正记为重新取得授权或完成产品审核。
+
+Current downloads are the 1.7.1 development pre-release. The evidence status remains open. The dated reviews below retain their original scope; the current screenshot inventory is documented separately.
+
+## 历史发布安排（2026-10-13）
 
 维护者已选择将完整源码与 Windows 包发布至 `Francis-Chenyj/Luna-dev`，并以开发预发布形式提供。此选择不关闭任何第三方授权或 Riot 注册待办；`publicReleaseReady: false` 继续表示证据未齐全，而非仓库可见性。没有代为联系上游或注册 Riot。下列核查结论和过程保留其原日期与范围。
 
@@ -10,7 +14,7 @@ The maintainer selected a public development pre-release containing the complete
 
 ## 2026-10-12 核查结论（历史记录）
 
-本地源码整理、MIT 授权及审阅包制作可以完成。**尚不能把包含现有全部数据和素材的包标记为已具备公开分发条件。**首次来源核查完成的是公开资料核对，不是取得上游授权或通过 Riot 产品审核；当前版本补充复核的范围见下文。没有代用户注册、联系上游或发布任何文件。
+本地源码整理、MIT 授权及审阅包制作可以完成。**尚不能把包含现有全部数据和素材的包标记为已具备公开分发条件。** 首次来源核查完成的是公开资料核对，不是取得上游授权或通过 Riot 产品审核；当前版本补充复核的范围见下文。没有代用户注册、联系上游或发布任何文件。
 
 | 核查项 | 结果 | 发布前需要的证据 / 处理 |
 | --- | --- | --- |
@@ -22,7 +26,7 @@ The maintainer selected a public development pre-release containing the complete
 
 `release-status.json` 因此保留 `publicReleaseReady: false`。它记录的是当前证据状态，不宣称上游禁止所有用途。
 
-## 当前版本复核 / Current-version review
+## 1.5.0 历史复核 / Historical 1.5.0 review
 
 2026-10-12 对 Luna 1.5.0 的补充复核：
 

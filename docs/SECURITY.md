@@ -1,6 +1,6 @@
 # Security / 安全问题
 
-This is a development project. No security-support period or audit certification is implied. Prefer the latest reviewed local build; the public pre-release may lag behind it.
+This is a development project. No security-support period or audit certification is implied. Use the latest published release and check its notes for known limitations. The default branch can contain fixes that are not yet in a downloadable release; a source commit does not update an installed copy.
 
 Do not put secrets, raw personal logs or a working exploit against other users in a public issue. If GitHub offers **Report a vulnerability** in this repository's Security tab, use that private channel. If it is unavailable, open a minimal issue asking the maintainer to establish a private reporting channel, without exploit details or sensitive attachments. This document does not claim private reporting is enabled.
 

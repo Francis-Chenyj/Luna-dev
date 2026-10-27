@@ -40,6 +40,11 @@ test('release, executable source, interface and current documentation use one ve
   const homepage = read('web/index.html');
   assert.equal(homepage.match(/<span class="brand-name">Luna<\/span><small>([^<]+)<\/small>/)?.[1], version, 'Header version');
   assert.equal(homepage.match(/<dd id="about-version">([^<]+)<\/dd>/)?.[1], version, 'About fallback version');
+  const helpVersions = [...homepage.matchAll(/· 版本 (\d+\.\d+\.\d+)。/g)].map(match => match[1]);
+  assert.ok(helpVersions.length > 0, 'Help version must remain covered by the version guard');
+  for (const helpVersion of helpVersions) assert.equal(helpVersion, version, 'Help version');
+  assert.equal(require('../web/locales.js')[`· 版本 ${version}。`], `· Version ${version}.`, 'English help version');
+  assert.equal(read('src/app.manifest').match(/<assemblyIdentity\b[^>]*version="([^"]+)"/)?.[1], version + '.0', 'Windows manifest version');
   for (const file of ['web/index.html','README.md','README.zh-CN.md','docs/USER_GUIDE.md','docs/USER_GUIDE.zh-CN.md','docs/DEVELOPER_GUIDE.md','docs/DEVELOPER_GUIDE.zh-CN.md']) {
     assert.ok(read(file).includes(version), `${file} must describe the current version`);
   }

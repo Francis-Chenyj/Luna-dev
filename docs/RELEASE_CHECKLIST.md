@@ -1,6 +1,44 @@
-> 当前 1.6.3 的本地修复、源码身份和发布验证见 [操作补充](AUDIT_REPAIRS.md)及 [QA](QA-1.6.3.md)。下文是历史公开预发布记录。
+# Luna 发布核对清单 / Release checklist
 
-# Luna 1.5.0 发布核对清单 / Release checklist
+核对日期 / Checked: 2026-10-28 · 维护者 / Maintainer: FrancisChen
+
+## 当前公开版本 / Current published version
+
+当前下载是 [Luna 1.7.1 开发预发布](https://github.com/Francis-Chenyj/Luna-dev/releases/tag/v1.7.1)，程序版本为 `1.7.1`。这是完整产品的开发预览，需手动安装；没有 `luna-update.json`，不进入已签名稳定版自动更新渠道。
+
+The current download is the complete 1.7.1 development pre-release, installed manually. It is not an authenticated stable-channel update. The tag points to source commit `5cab2d64c15212fd68d8c858477aca8d0941e829`; `docs/build-provenance.json` inside each package identifies its exact source content.
+
+| 附件 / Asset | 内容 / Contents |
+| --- | --- |
+| `Luna-v1.7.1-Windows.zip` | 完整 Windows 运行包 / complete Windows runtime |
+| `Luna-v1.7.1-Source.zip` | 源码、普通项目测试及文档，不含 EXE / source, project tests and docs, no EXE |
+| `SHA256SUMS.txt` | ZIP 和逐文件清单的 SHA-256 / ZIP and inventory checksums |
+| `release-files.json` | 包内路径、大小和哈希 / packaged paths, lengths and hashes |
+
+`main` 可以包含发布后的修正。当前主页截图以及帮助文案和维护指南的后续修正，不表示原下载包已被替换；[更新日志](../CHANGELOG.md)把未打包修正与已发布记录分开。不要覆盖已公开标签或附件；下一份程序下载包使用更高版本。
+
+The default branch can advance after publication. Later screenshot, help-text and documentation fixes do not alter the existing tag or assets. See [release notes and known text inconsistencies](RELEASE-v1.7.1.md) and the [changelog](../CHANGELOG.md). Publish a higher version for a new binary package.
+
+## 当前验收流程 / Current verification workflow
+
+1. 在隔离源码副本执行 `scripts/check.ps1 -Browser`：23 个基础检查组加 1 个浏览器组，包括 14 组 C# 回归、全部默认离线记录比对、打包清单核验、运行恢复检查和源码包重建。环境及命令见[开发指南](DEVELOPER_GUIDE.zh-CN.md) / [developer guide](DEVELOPER_GUIDE.md)。
+2. 用最终包执行原生窗口及历史版本升级检查，按 [UI acceptance](UI_ACCEPTANCE.md) 记录实际人工体验。模拟 BP 和浏览器尺寸测试不能替代完整十人真实对局、多设备或原生 DPI 验证；本版本证据范围见 [QA](QA-1.7.1.md)。
+3. 上传前检查两种包的逐文件清单、哈希和构建来源；上传后核对 Release 标签、附件哈希、双语页面、图片和反馈表单，并查看对应提交的 [Windows CI](https://github.com/Francis-Chenyj/Luna-dev/actions)。已发布 1.7.1 的 [CI 记录](https://github.com/Francis-Chenyj/Luna-dev/actions/runs/40541001359)与之后主分支的运行分别识别。
+4. 保留个人缓存、独立 BP 验收工具及源码、个人验收报告、录像、GIF、签名私钥和本机构建输出在项目发布范围之外。普通项目 `tests/` 应保留；它不是被排除的独立验收工具。
+5. 稳定版发布前，按[第三方核查](THIRD_PARTY_REVIEW.md)补齐证据，并核对签名与分发要求。当前 `publicReleaseReady = false` 是证据状态，不是 GitHub 可见性；公开开发预览不代表取得第三方许可。
+
+Run the complete isolated checks, inspect the final package and its actual UI, verify hosted CI and release hashes, and retain explicit limits for real-client/device coverage. Keep standalone acceptance tools, personal reports/media, caches and private keys out of the repository and packages. Technical checks do not resolve the remaining third-party and signing requirements.
+
+## 历史记录边界 / Historical record boundary
+
+下文保留 2026-10-13 的 1.5.0 清单及其后本地修订备注，均只描述当时状态；其中的“当前”“尚未上传”与旧附件名不指今天的 1.7.1。历史文件和 QA 不能冒充对新包重新执行过的测试。
+
+The following archive describes the original 1.5.0 preview and dated local follow-ups. Its version labels, upload status and test records are historical, not current release instructions.
+
+<details>
+<summary>展开历史 1.5.0 清单 / Expand the historical 1.5.0 checklist</summary>
+
+## 历史记录：1.5.0 / Historical 1.5.0 record
 
 > 2026-10-15：新增的 1.5.1 是本地审阅版，尚未推送或发布，见 [1.5.1 发布说明](RELEASE-v1.5.1.md)和 [QA](QA-1.5.1.md)。下文保留上一次 1.5.0 公开预发布的文件边界与验收记录，不代表 1.5.1 已上传。
 >
@@ -107,3 +145,5 @@ Verify fresh extraction, ordinary-user launch, query/filter behavior, language/t
 - 每项关闭时记录依据、日期和负责人，再更新分发状态、发布说明及最终包。维护者已选择开发预发布；后续正式版本继续复核这些事项。
 
 Open evidence items and GitHub-hosted verification remain separate from local technical readiness. Record evidence before changing status. The maintainer has selected a development pre-release; this checklist records scope rather than granting third-party rights.
+
+</details>
