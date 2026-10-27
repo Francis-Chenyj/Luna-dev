@@ -30,9 +30,9 @@ Matchup results come from [MalzaharAI](https://www.malzaharai.top/counter). Rela
 
 ## Preview
 
-![Luna 1.5.0 showing Aatrox top-lane matchups in offline mode](docs/images/luna-matchups.png)
+![Luna 1.7.1 showing the optional champion-select panel and Aatrox top-lane matchups in offline mode](docs/images/luna-v1.7.1-matchups-en.png)
 
-Luna 1.5.0 in English with the light theme, using bundled data: Aatrox, top lane, threshold 1, strictness 5, with the **全分段 (All ranks)** category selected. This is an interface example, not a live recommendation. [Screenshot details](docs/images/README.md).
+Luna 1.7.1 in English with the light theme, captured from the published Windows package on October 28, 2026. The optional champion-select panel is shown before connecting to a client. The local query uses bundled data: Aatrox, top lane, threshold 1, strictness 5, with the **All ranks** category selected. This is an interface example, not a live recommendation. [Screenshot details](docs/images/README.md).
 
 ## Download and quick start
 
