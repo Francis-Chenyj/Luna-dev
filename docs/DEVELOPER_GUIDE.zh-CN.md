@@ -2,7 +2,7 @@
 
 [English](DEVELOPER_GUIDE.md) · **简体中文** · [项目介绍](../README.zh-CN.md) · [用户指南](USER_GUIDE.zh-CN.md) · [更新日志](../CHANGELOG.md)
 
-**适用版本：1.7.0 · 作者：FrancisChen**
+**适用版本：1.7.1 · 作者：FrancisChen**
 
 故障测试的迁移映射、时间控制边界和新增规则见[测试维护](TESTING.md)。新增测试使用类型明确的服务、注入依赖和真实运行时生命周期。
 
@@ -10,7 +10,7 @@
 
 项目主页：[Luna · GitHub](https://github.com/Francis-Chenyj/Luna-dev)。
 
-本指南说明现有构建、测试与本地打包流程。请使用源码目录或 `Luna-v1.7.0-Source.zip`；Windows 运行包不包含开发源码和测试。以下命令均在源码根目录执行。
+本指南说明现有构建、测试与本地打包流程。请使用源码目录或 `Luna-v1.7.1-Source.zip`；Windows 运行包不包含开发源码和测试。以下命令均在源码根目录执行。
 
 ## 开发环境
 
@@ -191,19 +191,19 @@ HTTP 套件核对全部 856 份随包记录、来源日期、合法空列表、�
 
 ## 打包与校验
 
-使用**全新空目录**。`dist/v1.7.0/` 默认目录可能已有本地包，下面示例另选一个目录：
+使用**全新空目录**。`dist/v1.7.1/` 默认目录可能已有本地包，下面示例另选一个目录：
 
 ```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\package.ps1 -OutputDirectory .\dist\v1.7.0-review
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tests\run-package.ps1 -ReleaseDirectory .\dist\v1.7.0-review
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\package.ps1 -OutputDirectory .\dist\v1.7.1-review
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tests\run-package.ps1 -ReleaseDirectory .\dist\v1.7.1-review
 ```
 
 再次打包时换一个未使用的目录，脚本不会与已有文件混装。
 
 | 输出 | 内容 |
 | --- | --- |
-| `Luna-v1.7.0-Windows.zip` | 重新构建的 EXE、运行文件、随包数据、双语 README 与文档 |
-| `Luna-v1.7.0-Source.zip` | 源码、脚本、测试、数据与文档；不含 EXE |
+| `Luna-v1.7.1-Windows.zip` | 重新构建的 EXE、运行文件、随包数据、双语 README 与文档 |
+| `Luna-v1.7.1-Source.zip` | 源码、脚本、测试、数据与文档；不含 EXE |
 | `SHA256SUMS.txt` | 两个 ZIP 和清单的 SHA-256 |
 | `release-files.json` | 包内逐文件路径、大小与哈希 |
 | `_build/` | 本地构建中间目录，不作为下载附件 |
@@ -220,7 +220,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tests\run-package.ps1 
 
 Windows 系统缩放与浏览器网页缩放是两个独立设置。实际切换 Windows 为 125% 和 150%，网页缩放保持 100%，记录观察到的像素比例、语言主题、窗口大小和截图，结束后恢复原设置。只修改浏览器宽度或网页缩放不算 Windows 系统缩放验收。未具备的系统、浏览器或干净机器环境需单独注明。
 
-同一版本号的本地包用逐文件清单和 SHA-256 区分。[验证记录](QA-1.7.0.md)记录实际完成的检查，[发布说明](RELEASE-v1.7.0.md)描述选定构建。代码或包内容变化后重做相关检查，不直接覆盖已验证的 ZIP。
+同一版本号的本地包用逐文件清单和 SHA-256 区分。[验证记录](QA-1.7.1.md)记录实际完成的检查，[发布说明](RELEASE-v1.7.1.md)描述选定构建。代码或包内容变化后重做相关检查，不直接覆盖已验证的 ZIP。
 
 ## 数据与搜索词维护
 
@@ -245,16 +245,16 @@ Windows 系统缩放与浏览器网页缩放是两个独立设置。实际切换
 | [英文开发指南](DEVELOPER_GUIDE.md) / [简体中文开发指南](DEVELOPER_GUIDE.zh-CN.md) | 目录、构建、测试与本地打包 |
 | [CHANGELOG](../CHANGELOG.md) | 按版本记录变化，未发布修改放在 Unreleased |
 | [仓库资料](REPOSITORY_SETUP.md) | About 简介、项目主页与主题标签 |
-| [发布说明草稿](RELEASE-v1.7.0.md) | 后续发布说明与附件清单 |
+| [发布说明](RELEASE-v1.7.1.md) | 开发预发布说明与附件清单 |
 | [发布核对清单](RELEASE_CHECKLIST.md) | 仓库与附件范围、运行包验收、尚待完成的发布事项 |
-| [QA 记录](QA-1.7.0.md) | 标明日期的验证结果与范围 |
+| [QA 记录](QA-1.7.1.md) | 标明日期的验证结果与范围 |
 | [第三方核查](THIRD_PARTY_REVIEW.md) | 分发依据和未解决事项 |
 
 更改用户可见行为时，同步维护两种语言。产品名为 **Luna**，作者为 **FrancisChen**，仓库为 **Francis-Chenyj/Luna-dev**；参考项目链接集中在 README 致谢。
 
 以后准备程序新版本时，应同步更新源码、界面中的版本预期及分发资料；接口与包检查从元数据读取预期版本。仅调整工具和文档的改动先记入 **Unreleased**，不擅自提高程序版本。反馈表单与 Windows 工作流已在本地准备，GitHub 上的启用和实际 Release 发布仍需另行授权。
 
-## Desktop host / 桌面窗口 (1.7.0)
+## Desktop host / 桌面窗口 (1.7.1)
 
 `src/DesktopWindow.cs` owns the WinForms/WebView2 window and NotifyIcon. HTTP runs on a dedicated thread; query and update workers are unchanged. Close choices are stored as `closeAction: ask|tray|exit` in schema-1 preferences (missing field defaults to ask). Explicit Exit and Windows session end bypass the preference. `/api/window/close` and `/api/window/show` require the same POST, X-Luna, loopback Host and Origin checks as other mutations. Do not use them from external origins.
 
@@ -270,6 +270,6 @@ See [Application lifecycle / 程序维护](APPLICATION_LIFECYCLE.md) for signing
 服务归属、并发规则和测试迁移见[运行时架构](ARCHITECTURE.md)。独立运行新增套件：`tests/run-service-isolation.ps1`。
 
 
-## 可选 BP 同步（1.7.0）
+## 可选 BP 同步（1.7.1）
 
 在首页主动连接已运行的英雄联盟客户端。进入英雄选择后，我方、对方各五个位置随选人进度显示头像；点击头像才打开该英雄本地的严父／大儿。每次程序启动时默认关闭，不查询战绩或段位，不自动选禁英雄。分路未知时明确使用该英雄本地常用分路，不沿用上一个英雄的分路。详见[使用方法、隐私边界与兼容范围](CLIENT_DRAFT.md)。

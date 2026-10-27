@@ -6,7 +6,7 @@
 
 **English** · [简体中文](README.zh-CN.md)
 
-**v1.7.0** · Windows 10 / 11 · .NET Framework 4.7.2+ · [MIT — original code](LICENSE)
+**v1.7.1** · Windows 10 / 11 · .NET Framework 4.7.2+ · [MIT — original code](LICENSE)
 
 A local League of Legends matchup explorer for champion selection. Search for a champion to see **opponents that counter you** and **opponents you counter**, with lane and rank filters.
 
@@ -21,6 +21,7 @@ Switch instantly between English and Simplified Chinese in **Settings → Genera
 | Local queries | Reads the bundled default-profile library covering 173 champions and 428 supported champion–lane combinations. |
 | Flexible search | Accepts Chinese and English names, titles, pinyin and curated nicknames. |
 | Two-way results | Filters both matchup directions by lane, rank category, relationship threshold and sample strictness. |
+| Optional BP sync | Connects to the local League client, shows visible champion selections for both teams, and opens local matchups when you click a portrait. No player-history queries. |
 | Background updates | Refreshes current and recent champions first; library downloads support resumption and fallback to saved data. |
 | Settings and support | Persistent language/theme choices, startup data-update toggle, local folders and privacy-limited diagnostics. |
 | Visible sources | Shows bundled, downloaded or fallback data, with source-generation and local-save times. |
@@ -35,9 +36,9 @@ Luna 1.5.0 in English with the light theme, using bundled data: Aatrox, top lane
 
 ## Download and quick start
 
-**Local 1.7.0 revision:** removes the private-state reflection adapter from legacy fault tests. Real runtime restarts, controlled transports and events now verify cancellation and recovery; additional checks cover request pacing and maintenance deadlines. Query/update behavior and disk formats remain compatible. This build has not been uploaded to GitHub. See the [release notes](docs/RELEASE-v1.7.0.md), [verification scope](docs/QA-1.7.0.md) and [test maintenance guide](docs/TESTING.md).
+**1.7.1 development pre-release:** includes optional BP synchronization and the accumulated stability repairs since the earlier GitHub build. It also fixes the focus box overlapping the champion title after a BP portrait query. Pointer selection leaves the name clear; keyboard selection retains an underline, focus transfer and return to BP. Query behavior, settings and disk formats remain compatible with 1.7.0. See the [release notes](docs/RELEASE-v1.7.1.md), [verification scope](docs/QA-1.7.1.md) and [test maintenance guide](docs/TESTING.md).
 
-**In development — local review.** This delivery provides `Luna-v1.7.0-Windows.zip`; `Luna-v1.7.0-Source.zip` contains source without an executable. The [Releases page](https://github.com/Francis-Chenyj/Luna-dev/releases) is a separate public distribution channel; local files do not imply a new online release. Use the accompanying `SHA256SUMS.txt` to verify the archives. Third-party distribution permissions and Riot registration remain open; see [release status](release-status.json) and [third-party notices](THIRD_PARTY_NOTICES.md).
+**Download [v1.7.1](https://github.com/Francis-Chenyj/Luna-dev/releases/tag/v1.7.1).** Choose `Luna-v1.7.1-Windows.zip` to run Luna; `Luna-v1.7.1-Source.zip` contains development source without an executable. Verify the archives using the accompanying `SHA256SUMS.txt`. This development pre-release is installed manually and is not a signed stable automatic update. Third-party distribution permissions and Riot registration remain open; see [release status](release-status.json) and [third-party notices](THIRD_PARTY_NOTICES.md).
 
 **Requirements:** Windows 10 / 11, .NET Framework 4.7.2+ and Microsoft Edge WebView2 Runtime. Luna reuses the installed runtime; its ZIP does not bundle a complete browser. If missing, install the [Evergreen Runtime from Microsoft](https://developer.microsoft.com/microsoft-edge/webview2/). `Luna.exe --browser` opens compatibility mode without tray support. Normal use needs no Node.js, Python, account, API key or administrator privileges.
 
@@ -69,7 +70,7 @@ Startup reads library manifests without hashing every saved profile and backup. 
 - Disposable browser caches are cleared daily while idle, retaining recent queries and settings. Manual maintenance does not wipe usable offline libraries.
 - Locked files, unknown ownership, damaged activation records or potentially unique recovery data are retained conservatively. These limits are not a hard cap on the entire directory.
 
-The runtime ZIP is approximately **9.1 MiB**, with approximately **10.6 MiB** of extracted program files before user caches. In the native-window test, core files plus early runtime storage measured about 21 MiB; browser profiles, downloaded libraries and an update backup add to this. Check the timestamped storage view for your own copy, rather than estimating by months of use.
+The runtime ZIP is approximately **9.2 MiB**, with approximately **11.2 MiB** of extracted program files before user caches. In an earlier native-window test, core files plus early runtime storage measured about 21 MiB; browser profiles, downloaded libraries and an update backup add to this. Check the timestamped storage view for your own copy, rather than estimating by months of use.
 
 Six actual 30-second sessions retained update progress **40 → 88 → 136 records** with zero cross-session duplicate downloads. All 1,141 local queries succeeded (maximum 17.91 ms on this computer). Updates used controlled responses; these timings are not public-network or all-machine guarantees. See [the full verification record](docs/QA-1.6.0.md).
 
@@ -93,7 +94,7 @@ Offline launch saves the switches but makes no update requests. A `--no-auto-upd
 
 Downloaded bytes survive exit. When the server supports it, HTTP Range resumes the partial package; a server that does not support ranges causes a safe full restart of that download. A verified package is not downloaded again. Installation only starts after **Restart and update** and confirmation; minimizing to the tray does not install an update.
 
-After a successful restart, Application settings reports the installed update and removes the old offer. Upgrade health now requires the native window, application initialization and a local query to succeed. See the [current QA scope](docs/QA-1.7.0.md). Historical short-session checks retain their original version records; they do not establish a public-channel upgrade for this build.
+After a successful restart, Application settings reports the installed update and removes the old offer. Upgrade health now requires the native window, application initialization and a local query to succeed. See the [current QA scope](docs/QA-1.7.1.md). Historical short-session checks retain their original version records; they do not establish a public-channel upgrade for this build.
 
 The app accepts update metadata from the project's stable release source only after verification with the embedded publisher public key. ZIP size, SHA-256, the file inventory and paths are checked. The new version must pass a local startup/query check; failure restores the old program. An interrupted replacement is recovered at the next launch. Settings and matchup libraries are excluded from program replacement.
 
@@ -131,6 +132,6 @@ Copyright © 2026 FrancisChen. Luna's original code, scripts, documentation and 
 Luna isn't endorsed by Riot Games and doesn't reflect the views or opinions of Riot Games or anyone officially involved in producing or managing Riot Games properties. Riot Games, and all associated properties are trademarks or registered trademarks of Riot Games, Inc.
 
 
-## Optional BP synchronization (1.7.0)
+## Optional BP synchronization (1.7.1)
 
 Connect the running League client from Luna's home page. Five champion slots per team appear during champion selection; click a portrait to open its local matchup details. The feature is off after every app start, uses only local read-only endpoints, and does not query player history or rank. Unknown lanes use a clearly identified local default rather than the previously selected champion's lane. [Usage, privacy boundaries and compatibility](docs/CLIENT_DRAFT.md).

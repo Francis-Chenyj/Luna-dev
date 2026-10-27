@@ -5,6 +5,8 @@ const vm=require('node:vm');
 const C=require('../web/core.js');
 const code=fs.readFileSync(require.resolve('../web/app.js'),'utf8');
 const html=fs.readFileSync(require.resolve('../web/index.html'),'utf8');
+const releaseParts=require('../package.json').version.split('.').map(Number);
+const nextRelease=[releaseParts[0],releaseParts[1],releaseParts[2]+1].join('.');
 const heroes=[{id:266,name:'亚托克斯',title:'暗裔剑魔',en:'Aatrox',keywords:'剑魔',lanes:{top:100,jungle:20}},{id:103,name:'阿狸',title:'九尾妖狐',en:'Ahri',keywords:'狐狸',lanes:{middle:100}}];
 const lanes=[{key:'top',label:'上路'},{key:'jungle',label:'打野'},{key:'middle',label:'中路'}];
 function draftSnapshot(enabled=true,state='champ-select'){
@@ -147,7 +149,7 @@ async function setup(options={}) {
     let result;
     if(url.pathname==='/api/space'||url.pathname==='/api/space/clean')result=server.space||{success:true,busy:false,report:{checkedAt:'2026-10-15T01:00:00Z',totalBytes:100,bytes:{program:100},partial:false}};
     else if(url.pathname==='/api/app-update')result=server.appUpdate||{success:true,state:'noRelease',busy:false,managed:true,offline:server.health.offline};
-    else if(['/api/app-update/check','/api/app-update/download','/api/app-update/cancel'].includes(url.pathname)){server.appUpdate={success:true,state:url.pathname.endsWith('/cancel')?'paused':'downloading',busy:!url.pathname.endsWith('/cancel'),newVersion:'1.7.0',managed:true};result=server.appUpdate;}
+    else if(['/api/app-update/check','/api/app-update/download','/api/app-update/cancel'].includes(url.pathname)){server.appUpdate={success:true,state:url.pathname.endsWith('/cancel')?'paused':'downloading',busy:!url.pathname.endsWith('/cancel'),newVersion:nextRelease,managed:true};result=server.appUpdate;}
     else if(url.pathname==='/api/maintenance')result=server.maintenance||{success:true,available:true,path:'D:/isolated/Luna'};
     else if(url.pathname==='/api/maintenance/run')result=server.maintenanceFailure?{success:false,httpStatus:400,message:'maintenance.sourceFolder'}:{success:true};
     else if(url.pathname==='/api/catalog')result=server.catalog;
@@ -289,7 +291,7 @@ test('explicit data removal is one-shot and failed maintenance leaves champion l
 });
 
 test('source protection, offline update status and release notes cannot trigger installation',async t=>{
-  const env=await setup({server:{health:{app:'luna-local',offline:true},appUpdate:{success:true,state:'ready',offline:true,managed:false,newVersion:'1.7.0',notes:'<img src=x onerror=alert(1)>'},maintenance:{success:true,available:false,path:'D:/source'}}});t.after(()=>env.close());
+  const env=await setup({server:{health:{app:'luna-local',offline:true},appUpdate:{success:true,state:'ready',offline:true,managed:false,newVersion:nextRelease,notes:'<img src=x onerror=alert(1)>'},maintenance:{success:true,available:false,path:'D:/source'}}});t.after(()=>env.close());
   await env.$('settings-button').emit('click');await env.$('tab-updates').emit('click');await flush();
   assert.equal(env.$('app-check').disabled,true);assert.equal(env.$('app-apply').disabled,true);assert.equal(env.$('app-uninstall').disabled,true);
   assert.equal(env.$('app-update-notes').textContent,'<img src=x onerror=alert(1)>');assert.equal(env.$('app-update-notes').innerHTML,'');
@@ -304,7 +306,7 @@ test('space view shows every measured category and records partial scans without
 });
 
 test('new-version badge opens Application and automatic download remains an explicit preference',async t=>{
-  const env=await setup({server:{appUpdate:{success:true,state:'available',newVersion:'1.7.0',managed:true}}});t.after(()=>env.close());
+  const env=await setup({server:{appUpdate:{success:true,state:'available',newVersion:nextRelease,managed:true}}});t.after(()=>env.close());
   await env.advance(15001);assert.equal(env.$('app-update-badge').hidden,false);await env.$('settings-button').emit('click');assert.equal(env.$('settings-updates').hidden,false);
   assert.ok(env.requests.every(r=>!r.path.startsWith('/api/app-update/download')));
   env.$('app-download-toggle').checked=true;await env.$('app-download-toggle').emit('change');assert.equal(env.server.settings.preferences.appAutoDownload,true);

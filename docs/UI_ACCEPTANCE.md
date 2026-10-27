@@ -12,6 +12,7 @@ Use a freshly extracted runtime in a new writable folder. Retain the exact sourc
 | Scope/history / 范围与历史 | Test all eight options, reload, back/forward and copied URL; preserve hero/lane/filters/scope. Scope-only changes cause no detail requests. |
 | Missing profile / 缺少组合 | Exact current champion/profile download is offered online; both columns share one task. Offline mode explains how to recover defaults. |
 | Languages / 语言 | Switch during a query. Close-dialog icon has a translated accessible name; 0/1/2 champion counts are grammatical. |
+| BP detail focus / BP 详情焦点 | Click a BP portrait, then repeat with Enter. Focus reaches the champion heading; its indicator must not cross the title, translated name or return button. Pointer selection leaves no enclosing box; keyboard selection retains a visible cue. Check Diana and long names in both languages/themes, narrow widths, 200% equivalent reflow and forced colors. Return to BP restores the original slot. |
 | Theme / 主题 | System/light/dark follow the chosen setting across restart. Text and selected states remain legible. |
 | Native close / 关闭 | Cancel stays open; tray retains query; reopening restores it; explicit exit ends the service. |
 | Dialogs / 对话框 | Keyboard navigation, focus, Escape and scroll work in real WebView2; verify at 720 px and normal desktop width. |

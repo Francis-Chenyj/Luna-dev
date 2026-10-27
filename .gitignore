@@ -19,6 +19,12 @@ cache/
 
 # Local research, evidence captures and development caches
 /research/
+/.tools/
+/Downloads/
+/tmp/
+/reports/
+/local-bp-verifier/
+/demo-samples/
 __pycache__/
 *.py[cod]
 node_modules/

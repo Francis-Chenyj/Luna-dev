@@ -35,6 +35,7 @@ foreach ($package in $manifest.packages) {
         foreach ($entry in $zip.Entries) {
             $path = $entry.FullName
             if (-not $path.StartsWith('Luna/') -or $path.Contains('\') -or $path -match '(^|/)\.\.?(/|$)|:|(^|/)(cache|research|dist|node_modules|\.git|__pycache__|\.vs)(/|$)|\.(lnk|log|tmp|pfx|p12|pem|key)$|(^|/)\.env($|\.)') { throw "Unexpected or unsafe package path: $path" }
+            if ($path -match '(^|/)(reports|webview-profile|local-bp-verifier|acceptance-review)(/|$)|(^|/)(Luna\.BPVerifier[^/]*|VerifierHost\.cs|VerifierModel\.cs|LoopbackRuntime\.cs|开始本地验收\.cmd|events\.ndjson|feedback\.zip|host-result\.json|smoke-result\.json|session-created\.txt)$') { throw "Standalone acceptance material must not be shipped: $path" }
             if ($seen.ContainsKey($path) -or -not $expected.ContainsKey($path)) { throw "Duplicate/unlisted entry: $path" }
             $seen[$path] = $true
             $stream = $entry.Open(); $sha = [Security.Cryptography.SHA256]::Create()

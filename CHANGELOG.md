@@ -1,5 +1,13 @@
 # Changelog / 更新日志
 
+## 1.7.1 — 2026-10-28 (development pre-release)
+
+- Fix the BP detail heading's focus box overlapping the champion title. Pointer selection leaves the name clear; keyboard navigation retains an underline, focus transfer and return to the original BP slot.
+- Add 52 heading-focus browser scenarios covering Diana and long names, both languages/themes, pointer/keyboard use, narrow widths, equivalent zoom and forced colors. Keep emulated screenshots aligned with the measured viewport.
+- Synchronize program, interface, development metadata, current documentation and package identities at 1.7.1. Existing query behavior, settings and disk formats remain compatible with 1.7.0.
+- Publish the previously local 1.6.x–1.7.1 work through the GitHub development pre-release channel, including optional BP synchronization and service-isolation repairs. Install manually; stable automatic-update signing and the existing third-party review remain open.
+- Keep the standalone acceptance tool, personal session reports and demonstration media outside source and release packages. See [release notes](docs/RELEASE-v1.7.1.md) and [verification scope](docs/QA-1.7.1.md).
+
 ## 1.7.0 — 2026-10-22 (local review)
 
 - Add optional local-client BP synchronization: two teams of five champion slots, visible selection rounds, and on-demand local matchup queries.

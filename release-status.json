@@ -1,12 +1,12 @@
 {
   "schema": 1,
-  "version": "1.7.0",
+  "version": "1.7.1",
   "author": "FrancisChen",
-  "reviewDate": "2026-10-22",
+  "reviewDate": "2026-10-28",
   "intendedRepository": "Francis-Chenyj/Luna-dev",
   "intendedVisibility": "public",
   "originalCodeLicense": "MIT",
-  "distributionStatus": "local-review",
+  "distributionStatus": "development-prerelease",
   "publicReleaseReady": false,
   "thirdPartyReview": "docs/THIRD_PARTY_REVIEW.md",
   "pending": [
@@ -14,7 +14,7 @@
     "Confirm Riot product registration/review and the terms/provenance of bundled Riot/Tencent assets.",
     "Resolve the documented scope of third-party screenshots and curated source material before redistribution."
   ],
-  "releaseTag": null,
-  "statusExplanation": "Local 1.7.0 BP champion synchronization and regression repairs; no GitHub publication. BP access is optional and local, with champion-only projection. Public registration, distribution evidence and publisher signing remain open. latestPublicRelease records the 2026-10-15 audit baseline and was not refreshed.",
-  "latestPublicRelease": "v1.5.0-dev.1"
+  "releaseTag": "v1.7.1",
+  "statusExplanation": "Version 1.7.1 is distributed on GitHub as a development pre-release at the maintainer's request, following the existing preview channel. BP access remains optional and local, with champion-only projection. Registration, third-party distribution evidence and publisher signing remain open; pre-release availability does not mark them complete. Install this build manually; it is not a signed stable automatic update. Standalone acceptance tools, personal reports and demonstration media are excluded.",
+  "latestPublicRelease": "v1.7.1"
 }

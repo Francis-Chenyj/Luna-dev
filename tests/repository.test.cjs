@@ -23,12 +23,23 @@ test('release, executable source, interface and current documentation use one ve
   const assembly = read('src/AssemblyInfo.cs');
   const version = assembly.match(/AssemblyInformationalVersion\("(\d+\.\d+\.\d+)"\)/)?.[1];
   assert.ok(version, 'AssemblyInformationalVersion must be a release version');
+  for (const attribute of ['AssemblyVersion', 'AssemblyFileVersion']) {
+    assert.equal(assembly.match(new RegExp(`${attribute}\\("([^\"]+)"\\)`))?.[1], version + '.0', attribute);
+  }
+  const developmentPackage = JSON.parse(read('package.json'));
+  const dependencyLock = JSON.parse(read('package-lock.json'));
+  assert.equal(developmentPackage.version, version, 'Development package version');
+  assert.equal(dependencyLock.version, version, 'Dependency lock version');
+  assert.equal(dependencyLock.packages[''].version, version, 'Root dependency lock version');
   const author = assembly.match(/AssemblyCompany\("([^"]+)"\)/)?.[1];
   assert.equal(author, 'FrancisChen');
   const status = JSON.parse(read('release-status.json'));
   assert.equal(status.version, version);
   assert.equal(status.author, author);
   assert.equal(read('src/Settings.cs').match(/const string AppVersion\s*=\s*"([^"]+)"/)?.[1], version);
+  const homepage = read('web/index.html');
+  assert.equal(homepage.match(/<span class="brand-name">Luna<\/span><small>([^<]+)<\/small>/)?.[1], version, 'Header version');
+  assert.equal(homepage.match(/<dd id="about-version">([^<]+)<\/dd>/)?.[1], version, 'About fallback version');
   for (const file of ['web/index.html','README.md','README.zh-CN.md','docs/USER_GUIDE.md','docs/USER_GUIDE.zh-CN.md','docs/DEVELOPER_GUIDE.md','docs/DEVELOPER_GUIDE.zh-CN.md']) {
     assert.ok(read(file).includes(version), `${file} must describe the current version`);
   }

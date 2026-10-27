@@ -1,6 +1,6 @@
 # Fault regression maintenance / 故障回归维护
 
-Applies to Luna 1.7.0. Test changes must preserve the failure being simulated and the observable recovery behavior.
+Applies to Luna 1.7.1. Test changes must preserve the failure being simulated and the observable recovery behavior.
 
 ## 场景迁移
 
