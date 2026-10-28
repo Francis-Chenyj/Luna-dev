@@ -2,9 +2,9 @@
 
 首次来源核查：2026-10-11（Luna 1.4.3） · 历史版本复核：2026-10-12（Luna 1.5.0，Asia/Shanghai） · 维护者：FrancisChen
 
-当前下载为 1.7.1 开发预发布，证据待办仍见 [release-status.json](../release-status.json)；现用 1.7.1 配图及原 1.5.0 配图的日期、条件见[配图说明](images/README.md)。本文保留原核查日期，不把本次文案校正记为重新取得授权或完成产品审核。
+当前下载为 1.7.2 开发预发布，证据待办仍见 [release-status.json](../release-status.json)；现用 1.7.2 配图及原 1.5.0 配图的日期、条件见[配图说明](images/README.md)。本文保留原核查日期，不把本次文案校正记为重新取得授权或完成产品审核。
 
-Current downloads are the 1.7.1 development pre-release. The evidence status remains open. The dated reviews below retain their original scope; the current screenshot inventory is documented separately.
+Current downloads are the 1.7.2 development pre-release. The evidence status remains open. The dated reviews below retain their original scope; the current screenshot inventory is documented separately.
 
 ## 历史发布安排（2026-10-13）
 

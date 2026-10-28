@@ -230,7 +230,7 @@
   "双击 Luna.exe 或“启动Luna.cmd”。只监听本机地址，无需管理员权限。标题栏关闭可选择最小化到托盘或退出，并可在设置中修改关闭方式。页面或托盘的“退出”立即停止服务；仅浏览器或无窗口模式在约 10–11 分钟无访问后自动退出。": "Run Luna.exe or 启动Luna.cmd. Luna listens only on this computer and requires no administrator rights. Closing the native window offers tray or exit; change this behavior in Settings. Exit from the page or tray stops the service immediately. Only browser or headless mode exits after about 10–11 idle minutes.",
   "右上角显示本地运行、连接中断或已退出。连接中断时，请重新启动程序，再点击“重新连接”或在新打开的窗口继续使用。可运行“创建Luna桌面快捷方式.cmd”创建绿色 L 图标的桌面入口。": "The top badge indicates running, disconnected or stopped. If disconnected, restart Luna and choose Reconnect, or continue in the newly opened window. Run 创建Luna桌面快捷方式.cmd to create a desktop shortcut with the green L icon.",
   "本地程序作者：": "App author:",
-  "· 版本 1.7.1。": "· Version 1.7.1.",
+  "· 版本 1.7.2。": "· Version 1.7.2.",
   "项目主页": "Project homepage",
   "Luna · GitHub 项目主页 ↗": "Luna · GitHub project homepage ↗",
   "开发中，欢迎反馈。": "In development. Feedback is welcome.",

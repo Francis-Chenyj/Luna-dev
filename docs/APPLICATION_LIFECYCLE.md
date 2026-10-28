@@ -1,4 +1,4 @@
-> Applies to 1.7.1. Native readiness, corrupt-journal recovery and deep-path maintenance are covered in the [repair and verification guide](AUDIT_REPAIRS.md). Historical session fixtures retain their original versions. / 适用于 1.7.1；历史测试样本保留原版本号。
+> Applies to 1.7.2. Native readiness, corrupt-journal recovery and deep-path maintenance are covered in the [repair and verification guide](AUDIT_REPAIRS.md). Historical session fixtures retain their original versions. / 适用于 1.7.2；历史测试样本保留原版本号。
 
 # Application lifecycle / 程序维护
 
@@ -12,7 +12,7 @@ The current implementation (introduced in 1.6.2) couples `appAutoDownload => app
 
 Sign a release with `scripts/sign-release.ps1 -ReleaseDirectory <directory> -PrivateKeyPath <outside-repository-private-key.xml> -Notes <release-notes>`. The private key must be outside source and release directories and match `src/UpdateTrust.cs`. Keep a separate secure backup; losing it prevents installed copies from trusting future updates. This RSA update signature is not Windows Authenticode signing.
 
-Publish the Windows ZIP and `luna-update.json` together in a **stable** Release in `Francis-Chenyj/Luna-dev`, tagged `v<version>`. Never replace an already-published version's contents; use a higher version. Build/sign scripts do not upload. The published 1.7.1 development pre-release has no `luna-update.json` and is installed manually; this stable-channel workflow describes a future eligible release.
+Publish the Windows ZIP and `luna-update.json` together in a **stable** Release in `Francis-Chenyj/Luna-dev`, tagged `v<version>`. Never replace an already-published version's contents; use a higher version. Build/sign scripts do not upload. The published 1.7.2 development pre-release has no `luna-update.json` and is installed manually; this stable-channel workflow describes a future eligible release.
 
 Only HTTPS and specified GitHub download hosts are accepted. A valid publisher signature, signed ZIP hash/length, safe archive paths and per-file inventory are required. Tests generate independent ephemeral keys; the production private key is never packaged.
 
@@ -28,7 +28,7 @@ Uninstall removes only unchanged files in the ownership inventory; modified and 
 
 使用签名脚本传入发布目录、仓库与发布目录之外的私钥及更新说明。私钥应单独安全备份，必须匹配 `src/UpdateTrust.cs`。这是更新元数据签名，不等同于 Windows 代码签名。正式私钥不会进入程序包，测试使用临时测试密钥。
 
-正式 Release 需同时上传 Windows ZIP 和 `luna-update.json`，标签为 `v<版本>`。同一公开版本不原地替换内容。构建、打包和签名不会自动上传。已发布的 1.7.1 是手动安装的开发预发布，不含 `luna-update.json`；上述流程用于以后符合条件的稳定版。
+正式 Release 需同时上传 Windows ZIP 和 `luna-update.json`，标签为 `v<版本>`。同一公开版本不原地替换内容。构建、打包和签名不会自动上传。已发布的 1.7.2 是手动安装的开发预发布，不含 `luna-update.json`；上述流程用于以后符合条件的稳定版。
 
 程序验证发布者签名、ZIP 大小和哈希、清单及路径。安装始终需要用户确认。独立维护程序等候退出，发现同目录其他实例则停止；备份、记录替换事务、检查新版本地启动与查询，失败恢复旧程序。异常中断后的下次启动由外部维护程序恢复。本版不改变用户数据格式；以后增加不兼容迁移时必须提供可恢复的数据方案。
 

@@ -4,9 +4,9 @@
 
 **English** · [简体中文](USER_GUIDE.zh-CN.md) · [Project overview](../README.md) · [Developer guide](DEVELOPER_GUIDE.md) · [Changelog](../CHANGELOG.md)
 
-**Applies to version 1.7.1 · Author: FrancisChen**
+**Applies to version 1.7.2 · Author: FrancisChen**
 
-See the [1.7.1 repair guide](AUDIT_REPAIRS.md) for scope restoration, missing-profile downloads, storage waiting messages and damaged-update recovery.
+See the [1.7.2 repair guide](AUDIT_REPAIRS.md) for scope restoration, missing-profile downloads, storage waiting messages and damaged-update recovery.
 
 Project home: [Luna on GitHub](https://github.com/Francis-Chenyj/Luna-dev). Luna is in development and distributed as a pre-release; [distribution status](../release-status.json) is tracked separately.
 
@@ -25,15 +25,15 @@ This guide describes current operation by task. Version history belongs in the c
 - [Example: winning lane and winning the game](#example-winning-lane-and-winning-the-game)
 - [Data sources and notices](#data-sources-and-notices)
 - [Desktop-window upgrade](#desktop-window-upgrade-160)
-- [Optional BP synchronization](#optional-bp-synchronization-171)
+- [Optional BP synchronization](#optional-bp-synchronization-172)
 
 ## Install and launch
 
 Luna requires Windows 10 / 11, .NET Framework 4.7.2+ and Microsoft Edge WebView2 Runtime. It uses a native desktop window; install the [Evergreen Runtime](https://developer.microsoft.com/microsoft-edge/webview2/) if needed. Browser compatibility mode (`Luna.exe --browser`) does not support tray controls. Local queries need no developer tools, Luna login, API key or administrator privileges. Optional BP synchronization requires an already running, logged-in League client.
 
-Download the [1.7.1 development pre-release](https://github.com/Francis-Chenyj/Luna-dev/releases/tag/v1.7.1) from GitHub. This preview is installed manually rather than through the signed stable automatic-update channel:
+Download the [1.7.2 development pre-release](https://github.com/Francis-Chenyj/Luna-dev/releases/tag/v1.7.2) from GitHub. This preview is installed manually rather than through the signed stable automatic-update channel:
 
-1. **Fully extract** `Luna-v1.7.1-Windows.zip` to a writable folder, such as `D:\Apps\Luna`. Do not run from inside the ZIP or copy only the EXE.
+1. **Fully extract** `Luna-v1.7.2-Windows.zip` to a writable folder, such as `D:\Apps\Luna`. Do not run from inside the ZIP or copy only the EXE.
 2. Keep `Luna.exe`, `Luna.exe.config`, both Microsoft.Web.WebView2 DLLs, `runtimes`, `web` and `data` together.
 3. Run `Luna.exe` or `启动Luna.cmd`, then wait for the local-service status at the top right.
 4. Search for a champion and choose a lane. The default profile is bundled and ready to query.
@@ -135,7 +135,7 @@ The offline launcher prohibits external updates while retaining access to all sa
 
 Data updates **do not install a newer Luna application**. Manage application updates separately in **Settings → Application**. Automatic download is initially off; installation requires confirmation and a compatible signed stable release.
 
-In 1.7.1, enabling automatic downloads enables checks too and immediately checks/downloads an eligible update. Turning checks off turns automatic downloads off; turning only downloads off retains checks and saved progress. Manual downloads remain available. Offline or manual-only launches explain that choices are saved without automatic networking this session. After a successful restart, the app reports success. See [Application updates in the README](../README.md#application-updates) for the complete rules.
+In 1.7.2, enabling automatic downloads enables checks too and immediately checks/downloads an eligible update. Turning checks off turns automatic downloads off; turning only downloads off retains checks and saved progress. Manual downloads remain available. Offline or manual-only launches explain that choices are saved without automatic networking this session. After a successful restart, the app reports success. See [Application updates in the README](../README.md#application-updates) for the complete rules.
 
 ## Sources and timestamps
 
@@ -234,6 +234,6 @@ The owned window uses Microsoft WebView2, preserving language/theme/settings and
 On Windows 11, supported title-bar colors follow app light/dark/system appearance. Windows 10 and older runtimes may retain system frame colors. High-contrast mode leaves caption colors to Windows. If the native page cannot load, closing the window offers a native Yes (tray) / No (exit) / Cancel fallback; this startup fallback does not remember a choice.
 
 
-## Optional BP synchronization (1.7.1)
+## Optional BP synchronization (1.7.2)
 
 Connect the running League client from Luna's home page. Five champion slots per team appear during champion selection; click a portrait to open its local matchup details. The feature is off after every app start, uses only local read-only endpoints, and does not query player history or rank. Unknown lanes use a clearly identified local default rather than the previously selected champion's lane. [Usage, privacy boundaries and compatibility](CLIENT_DRAFT.md).

@@ -18,9 +18,9 @@ The browser suite adds 52 heading-focus scenarios to existing BP-board and resul
 
 ### Known text inconsistencies / 已知文案遗漏
 
-The original 1.7.1 packages still show 1.6.6 in the help dialog and retain browser-era close-window wording; their Windows application manifest also retains 1.6.4.0. The executable product/file version, header and About page are 1.7.1. These are text/metadata inconsistencies, not evidence that the package is 1.6.6. They are corrected on the default branch after this release and covered by an expanded version check. The published tag and assets remain unchanged; see [unreleased changes](../CHANGELOG.md#unreleased--尚未打包发布).
+The original 1.7.1 packages still show 1.6.6 in the help dialog and retain browser-era close-window wording; their Windows application manifest also retains 1.6.4.0. The executable product/file version, header and About page are 1.7.1. These are text/metadata inconsistencies, not evidence that the package is 1.6.6. They are corrected on the default branch after this release and covered by an expanded version check. The published tag and assets remain unchanged; see [the 1.7.2 release](RELEASE-v1.7.2.md).
 
-原 1.7.1 下载包的使用说明仍显示 1.6.6，并沿用浏览器模式的关闭说明；Windows 应用清单还保留 1.6.4.0。程序文件、主页与关于页版本为 1.7.1。这些文案和元数据遗漏已在发布后的主分支修正，原标签及下载包不覆盖；原生窗口实际支持托盘／退出，只有浏览器和无窗口模式使用闲置超时。
+原 1.7.1 下载包的使用说明仍显示 1.6.6，并沿用浏览器模式的关闭说明；Windows 应用清单还保留 1.6.4.0。程序文件、主页与关于页版本为 1.7.1。这些文案和元数据遗漏已在发布后的主分支修正，修正随后装入 1.7.2，原标签及下载包不覆盖；原生窗口实际支持托盘／退出，只有浏览器和无窗口模式使用闲置超时。
 
 ### Assets / 附件
 

@@ -6,7 +6,7 @@
 
 **English** · [简体中文](README.zh-CN.md)
 
-**v1.7.1** · Windows 10 / 11 · .NET Framework 4.7.2+ · [MIT — original code](LICENSE)
+**v1.7.2** · Windows 10 / 11 · .NET Framework 4.7.2+ · [MIT — original code](LICENSE)
 
 A local League of Legends matchup explorer for champion selection. Search for a champion to see **opponents that counter you** and **opponents you counter**, with lane and rank filters.
 
@@ -30,15 +30,15 @@ Matchup results come from [MalzaharAI](https://www.malzaharai.top/counter). Rela
 
 ## Preview
 
-![Luna 1.7.1 showing the optional champion-select panel and Aatrox top-lane matchups in offline mode](docs/images/luna-v1.7.1-matchups-en.png)
+![Luna 1.7.2 showing the optional champion-select panel and Aatrox top-lane matchups in offline mode](docs/images/luna-v1.7.2-matchups-en.png)
 
-Luna 1.7.1 in English with the light theme, captured from the published Windows package on October 28, 2026. The optional champion-select panel is shown before connecting to a client. The local query uses bundled data: Aatrox, top lane, threshold 1, strictness 5, with the **All ranks** category selected. This is an interface example, not a live recommendation. [Screenshot details](docs/images/README.md).
+Luna 1.7.2 in English with the light theme, captured from the verified 1.7.2 Windows release candidate on October 29, 2026. The optional champion-select panel is shown before connecting to a client. The local query uses bundled data: Aatrox, top lane, threshold 1, strictness 5, with the **All ranks** category selected. This is an interface example, not a live recommendation. [Screenshot details](docs/images/README.md).
 
 ## Download and quick start
 
-**1.7.1 development pre-release:** includes optional BP synchronization and the accumulated stability repairs since the earlier GitHub build. It also fixes the focus box overlapping the champion title after a BP portrait query. Pointer selection leaves the name clear; keyboard selection retains an underline, focus transfer and return to BP. Query behavior, settings and disk formats remain compatible with 1.7.0. See the [release notes](docs/RELEASE-v1.7.1.md), [verification scope](docs/QA-1.7.1.md) and [test maintenance guide](docs/TESTING.md).
+**1.7.2 development pre-release:** packages the corrected help version, native-window closing instructions and Windows manifest, and synchronizes current guides and previews. It retains optional BP synchronization and the 1.7.1 heading-focus repair. Query behavior, settings and saved-data formats remain compatible. See the [release notes](docs/RELEASE-v1.7.2.md), [verification scope](docs/QA-1.7.2.md) and [test maintenance guide](docs/TESTING.md).
 
-**Download [v1.7.1](https://github.com/Francis-Chenyj/Luna-dev/releases/tag/v1.7.1).** Choose `Luna-v1.7.1-Windows.zip` to run Luna; `Luna-v1.7.1-Source.zip` contains development source without an executable. Verify the archives using the accompanying `SHA256SUMS.txt`. This development pre-release is installed manually and is not a signed stable automatic update. Third-party distribution permissions and Riot registration remain open; see [release status](release-status.json) and [third-party notices](THIRD_PARTY_NOTICES.md).
+**Download [v1.7.2](https://github.com/Francis-Chenyj/Luna-dev/releases/tag/v1.7.2).** Choose `Luna-v1.7.2-Windows.zip` to run Luna; `Luna-v1.7.2-Source.zip` contains development source without an executable. Verify the archives using the accompanying `SHA256SUMS.txt`. This development pre-release is installed manually and is not a signed stable automatic update. Third-party distribution permissions and Riot registration remain open; see [release status](release-status.json) and [third-party notices](THIRD_PARTY_NOTICES.md).
 
 **Requirements:** Windows 10 / 11, .NET Framework 4.7.2+ and Microsoft Edge WebView2 Runtime. Luna reuses the installed runtime; its ZIP does not bundle a complete browser. If missing, install the [Evergreen Runtime from Microsoft](https://developer.microsoft.com/microsoft-edge/webview2/). `Luna.exe --browser` opens compatibility mode without tray support. Normal use needs no Node.js, Python, account, API key or administrator privileges.
 
@@ -70,7 +70,7 @@ Startup reads library manifests without hashing every saved profile and backup. 
 - Disposable browser caches are cleared daily while idle, retaining recent queries and settings. Manual maintenance does not wipe usable offline libraries.
 - Locked files, unknown ownership, damaged activation records or potentially unique recovery data are retained conservatively. These limits are not a hard cap on the entire directory.
 
-The runtime ZIP is approximately **9.2 MiB**, with approximately **11.2 MiB** of extracted program files before user caches. In an earlier native-window test, core files plus early runtime storage measured about 21 MiB; browser profiles, downloaded libraries and an update backup add to this. Check the timestamped storage view for your own copy, rather than estimating by months of use.
+The release page shows the runtime ZIP size; extracted storage depends on the packaged files and user caches. In an earlier native-window test, core files plus early runtime storage measured about 21 MiB; browser profiles, downloaded libraries and an update backup add to this. Check the timestamped storage view for your own copy, rather than estimating by months of use.
 
 Six actual 30-second sessions retained update progress **40 → 88 → 136 records** with zero cross-session duplicate downloads. All 1,141 local queries succeeded (maximum 17.91 ms on this computer). Updates used controlled responses; these timings are not public-network or all-machine guarantees. See [the full verification record](docs/QA-1.6.0.md).
 
@@ -94,7 +94,7 @@ Offline launch saves the switches but makes no update requests. A `--no-auto-upd
 
 Downloaded bytes survive exit. When the server supports it, HTTP Range resumes the partial package; a server that does not support ranges causes a safe full restart of that download. A verified package is not downloaded again. Installation only starts after **Restart and update** and confirmation; minimizing to the tray does not install an update.
 
-After a successful restart, Application settings reports the installed update and removes the old offer. Upgrade health now requires the native window, application initialization and a local query to succeed. See the [current QA scope](docs/QA-1.7.1.md). Historical short-session checks retain their original version records; they do not establish a public-channel upgrade for this build.
+After a successful restart, Application settings reports the installed update and removes the old offer. Upgrade health now requires the native window, application initialization and a local query to succeed. See the [current QA scope](docs/QA-1.7.2.md). Historical short-session checks retain their original version records; they do not establish a public-channel upgrade for this build.
 
 The app accepts update metadata from the project's stable release source only after verification with the embedded publisher public key. ZIP size, SHA-256, the file inventory and paths are checked. The new version must pass a local startup/query check; failure restores the old program. An interrupted replacement is recovered at the next launch. Settings and matchup libraries are excluded from program replacement.
 
@@ -121,7 +121,14 @@ The [bug report](https://github.com/Francis-Chenyj/Luna-dev/issues/new?template=
 
 ## Author and acknowledgements
 
-Created and maintained by [**FrancisChen**](https://github.com/Francis-Chenyj), with development assistance from [OpenAI Codex](https://openai.com/codex/).
+### Contributors
+
+| Contributor | Role |
+| --- | --- |
+| [**FrancisChen**](https://github.com/Francis-Chenyj) | Creator and maintainer; product decisions and release ownership. |
+| [**OpenAI Codex**](https://openai.com/codex/) | AI development collaborator: implementation, debugging, tests and documentation, under the maintainer's direction. |
+
+This explicit credit is separate from GitHub's automatically generated [commit contributor graph](https://github.com/Francis-Chenyj/Luna-dev/graphs/contributors).
 
 The README layout draws on [Yifan Ad Skipper](https://github.com/CharryLee0426/yifan-ad-skipper). [League Akari](https://github.com/LeagueAkari/LeagueAkari) is a reference for GitHub project presentation; [Codex Team Token Tracker](https://github.com/CharryLee0426/codex_team_token_tracker) informed the separation of user and developer documentation.
 
@@ -132,6 +139,6 @@ Copyright © 2026 FrancisChen. Luna's original code, scripts, documentation and 
 Luna isn't endorsed by Riot Games and doesn't reflect the views or opinions of Riot Games or anyone officially involved in producing or managing Riot Games properties. Riot Games, and all associated properties are trademarks or registered trademarks of Riot Games, Inc.
 
 
-## Optional BP synchronization (1.7.1)
+## Optional BP synchronization (1.7.2)
 
 Connect the running League client from Luna's home page. Five champion slots per team appear during champion selection; click a portrait to open its local matchup details. The feature is off after every app start, uses only local read-only endpoints, and does not query player history or rank. Unknown lanes use a clearly identified local default rather than the previously selected champion's lane. [Usage, privacy boundaries and compatibility](docs/CLIENT_DRAFT.md).

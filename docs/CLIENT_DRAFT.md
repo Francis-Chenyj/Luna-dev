@@ -1,6 +1,6 @@
 # BP champion synchronization / BP 英雄同步
 
-Luna 1.7.1 development pre-release. This feature is off on every application start. Select **Connect client / 连接客户端** on the home page to enable it for this run; **Disconnect / 断开连接** cancels polling and clears the live slots. Local matchup queries remain available. Offline launch disables upstream updates but still permits an explicitly enabled connection to the local League client.
+Luna 1.7.2 development pre-release. This feature is off on every application start. Select **Connect client / 连接客户端** on the home page to enable it for this run; **Disconnect / 断开连接** cancels polling and clears the live slots. Local matchup queries remain available. Offline launch disables upstream updates but still permits an explicitly enabled connection to the local League client.
 
 ## 使用与显示
 
@@ -29,7 +29,7 @@ It does not call player profiles, identity lookup, match history, rank, chat, ma
 
 The page uses stable native buttons, updates only changed contents and preserves keyboard focus. The public Luna routes retain Host, Origin, X-Luna, method and empty-body validation: GET `/api/draft`, POST `/api/draft/connect`, POST `/api/draft/disconnect`. Reading state does not enable client access. Tests use injected transports and synthetic sessions; browser regressions replace only these Luna routes with sanitized fixtures, never connect to an installed client by accident.
 
-Run `tests/run-client-draft.ps1`, `node --test tests/ui.test.cjs`, and `scripts/check.ps1 -Browser`. See [QA](QA-1.7.1.md) for the evidence scope. A fixture passing proves that input scenario, not compatibility with every League region/client version.
+Run `tests/run-client-draft.ps1`, `node --test tests/ui.test.cjs`, and `scripts/check.ps1 -Browser`. See [QA](QA-1.7.2.md) for the evidence scope. A fixture passing proves that input scenario, not compatibility with every League region/client version.
 
 ## External compatibility and publication / 外部兼容与发布
 

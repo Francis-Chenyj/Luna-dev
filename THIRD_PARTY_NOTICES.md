@@ -1,8 +1,8 @@
 ﻿# 第三方内容声明 / Third-party notices
 
-维护者：FrancisChen · 当前适用版本：Luna 1.7.1 · 配图范围更新：2026-10-28（Asia/Shanghai）
+维护者：FrancisChen · 当前适用版本：Luna 1.7.2 · 配图范围更新：2026-10-29（Asia/Shanghai）
 
-首次来源核查为 2026-10-11，既有政策复核为 2026-10-12；2026-10-28 仅同步当前版本与 README 配图范围。日期更新不表示已重新核查政策、取得新增授权或通过产品注册 / 审阅，具体依据与未决事项见[核查记录](docs/THIRD_PARTY_REVIEW.md)。
+首次来源核查为 2026-10-11，既有政策复核为 2026-10-12；2026-10-29 仅同步当前版本与 README 配图范围。日期更新不表示已重新核查政策、取得新增授权或通过产品注册 / 审阅，具体依据与未决事项见[核查记录](docs/THIRD_PARTY_REVIEW.md)。
 
 Luna 的原创程序代码、构建脚本和原创说明采用根目录的 [MIT 许可证](LICENSE)。本文件区分随附内容的来源与授权范围；不授予维护者无权授予的第三方权利。**当前完整包作为开发预发布版本提供，第三方内容的公开分发条件尚未全部确认；预发布并不代表取得这些授权。** 证据与待办见[核查记录](docs/THIRD_PARTY_REVIEW.md)。
 
@@ -14,7 +14,8 @@ Luna 的原创程序代码、构建脚本和原创说明采用根目录的 [MIT 
 | `data/search-aliases.json`、`web/aliases.js` 中的英文和繁体标签 | [Riot Data Dragon](https://developer.riotgames.com/docs/lol#data-dragon)，原整理版本 16.20.1 | 属于游戏内容，适用 Riot 条款；不是 MIT 授权的原创词汇 |
 | `data/community-aliases.json` 与派生搜索词中的社区叫法 | 人工筛选整理；参考来源逐项列在 `data/search-aliases.json` 的 `sources` 中 | 整理工作不改变上游内容的权利；没有将整篇文章引入项目，也不据此声称所有来源已授权 |
 | `docs/urgot-mundo-example.png` | 用户提供的示例截图，包含上游界面 / 游戏内容 | 提供用于本项目说明，不等同于已确认可按 MIT 任意再分发其中的第三方内容 |
-| `docs/images/luna-v1.7.1-matchups-en.png`、`docs/images/luna-v1.7.1-matchups-zh-CN.png` | 2026-10-28 从已发布的 Luna 1.7.1 隔离离线副本截取的英文浅色、简体中文深色界面；包含现有英雄头像、名称及随包关系数据 | 当前双语 README 产品预览；保留截图内第三方内容原有范围，截取条件见[配图说明](docs/images/README.md) |
+| `docs/images/luna-v1.7.2-matchups-en.png`、`docs/images/luna-v1.7.2-matchups-zh-CN.png` | 2026-10-29 从已校验的 Luna 1.7.2 发布候选包隔离离线副本截取的英文浅色、简体中文深色界面；包含现有英雄头像、名称及随包关系数据 | 当前双语 README 产品预览；保留截图内第三方内容原有范围，截取条件见[配图说明](docs/images/README.md) |
+| `docs/images/luna-v1.7.1-matchups-en.png`、`docs/images/luna-v1.7.1-matchups-zh-CN.png` | 2026-10-28 从已发布的 Luna 1.7.1 隔离离线副本截取的英文浅色、简体中文深色界面；包含现有英雄头像、名称及随包关系数据 | 历史双语产品预览；保留截图内第三方内容原有范围，截取条件见[配图说明](docs/images/README.md) |
 | `docs/images/luna-matchups.png` | 2026-10-12 从 Luna 1.5.0 隔离离线副本截取的英文浅色界面；包含现有英雄头像、名称及随包关系数据 | 保留供历史记录引用；适用原有第三方内容范围，截取条件见[配图说明](docs/images/README.md) |
 | `docs/images/luna-matchups-zh-CN.png` | 2026-10-12 从 Luna 1.5.0 隔离离线副本截取的简体中文深色界面；包含现有英雄头像、名称及随包关系数据 | 保留供历史记录引用；适用相同的第三方内容范围，截取条件见[配图说明](docs/images/README.md) |
 | `web/logo.svg`、`web/app*.ico`、`web/app-*.png` | Luna 绿色 L 图标；构建脚本使用基本几何图形生成 | 项目自有资源，随原创代码采用 MIT；不代表 Riot 或 MalzaharAI 的标志 |
@@ -39,7 +40,7 @@ Luna 与 MalzaharAI、腾讯及 Riot Games 无隶属或背书关系。商标、�
 
 The [MIT license](LICENSE) covers Luna's original code, build scripts, original documentation and its own geometric L icon. It does not relicense third-party game assets, labels, upstream matchup data or third-party content within screenshots. The table above identifies affected paths and sources.
 
-This document applies to Luna 1.7.1. The README image scope was updated on 2026-10-28 with English/light and Simplified Chinese/dark screenshots (`luna-v1.7.1-matchups-en.png` and `luna-v1.7.1-matchups-zh-CN.png`) from a verified isolated offline copy of the published 1.7.1 package. The 1.5.0 screenshots remain as historical references. The initial source review and earlier policy review retain their 2026-10-11 and 2026-10-12 dates; this image update does not constitute a new policy review, permission or completed product registration/review.
+This document applies to Luna 1.7.2. The README image scope was updated on 2026-10-29 with English/light and Simplified Chinese/dark screenshots (`luna-v1.7.2-matchups-en.png` and `luna-v1.7.2-matchups-zh-CN.png`) from a verified isolated offline release candidate. The 1.7.1 and 1.5.0 screenshots remain historical references. The initial source review and earlier policy review retain their 2026-10-11 and 2026-10-12 dates; this image update does not constitute a new policy review, permission or completed product registration/review.
 
 The current complete packages are **development pre-releases**. Pre-release publication does not resolve the pending third-party permissions. MalzaharAI snapshot redistribution and third-party update-access terms remain unconfirmed. The Tencent catalog endpoint has no confirmed open-data license in this review. Riot permits use of official Data Dragon resources subject to its policies; product registration/review and the provenance of the presently bundled images remain unresolved for Luna. See the [dated review](docs/THIRD_PARTY_REVIEW.md) before distributing these files.
 

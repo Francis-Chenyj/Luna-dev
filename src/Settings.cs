@@ -30,7 +30,7 @@ namespace Luna {
             public readonly string Code;
             public SettingsException(string code) : base(code) { Code = code; }
         }
-        internal const string AppVersion = "1.7.1";
+        internal const string AppVersion = "1.7.2";
         string SettingsFile { get { return Path.Combine(options.CacheDir, "settings.json"); } }
         internal Preferences ReadPreferences(out string warning) {
             warning = "";

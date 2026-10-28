@@ -1,11 +1,12 @@
 # Changelog / 更新日志
 
-## Unreleased / 尚未打包发布
+## 1.7.2 — 2026-10-29 (development pre-release)
 
-- Correct the help dialog's stale version and close-window instructions in both languages, and align the Windows manifest version. Extend the existing version guard to include these previously unchecked version fields.
-- Update the current release checklist, user/developer guides, test inventory, issue-form example and Chinese Markdown formatting. Keep historical release/QA records explicitly historical.
-- These changes are on the default branch after the 1.7.1 release. The published `v1.7.1` tag and download assets retain their original contents; these corrections are not a new downloadable release.
-- 本节记录 1.7.1 发布后的源码修正，尚未形成新下载包。历史条目中的“本地审阅／尚未上传”描述当时状态；此前改进已随 1.7.1 开发预发布公开。
+- Package the help dialog version, bilingual native-window closing instructions and Windows application manifest corrections that followed 1.7.1. Extend the version guard to cover these fields.
+- Synchronize program, interface, release metadata, current guides and new English/Chinese README screenshots at 1.7.2. Correct test inventory and Chinese Markdown formatting; retain historical version records.
+- Credit OpenAI Codex explicitly as an AI development collaborator alongside the project maintainer.
+- Preserve existing queries, optional BP synchronization, settings and data formats. Keep the original 1.7.1 tag and assets unchanged.
+- 帮助文案、应用清单与文档修正已随 1.7.2 打包；本版仍为手动安装的开发预发布。独立验收工具、个人报告及演示素材不进入项目和发布包。见[发布说明](docs/RELEASE-v1.7.2.md)与[验证范围](docs/QA-1.7.2.md)。
 
 ## 1.7.1 — 2026-10-28 (development pre-release)
 

@@ -1,6 +1,6 @@
 # Runtime ownership / 运行时状态归属
 
-Applies to Luna 1.7.1. The existing .NET Framework build, local API and on-disk formats remain supported.
+Applies to Luna 1.7.2. The existing .NET Framework build, local API and on-disk formats remain supported.
 
 ## 服务边界
 
